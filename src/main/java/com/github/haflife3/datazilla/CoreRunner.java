@@ -1,14 +1,22 @@
 package com.github.haflife3.datazilla;
 
+import com.github.haflife3.datazilla.annotation.ResultCast;
+import com.github.haflife3.datazilla.annotation.TblField;
 import com.github.haflife3.datazilla.dialect.DialectConst;
 import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
+import com.github.haflife3.datazilla.enums.ResultCastStrategy;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal;
 import com.github.haflife3.datazilla.misc.MoreGenerousBeanProcessor;
 import com.github.haflife3.datazilla.pojo.QueryConditionBundle;
 import com.github.haflife3.datazilla.pojo.SqlPreparedBundle;
+import com.google.gson.FieldNamingStrategy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -20,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.*;
 
@@ -46,13 +56,20 @@ public class CoreRunner {
 
     
     public <T> List<T> genericQry(String sql, Class<T> clazz, Object[] values)  {
-        List<T> list;
+        List<T> list = new ArrayList<>();
         try {
             long start = System.currentTimeMillis();
-            if(values!=null&&values.length>0){
+            ResultCastStrategy castStrategy = getCastStrategy(clazz);
+            if(ResultCastStrategy.JSON.equals(castStrategy)) {
+                List<Map<String, Object>> listMap = queryRunner.query(sql,new MapListHandler(),values);
+                if(CollectionUtils.isNotEmpty(listMap)){
+                    Gson gson = new GsonBuilder().setFieldNamingStrategy(new DataZillaFieldNamingStrategy()).create();
+                    String json = gson.toJson(listMap);
+                    Type type = TypeToken.getParameterized(ArrayList.class, clazz).getType();
+                    list = gson.fromJson(json,type);
+                }
+            }else {
                 list = queryRunner.query(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(new MoreGenerousBeanProcessor(clazz))),values);
-            }else{
-                list = queryRunner.query(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(new MoreGenerousBeanProcessor(clazz))));
             }
             long end = System.currentTimeMillis();
             log(sql,values,list,(end-start));
@@ -62,16 +79,35 @@ public class CoreRunner {
         return list;
     }
 
+    private class DataZillaFieldNamingStrategy implements FieldNamingStrategy {
+
+        @Override
+        public String translateName(Field f) {
+            String name = f.getName();
+            TblField tblField = f.getAnnotation(TblField.class);
+            if(tblField!=null){
+                String value = tblField.value();
+                name = StringUtils.isNoneBlank(value)?value:name;
+            }
+            return name;
+        }
+    }
+
+    private ResultCastStrategy getCastStrategy(Class<?> clazz){
+        ResultCastStrategy strategy = ResultCastStrategy.DEFAULT;
+        if(clazz!=null&&clazz.isAnnotationPresent(ResultCast.class)){
+            ResultCast resultCast = clazz.getAnnotation(ResultCast.class);
+            strategy = resultCast.value();
+        }
+        return strategy;
+    }
+
     
     public List<Map<String, Object>> genericQry(String sql, Object[] values){
         List<Map<String, Object>> list = null;
         try {
             long start = System.currentTimeMillis();
-            if(values!=null&&values.length>0){
-                list = queryRunner.query(sql,new MapListHandler(),values);
-            }else{
-                list = queryRunner.query(sql,new MapListHandler());
-            }
+            list = queryRunner.query(sql,new MapListHandler(),values);
             long end = System.currentTimeMillis();
             log(sql,values,list,(end-start));
         } catch (SQLException e) {
@@ -85,11 +121,7 @@ public class CoreRunner {
         int affected = 0;
         try {
             long start = System.currentTimeMillis();
-            if(values!=null&&values.length>0){
-                affected = queryRunner.update(sql, values);
-            }else{
-                affected = queryRunner.update(sql);
-            }
+            affected = queryRunner.update(sql, values);
             long end = System.currentTimeMillis();
             log(sql,values,affected,(end-start));
         } catch (SQLException e) {
