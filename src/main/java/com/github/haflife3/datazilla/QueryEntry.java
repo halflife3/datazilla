@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.sql.DataSource;
@@ -51,6 +52,11 @@ public class QueryEntry {
 
     public List<Map<String,Object>> genericQry(String sql, Object ... values){
         return coreRunner.genericQry(sql, values);
+    }
+
+
+    public <T> List<T> genericQry(String sql, ResultSetHandler<List<T>> resultSetHandler, Object ... values)  {
+        return coreRunner.genericQry(sql,resultSetHandler,values);
     }
 
     public int genericUpdate(String sql, Object[] values){

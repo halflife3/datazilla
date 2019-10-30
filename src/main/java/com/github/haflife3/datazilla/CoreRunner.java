@@ -19,6 +19,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
@@ -56,50 +57,21 @@ public class CoreRunner {
 
     
     public <T> List<T> genericQry(String sql, Class<T> clazz, Object[] values)  {
-        List<T> list = new ArrayList<>();
+        return genericQry(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(new MoreGenerousBeanProcessor(clazz))),values);
+    }
+
+
+    public <T> List<T> genericQry(String sql, ResultSetHandler<List<T>> resultSetHandler, Object[] values)  {
+        List<T> list;
         try {
             long start = System.currentTimeMillis();
-            ResultCastStrategy castStrategy = getCastStrategy(clazz);
-            if(ResultCastStrategy.JSON.equals(castStrategy)) {
-                List<Map<String, Object>> listMap = queryRunner.query(sql,new MapListHandler(),values);
-                if(CollectionUtils.isNotEmpty(listMap)){
-                    Gson gson = new GsonBuilder().setFieldNamingStrategy(new DataZillaFieldNamingStrategy()).create();
-                    String json = gson.toJson(listMap);
-                    Type type = TypeToken.getParameterized(ArrayList.class, clazz).getType();
-                    list = gson.fromJson(json,type);
-                }
-            }else {
-                list = queryRunner.query(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(new MoreGenerousBeanProcessor(clazz))),values);
-            }
+            list = queryRunner.query(sql,resultSetHandler,values);
             long end = System.currentTimeMillis();
             log(sql,values,list,(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
         }
         return list;
-    }
-
-    private class DataZillaFieldNamingStrategy implements FieldNamingStrategy {
-
-        @Override
-        public String translateName(Field f) {
-            String name = f.getName();
-            TblField tblField = f.getAnnotation(TblField.class);
-            if(tblField!=null){
-                String value = tblField.value();
-                name = StringUtils.isNoneBlank(value)?value:name;
-            }
-            return name;
-        }
-    }
-
-    private ResultCastStrategy getCastStrategy(Class<?> clazz){
-        ResultCastStrategy strategy = ResultCastStrategy.DEFAULT;
-        if(clazz!=null&&clazz.isAnnotationPresent(ResultCast.class)){
-            ResultCast resultCast = clazz.getAnnotation(ResultCast.class);
-            strategy = resultCast.value();
-        }
-        return strategy;
     }
 
     
