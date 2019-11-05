@@ -290,7 +290,7 @@ public class QueryEntry {
     }
 
     public int updateFull(String table, Object record, List<Cond> conds, List<String> excludeFields){
-        Map<String, Object> map = toFieldValueMap(record);
+        Map<String, Object> map = toFullFieldValueMap(record);
         if(CollectionUtils.isNotEmpty(excludeFields)){
             excludeFields.forEach(map::remove);
         }
@@ -298,7 +298,7 @@ public class QueryEntry {
     }
     public int updateFull(String table, Map<String, Object> valueMap, List<Cond> conds){
         stripUnknownFields(table,valueMap);
-        List<FieldValuePair> pairs = toFieldValuePair(valueMap);
+        List<FieldValuePair> pairs = toFullFieldValuePair(valueMap);
         UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
                 .targetTable(table)
                 .values2Update(pairs)
@@ -391,12 +391,16 @@ public class QueryEntry {
 //    }
 
     private List<FieldValuePair> toFieldValuePair(Map<String, Object> map){
+        List<FieldValuePair> pairs = toFullFieldValuePair(map);
+        pairs.removeIf(pair -> pair.getValue()==null);
+        return pairs;
+    }
+
+    private List<FieldValuePair> toFullFieldValuePair(Map<String, Object> map){
         List<FieldValuePair> pairs = new ArrayList<>();
         if(MapUtils.isNotEmpty(map)){
             map.forEach((key,value) ->{
-                if(value!=null){
-                    pairs.add(new FieldValuePair(key,value));
-                }
+                pairs.add(new FieldValuePair(key,value));
             });
         }
         return pairs;
@@ -410,6 +414,12 @@ public class QueryEntry {
     }
 
     private Map<String,Object> toFieldValueMap(Object obj) {
+        Map<String, Object> fieldValueMap = toFullFieldValueMap(obj);
+        fieldValueMap.entrySet().removeIf(entry->entry.getValue()==null);
+        return fieldValueMap;
+    }
+
+    private Map<String,Object> toFullFieldValueMap(Object obj) {
         Map<String,Object> condMap = new LinkedHashMap<>();
         try {
             List<Field> fields = MiscUtil.getAllFields(obj.getClass());
@@ -423,9 +433,7 @@ public class QueryEntry {
                             fieldName = field.getName();
                         }
                         Object value = field.get(obj);
-                        if (value != null) {
-                            condMap.put(fieldName, value);
-                        }
+                        condMap.put(fieldName, value);
                     }
                 }
             }
