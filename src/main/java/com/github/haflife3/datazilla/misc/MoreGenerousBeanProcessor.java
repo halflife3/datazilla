@@ -1,7 +1,6 @@
 package com.github.haflife3.datazilla.misc;
 
 import com.github.haflife3.datazilla.annotation.TblField;
-import org.apache.commons.dbutils.BeanProcessor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.beans.PropertyDescriptor;
@@ -10,7 +9,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-public class MoreGenerousBeanProcessor extends BeanProcessor {
+public class MoreGenerousBeanProcessor extends CustomBeanProcessor {
     private Class<?> beanClass;
 
     /**
