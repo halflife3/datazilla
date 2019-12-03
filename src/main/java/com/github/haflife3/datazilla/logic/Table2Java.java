@@ -14,11 +14,14 @@ import org.apache.commons.lang3.StringUtils;
 import com.github.haflife3.datazilla.misc.PlatformUtils;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.*;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Table2Java {
     public static void main(String[] args) {
@@ -106,7 +109,7 @@ public class Table2Java {
                 boolean needGen = true;
 
                 if(fileExist){
-                    String fileContent = FileUtils.readFileToString(javaFile);
+                    String fileContent = FileUtils.readFileToString(javaFile, UTF_8);
                     if(fileContent.equals(beanContent)){
                         needGen = false;
                     }
