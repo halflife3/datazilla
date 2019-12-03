@@ -1,22 +1,14 @@
 package com.github.haflife3.datazilla;
 
-import com.github.haflife3.datazilla.annotation.ResultCast;
-import com.github.haflife3.datazilla.annotation.TblField;
 import com.github.haflife3.datazilla.dialect.DialectConst;
 import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
-import com.github.haflife3.datazilla.enums.ResultCastStrategy;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal;
 import com.github.haflife3.datazilla.misc.MoreGenerousBeanProcessor;
 import com.github.haflife3.datazilla.pojo.QueryConditionBundle;
 import com.github.haflife3.datazilla.pojo.SqlPreparedBundle;
-import com.google.gson.FieldNamingStrategy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -24,13 +16,11 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ddlutils.PlatformUtils;
+import com.github.haflife3.datazilla.misc.PlatformUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.*;
 

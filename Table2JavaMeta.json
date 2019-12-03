@@ -1,0 +1,17 @@
+{
+  "driver":"org.h2.Driver",
+  "dbSchema":"",
+  "connectParams":"",
+  "dbUrl":"jdbc:h2:tcp://localhost/~/test",
+  "dbUser":"sa",
+  "dbPass":"",
+  "srcRoot":"/src/test/java",
+  "domainPackage":"com.github.haflife3.dataobject",
+  "lombokMode":true,
+  "extraTypeMap":{
+
+  },
+  "table2ClassMap":{
+    "TEST_X":"TestX"
+  }
+}

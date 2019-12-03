@@ -11,7 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ddlutils.PlatformUtils;
+import com.github.haflife3.datazilla.misc.PlatformUtils;
 
 import java.io.File;
 import java.sql.Connection;
@@ -60,7 +60,14 @@ public class Table2Java {
     }
 
     private static void init(){
-        try (Connection conn = DriverManager.getConnection(meta.getDbUrl()+"/"+meta.getDbSchema()+"?"+meta.getConnectParams(), meta.getDbUser(), meta.getDbPass())) {
+        String url = meta.getDbUrl();
+        if(meta.getDbSchema()!=null&& !"".equals(meta.getDbSchema())){
+            url += "/"+meta.getDbSchema();
+        }
+        if(meta.getConnectParams()!=null&& !"".equals(meta.getConnectParams())){
+            url += "?"+meta.getConnectParams();
+        }
+        try (Connection conn = DriverManager.getConnection(url, meta.getDbUser(), meta.getDbPass())) {
             Class.forName(meta.getDriver());
             initDir();
 //            initDomainParent();
