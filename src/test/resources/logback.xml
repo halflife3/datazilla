@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration debug="true" scan="false">
+
+    <!--
+    1. Logback tries to find a file called logback.groovy in the classpath.
+    2. If no such file is found, logback tries to find a file called logback-test.xml
+       in the classpath.
+    3. If no such file is found, it checks for the file logback.xml in the classpath.
+    4. In case neither file is found, logback configures itself automatically using
+       the BasicConfigurator which will cause logging output to be directed on the console.
+
+       See http://logback.qos.ch/manual/configuration.html
+     -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/app.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>logs/app.%i.log.gz</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>12</maxIndex>
+        </rollingPolicy>
+
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+
+        <encoder>
+            <!-- Note that MDC is added via myAppMDCMap -->
+            <pattern>%d{ISO8601} %-5level [%thread] %logger{36} - [%X{myAppMDCMap}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger level="INFO" name="uk.co.jemos.podam" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%-4relative [%thread] %-5level %logger{35} - %msg %n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- For root loggers, log to FILE appender -->
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+   </configuration>

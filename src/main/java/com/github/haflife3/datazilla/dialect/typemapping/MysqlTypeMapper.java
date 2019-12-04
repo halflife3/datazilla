@@ -11,12 +11,12 @@ public class MysqlTypeMapper implements TypeMapper {
         typeMap.put("SMALLINT","Integer");
         typeMap.put("YEAR","Integer");
         typeMap.put("INT","Integer");
-        typeMap.put("BIT","Long");
+        typeMap.put("BIT","Boolean");
         typeMap.put("BIGINT","Long");
         typeMap.put("FLOAT","Double");
         typeMap.put("DOUBLE","Double");
         typeMap.put("DECIMAL","Double");
-        typeMap.put("NUMERIC","java.math.BigDecimal");
+        typeMap.put("NUMERIC","Double");
         typeMap.put("DATETIME","java.util.Date");
         typeMap.put("TIMESTAMP","java.util.Date");
         typeMap.put("DATE","java.util.Date");

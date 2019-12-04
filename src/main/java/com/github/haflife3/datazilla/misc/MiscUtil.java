@@ -80,12 +80,13 @@ public class MiscUtil {
 
     public static void setFieldValuesListFromObjList(List<?> list, String[] fieldNames,Object[] values) throws Exception {
         if(list!=null){
-            if(fieldNames.length==values.length)
-            for(Object o:list){
-                for(int i=0;i<fieldNames.length;i++) {
-                    Field field = o.getClass().getDeclaredField(fieldNames[i]);
-                    field.setAccessible(true);
-                    field.set(o, values[i]);
+            if(fieldNames.length==values.length) {
+                for (Object o : list) {
+                    for (int i = 0; i < fieldNames.length; i++) {
+                        Field field = o.getClass().getDeclaredField(fieldNames[i]);
+                        field.setAccessible(true);
+                        field.set(o, values[i]);
+                    }
                 }
             }
         }
