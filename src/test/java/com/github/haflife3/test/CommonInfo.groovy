@@ -39,7 +39,7 @@ CREATE TABLE `TABLE_PLACEHOLDER`  (
         '''
     static String createH2TestTable =
         '''
-CREATE TABLE dummy_table ( 
+CREATE TABLE TABLE_PLACEHOLDER ( 
    id bigint auto_increment PRIMARY KEY NOT NULL, 
    int_f INT , 
    integer_f INTEGER , 
