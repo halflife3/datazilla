@@ -12,6 +12,6 @@
 
   },
   "table2ClassMap":{
-    "TEST_X":"TestX"
+    "DUMMY_TABLE":"DummyTableH2"
   }
 }

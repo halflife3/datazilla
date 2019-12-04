@@ -63,18 +63,21 @@ class CommonTest {
     }
 
     void batchInsert(){
+        logger.info ' -- batchInsert -- '
         List<? extends DummyTable> list = CommonTool.generateDummyRecords(getRecordClass(),200)
         def insertNum = qe.batchInsert(list)
         assert insertNum == 200
     }
 
     void queryAll(){
+        logger.info ' -- queryAll -- '
         List<? extends DummyTable> list = qe.searchObjects(getRecordClass().newInstance())
         assert list.size() == 200
         GeneralThreadLocal.set("allRecords",list)
     }
 
     void querySingle(){
+        logger.info ' -- querySingle -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def record = list.get(0)
         def search = getRecordClass().newInstance()
@@ -85,6 +88,7 @@ class CommonTest {
     }
 
     void paging(){
+        logger.info ' -- paging -- '
         PagingInjector.fillParam(1,10,true,new OrderCond("id","desc"))
         List<? extends DummyTable> list = qe.searchObjects(getRecordClass().newInstance())
         def count = PagingInjector.count
@@ -99,12 +103,14 @@ class CommonTest {
     }
 
     void insertOne(){
+        logger.info ' -- insertOne -- '
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getRecordClass(), 1))
         def insertNum = qe.insert(record)
         assert insertNum == 1
     }
 
     void updateSelective(){
+        logger.info ' -- updateSelective -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getRecordClass(), 1))
@@ -114,6 +120,7 @@ class CommonTest {
     }
 
     void delOne(){
+        logger.info ' -- delOne -- '
         def del = getRecordClass().newInstance()
         MiscUtil.setValue(del,"id",1L)
         def delNum = qe.delObjects(del)

@@ -10,6 +10,7 @@ class CommonInfo {
     static Map<String,String> createTableMap = new HashMap<>()
     static Map<String,ConnInfo> connInfoMap = new HashMap<>()
     static Map<String,String> driverClassNameMap = new HashMap<>()
+
     static String createMysqlTestTable =
         '''
 CREATE TABLE `TABLE_PLACEHOLDER`  ( 
@@ -36,9 +37,32 @@ CREATE TABLE `TABLE_PLACEHOLDER`  (
 \t)
 
         '''
+    static String createH2TestTable =
+        '''
+CREATE TABLE dummy_table ( 
+   id bigint auto_increment PRIMARY KEY NOT NULL, 
+   int_f INT , 
+   integer_f INTEGER , 
+   boolean_f BOOLEAN, 
+   bit_f BIT, 
+   tinyint_f TINYINT, 
+   smallint_f SMALLINT, 
+   year_f YEAR, 
+   decimal_f DECIMAL(20, 2), 
+   double_f DOUBLE, 
+   time_f TIME, 
+   date_f DATE, 
+   timestamp_f TIMESTAMP, 
+   datetime_f DATETIME, 
+   varchar_f VARCHAR(255), 
+   char_f CHAR(10), 
+   uuid_f UUID
+)
+'''
 
     static {
         createTableMap.put(DialectConst.MYSQL,createMysqlTestTable)
+        createTableMap.put(DialectConst.H2,createH2TestTable)
         connInfoMap.put(DialectConst.MYSQL,
             ConnInfo.builder()
                 .url("")
@@ -46,7 +70,14 @@ CREATE TABLE `TABLE_PLACEHOLDER`  (
                 .password("")
                 .build()
         )
+        connInfoMap.put(DialectConst.H2,
+            ConnInfo.builder()
+                .url("jdbc:h2:tcp://localhost/~/test")
+                .username("sa")
+                .build()
+        )
         driverClassNameMap.put(DialectConst.MYSQL,"com.mysql.jdbc.Driver")
+        driverClassNameMap.put(DialectConst.H2,"org.h2.Driver")
     }
 
     static DataSource getDataSource(String dbType){
