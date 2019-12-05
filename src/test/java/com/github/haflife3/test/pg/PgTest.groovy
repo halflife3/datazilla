@@ -1,21 +1,21 @@
-package com.github.haflife3.test.h2
+package com.github.haflife3.test.pg
 
 import com.github.haflife3.dataobject.DummyTable
-import com.github.haflife3.dataobject.DummyTableH2
+import com.github.haflife3.dataobject.DummyTablePG
 import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.test.CommonTest
 import org.junit.Test
 
-class H2Test extends CommonTest{
+class PgTest extends CommonTest{
 
     @Override
     protected Class<? extends DummyTable> getRecordClass() {
-        return DummyTableH2.class
+        return DummyTablePG.class
     }
 
     @Override
     protected String getDbType() {
-        return DialectConst.H2
+        return DialectConst.PG
     }
 
     @Override

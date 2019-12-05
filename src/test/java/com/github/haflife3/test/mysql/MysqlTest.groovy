@@ -4,7 +4,6 @@ import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.dataobject.DummyTableMysql
 import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.test.CommonTest
-import org.junit.Ignore
 import org.junit.Test
 
 class MysqlTest extends CommonTest{
@@ -24,7 +23,7 @@ class MysqlTest extends CommonTest{
         return super.tableName()
     }
 
-    @Ignore
+//    @Ignore
     @Test
     @Override
     void test(){

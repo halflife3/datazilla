@@ -4,6 +4,7 @@ import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.annotation.TblField;
 import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.misc.DBException;
+import com.github.haflife3.datazilla.misc.PlatformUtils;
 import com.github.haflife3.datazilla.pojo.Table2JavaMeta;
 import com.google.common.base.CaseFormat;
 import com.google.gson.Gson;
@@ -11,10 +12,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import com.github.haflife3.datazilla.misc.PlatformUtils;
 
 import java.io.File;
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -150,7 +149,10 @@ public class Table2Java {
             String javaVarName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name.toUpperCase());
             String type = meta.getType();
             String comment = meta.getComment();
-            String javaType = TYPE_MAP.get(type.toUpperCase().replaceAll("\\s+","").replaceAll("UNSIGNED",""));
+            String javaType = TYPE_MAP.get(type.toUpperCase().replaceAll("\\s+"," ").replaceAll("UNSIGNED",""));
+            if(StringUtils.isBlank(javaType)){
+                throw new DBException("type:"+type+" has no corresponding java type!");
+            }
             String simpleJavaType = getSimpleJavaType(javaType);
             if(javaType.contains(".")){
                 importPartSet.add(javaType);
@@ -163,7 +165,10 @@ public class Table2Java {
 //                    fieldsPart += "  @JsonFormat(pattern=\"yyyy-MM-dd HH:mm:ss\",timezone = \"GMT+8\")\n";
 //                }
 //            }
-            fieldsPart += "\n  /** "+comment+" */\n";
+            fieldsPart += "\n";
+            if(StringUtils.isNotBlank(comment)) {
+                fieldsPart += "  /** " + comment + " */\n";
+            }
             fieldsPart += "  @TblField(\""+name+"\")\n";
             fieldsPart += "  private "+simpleJavaType+" "+javaVarName+";\n";
             builderFieldsPart += "    private "+simpleJavaType+" "+javaVarName+";\n";
@@ -198,7 +203,9 @@ public class Table2Java {
         beanContent += packagePart+"\n";
         beanContent += importPart+"\n";
 //        beanContent += "// << ALERT >> : DO NOT MODIFY THIS FILE !!! \n";
-        beanContent += "/** "+tableComment+" */\n";
+        if(StringUtils.isNotBlank(tableComment)){
+            beanContent += "/** "+tableComment+" */\n";
+        }
         beanContent += "@Table(\""+tableName+"\")\n";
         if(meta.isLombokMode()){
             beanContent += "@Data\n";

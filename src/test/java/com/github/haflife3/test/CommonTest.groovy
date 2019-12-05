@@ -35,9 +35,9 @@ class CommonTest {
         qe = new QueryEntry(CommonInfo.getDataSource(getDbType()))
         String createTableTemplate = CommonInfo.createTableMap.get(getDbType())
         String createTableSql = createTableTemplate.replace("TABLE_PLACEHOLDER",tableName())
-        String cleanupSql = "DROP TABLE IF EXISTS "+tableName()
-        qe.genericUpdate(cleanupSql)
         qe.genericUpdate(createTableSql)
+        String truncateSql = "truncate table "+tableName()
+        qe.genericUpdate(truncateSql)
         logger.info '>>setup finish<<'
     }
 
@@ -121,8 +121,10 @@ class CommonTest {
 
     void delOne(){
         logger.info ' -- delOne -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Del = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def del = getRecordClass().newInstance()
-        MiscUtil.setValue(del,"id",1L)
+        MiscUtil.setValue(del,"id",id2Del)
         def delNum = qe.delObjects(del)
         assert delNum == 1
     }

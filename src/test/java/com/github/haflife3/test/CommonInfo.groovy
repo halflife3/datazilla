@@ -13,33 +13,32 @@ class CommonInfo {
 
     static String createMysqlTestTable =
         '''
-CREATE TABLE `TABLE_PLACEHOLDER`  ( 
-\t`id`         \tbigint(20) AUTO_INCREMENT NOT NULL,
-\t`tinyint_f`  \ttinyint(4) NULL,
-\t`smallint_f` \tsmallint(6) NULL,
-\t`year_f`     \tyear(4) NULL,
-\t`int_f`      \tint(11) NULL,
-\t`bit_f`      \tbit(1) NULL,
-\t`bigint_f`   \tbigint(20) NULL,
-\t`float_f`    \tfloat NULL,
-\t`double_f`   \tdouble NULL,
-\t`decimal_f`  \tdecimal(10,5) NULL,
-\t`numeric_f`  \tnumeric(10,5) NULL,
-\t`dateTime_f` \tdatetime NULL,
-\t`timestamp_f`\ttimestamp NULL,
-\t`date_f`     \tdate NULL,
-\t`time_f`     \ttime NULL,
-\t`char_f`     \tchar(25) NULL,
-\t`varchar_f`   \tvarchar(200) NULL,
-\t`text_f`     \ttext NULL,
-\t`longtext_f` \tlongtext NULL,
-\t PRIMARY KEY(id)
-\t)
-
+CREATE TABLE IF NOT EXISTS `TABLE_PLACEHOLDER`  ( 
+   `id`            bigint(20) AUTO_INCREMENT NOT NULL,
+   `tinyint_f`     tinyint(4) NULL,
+   `smallint_f`    smallint(6) NULL,
+   `year_f`        year(4) NULL,
+   `int_f`         int(11) NULL,
+   `bit_f`         bit(1) NULL,
+   `bigint_f`      bigint(20) NULL,
+   `float_f`       float NULL,
+   `double_f`      double NULL,
+   `decimal_f`     decimal(10,5) NULL,
+   `numeric_f`     numeric(10,5) NULL,
+   `dateTime_f`    datetime NULL,
+   `timestamp_f`   timestamp NULL,
+   `date_f`        date NULL,
+   `time_f`        time NULL,
+   `char_f`        char(25) NULL,
+   `varchar_f`     varchar(200) NULL,
+   `text_f`        text NULL,
+   `longtext_f`    longtext NULL,
+    PRIMARY KEY(id)
+   )
         '''
     static String createH2TestTable =
         '''
-CREATE TABLE TABLE_PLACEHOLDER ( 
+CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER ( 
    id bigint auto_increment PRIMARY KEY NOT NULL, 
    int_f INT , 
    integer_f INTEGER , 
@@ -59,10 +58,35 @@ CREATE TABLE TABLE_PLACEHOLDER (
    uuid_f UUID
 )
 '''
+    
+    static String createPgTestTable =
+        '''
+CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  ( 
+   "id"                   bigserial NOT NULL,
+   "bigint_f"             bigint NULL,
+   "smallint_f"           smallint NULL,
+   "integer_f"            integer NULL,
+   "decimal_f"            decimal(15,5) NULL,
+   "numeric_f"            numeric(15,5) NULL,
+   "real_f"               real NULL,
+   "double_precision_f"   double precision NULL,
+   "float8_f"             float8 NULL,
+   "varchar_f"            varchar(200) NULL,
+   "character_f"          character(25) NULL,
+   "char_f"               char(25) NULL,
+   "text_f"               text NULL,
+   "timestamp_f"          timestamp NULL,
+   "date_f"               date NULL,
+   "time_f"               time NULL,
+   "boolean_f"            boolean NULL ,
+   PRIMARY KEY("id") 
+   )
+'''
 
     static {
         createTableMap.put(DialectConst.MYSQL,createMysqlTestTable)
         createTableMap.put(DialectConst.H2,createH2TestTable)
+        createTableMap.put(DialectConst.PG,createPgTestTable)
         connInfoMap.put(DialectConst.MYSQL,
             ConnInfo.builder()
                 .url("")
@@ -76,8 +100,16 @@ CREATE TABLE TABLE_PLACEHOLDER (
                 .username("sa")
                 .build()
         )
+        connInfoMap.put(DialectConst.PG,
+            ConnInfo.builder()
+                .url("")
+                .username("")
+                .password("")
+                .build()
+        )
         driverClassNameMap.put(DialectConst.MYSQL,"com.mysql.jdbc.Driver")
         driverClassNameMap.put(DialectConst.H2,"org.h2.Driver")
+        driverClassNameMap.put(DialectConst.PG,"org.postgresql.Driver")
     }
 
     static DataSource getDataSource(String dbType){
