@@ -58,6 +58,7 @@ class CommonTest {
         paging()
         insertOne()
         updateSelective()
+        persist()
         delOne()
         logger.info ' -- test finish -- '
     }
@@ -114,9 +115,22 @@ class CommonTest {
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getRecordClass(), 1))
-        def updateNum = qe.updateSelective(record, new Cond("id", id2Update))
+        def condObj = getRecordClass().newInstance()
+        condObj.setId(id2Update)
+        def updateNum = qe.updateSelective(record, condObj)
         assert updateNum == 1
 
+    }
+
+    void persist(){
+        logger.info ' -- persist -- '
+        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getRecordClass(), 1))
+        def id = System.currentTimeMillis()
+        record.setId(id)
+        def condObj = getRecordClass().newInstance()
+        condObj.setId(id)
+        def persistNum = qe.persist(record, condObj)
+        assert persistNum == 1
     }
 
     void delOne(){

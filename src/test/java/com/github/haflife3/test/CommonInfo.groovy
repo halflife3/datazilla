@@ -89,8 +89,8 @@ CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  (
         createTableMap.put(DialectConst.PG,createPgTestTable)
         connInfoMap.put(DialectConst.MYSQL,
             ConnInfo.builder()
-                .url("")
-                .username("")
+                .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8")
+                .username("root")
                 .password("")
                 .build()
         )

@@ -248,13 +248,25 @@ public class QueryEntry {
         return num;
     }
 
+    public <T> int persist(T record, T condObj){
+        return persist(record,fromTableDomain(condObj));
+    }
+
     public int persist(Object record, Cond... conds){
+        return persist(record,Arrays.asList(conds));
+    }
+
+    public int persist(Object record, List<Cond> conds){
         int num = 0;
         num = updateSelective(record,conds);
         if(num == 0){
             num = insert(record);
         }
         return num;
+    }
+
+    public <T> int updateSelective(T record, T condObj){
+        return updateSelective(record,fromTableDomain(condObj));
     }
 
     public int updateSelective(Object record, List<Cond> conds){
@@ -283,6 +295,10 @@ public class QueryEntry {
             .build();
         SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeUpdate(upCond);
         return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
+    }
+
+    public <T> int updateFull(T record, T condObj, List<String> excludeFields){
+        return updateFull(record,fromTableDomain(condObj),excludeFields);
     }
 
     public int updateFull(Object record, List<Cond> conds, List<String> excludeFields){
