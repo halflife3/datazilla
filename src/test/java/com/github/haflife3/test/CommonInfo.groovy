@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS dummy_table (
         )
         connInfoMap.put(DialectConst.H2,
             ConnInfo.builder()
-                .url("jdbc:h2:tcp://localhost/~/test")
+                .url("jdbc:h2:mem:")
                 .username("sa")
                 .build()
         )
