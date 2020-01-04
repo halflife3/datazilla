@@ -1,20 +1,14 @@
 package com.github.haflife3.datazilla.dialect;
 
 
-import com.github.haflife3.datazilla.dialect.batch.BatchInserter;
-import com.github.haflife3.datazilla.dialect.batch.DefaultBatchInserter;
-import com.github.haflife3.datazilla.dialect.batch.MysqlBatchInserter;
-import com.github.haflife3.datazilla.dialect.batch.PgBatchInserter;
+import com.github.haflife3.datazilla.dialect.batch.*;
 import com.github.haflife3.datazilla.dialect.operator.*;
 import com.github.haflife3.datazilla.dialect.pagination.*;
 import com.github.haflife3.datazilla.dialect.regulate.DefaultEntityRegulator;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import com.github.haflife3.datazilla.dialect.regulate.MysqlEntityRegulator;
 import com.github.haflife3.datazilla.dialect.regulate.PgEntityRegulator;
-import com.github.haflife3.datazilla.dialect.typemapping.H2TypeMapper;
-import com.github.haflife3.datazilla.dialect.typemapping.MysqlTypeMapper;
-import com.github.haflife3.datazilla.dialect.typemapping.PgTypeMapper;
-import com.github.haflife3.datazilla.dialect.typemapping.TypeMapper;
+import com.github.haflife3.datazilla.dialect.typemapping.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +19,7 @@ import static com.github.haflife3.datazilla.dialect.DialectConst.*;
 
 
 public class DialectFactory {
-    public static List<String> SUPPORTED_DB = Arrays.asList(MYSQL,PG,H2);
+    public static List<String> SUPPORTED_DB = Arrays.asList(MYSQL,PG,H2,SQLITE);
 
     private static Map<String, EntityRegulator> regulatorMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static Map<String, OprStore> oprStoreMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -39,25 +33,30 @@ public class DialectFactory {
         regulatorMap.put(MYSQL,new MysqlEntityRegulator());
         regulatorMap.put(PG,new PgEntityRegulator());
         regulatorMap.put(H2,new DefaultEntityRegulator());
+        regulatorMap.put(SQLITE,new DefaultEntityRegulator());
 
         oprStoreMap.put(DEFAULT,new DefaultOprStore());
         oprStoreMap.put(MYSQL,new MysqlOprStore());
         oprStoreMap.put(PG,new PgOprStore());
         oprStoreMap.put(H2,new H2OprStore());
+        oprStoreMap.put(SQLITE,new SqliteOprStore());
 
         paginationMap.put(DEFAULT,new DefaultPagination());
         paginationMap.put(MYSQL,new MysqlPagination());
         paginationMap.put(PG,new PgPagination());
         paginationMap.put(H2,new H2Pagination());
+        paginationMap.put(SQLITE,new SqlitePagination());
 
         typeMapperMap.put(MYSQL,new MysqlTypeMapper());
         typeMapperMap.put(PG,new PgTypeMapper());
         typeMapperMap.put(H2,new H2TypeMapper());
+        typeMapperMap.put(SQLITE,new SqliteTypeMapper());
 
         batchInserterMap.put(DEFAULT,new DefaultBatchInserter());
         batchInserterMap.put(MYSQL,new MysqlBatchInserter());
         batchInserterMap.put(PG,new PgBatchInserter());
         batchInserterMap.put(H2,new DefaultBatchInserter());
+        batchInserterMap.put(SQLITE,new SqliteBatchInserter());
 
         offlinePaginationMap.put(DEFAULT, new DefaultOfflinePagination());
     }

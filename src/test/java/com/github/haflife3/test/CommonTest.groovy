@@ -29,6 +29,10 @@ class CommonTest {
         return 'dummy_table'
     }
 
+    protected String cleanUpSql(){
+        return "truncate table "+tableName()
+    }
+
     @Before
     void setup(){
         logger.info('>>setup<<')
@@ -36,8 +40,8 @@ class CommonTest {
         String createTableTemplate = CommonInfo.createTableMap.get(getDbType())
         String createTableSql = createTableTemplate.replace("TABLE_PLACEHOLDER",tableName())
         qe.genericUpdate(createTableSql)
-        String truncateSql = "truncate table "+tableName()
-        qe.genericUpdate(truncateSql)
+        String cleanUpSql = cleanUpSql()
+        qe.genericUpdate(cleanUpSql)
         logger.info '>>setup finish<<'
     }
 

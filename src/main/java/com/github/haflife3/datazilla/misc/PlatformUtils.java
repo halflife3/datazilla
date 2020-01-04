@@ -64,6 +64,7 @@ public class PlatformUtils {
         this.jdbcSubProtocolToPlatform.put("inetpool:jdbc:inetsyb", "Sybase");
         this.jdbcSubProtocolToPlatform.put("jtds:sybase", "Sybase");
         this.jdbcSubProtocolToPlatform.put("h2", "H2");
+        this.jdbcSubProtocolToPlatform.put("sqlite", "SQLite");
         this.jdbcDriverToPlatform.put("org.axiondb.jdbc.AxionDriver", "Axion");
         this.jdbcDriverToPlatform.put("com.ibm.db2.jcc.DB2Driver", "DB2");
         this.jdbcDriverToPlatform.put("COM.ibm.db2.jdbc.app.DB2Driver", "DB2");
@@ -95,6 +96,7 @@ public class PlatformUtils {
         this.jdbcDriverToPlatform.put("com.ddtek.jdbc.sybase.SybaseDriver", "Sybase");
         this.jdbcDriverToPlatform.put("com.inet.syb.SybDriver", "Sybase");
         this.jdbcDriverToPlatform.put("org.h2.Driver", "H2");
+        this.jdbcDriverToPlatform.put("org.sqlite.JDBC", "SQLite");
     }
 
     public String determineDatabaseType(DataSource dataSource){

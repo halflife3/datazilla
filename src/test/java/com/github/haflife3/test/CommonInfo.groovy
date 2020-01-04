@@ -83,10 +83,21 @@ CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  (
    )
 '''
 
+    static String createSqliteTestTable =
+            '''
+CREATE TABLE IF NOT EXISTS dummy_table ( 
+   id INTEGER PRIMARY KEY NOT NULL, 
+   text_f TEXT , 
+   real_f REAL , 
+   numeric_f NUMERIC
+)
+'''
+
     static {
         createTableMap.put(DialectConst.MYSQL,createMysqlTestTable)
         createTableMap.put(DialectConst.H2,createH2TestTable)
         createTableMap.put(DialectConst.PG,createPgTestTable)
+        createTableMap.put(DialectConst.SQLITE,createSqliteTestTable)
         connInfoMap.put(DialectConst.MYSQL,
             ConnInfo.builder()
                 .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8")
@@ -107,9 +118,15 @@ CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  (
                 .password("")
                 .build()
         )
+        connInfoMap.put(DialectConst.SQLITE,
+                ConnInfo.builder()
+                        .url("jdbc:sqlite::memory:")
+                        .build()
+        )
         driverClassNameMap.put(DialectConst.MYSQL,"com.mysql.jdbc.Driver")
         driverClassNameMap.put(DialectConst.H2,"org.h2.Driver")
         driverClassNameMap.put(DialectConst.PG,"org.postgresql.Driver")
+        driverClassNameMap.put(DialectConst.SQLITE,"org.sqlite.JDBC")
     }
 
     static DataSource getDataSource(String dbType){
