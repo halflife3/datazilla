@@ -48,11 +48,15 @@ public class SqlBuilder {
                             where.deleteCharAt(where.length()-1);
                             where.append(") ");
                         }
-                    }else if(oprStore.getSingularOperators().contains(operator)){
+                    }else if(value==null){
                         where.append(" and "+field+" "+operator+" ");
                     }else{
                         where.append(" and "+field+" "+operator+" ?");
-                        values.add(value);
+                        if(value instanceof Null){
+                            values.add(null);
+                        }else {
+                            values.add(value);
+                        }
                     }
                 }
             }
@@ -74,11 +78,15 @@ public class SqlBuilder {
                             where.deleteCharAt(where.length()-1);
                             where.append(") ");
                         }
-                    }else if(operator.equalsIgnoreCase("is null") || operator.equalsIgnoreCase("is not null")){
-                        where.append(" or "+field+" "+operator+" ");
+                    }else if(value==null){
+                        where.append(" and "+field+" "+operator+" ");
                     }else{
-                        whereOr.append(" or "+field+" "+operator+" ?");
-                        values.add(value);
+                        where.append(" and "+field+" "+operator+" ?");
+                        if(value instanceof Null){
+                            values.add(null);
+                        }else {
+                            values.add(value);
+                        }
                     }
                 }
                 if(whereOr.length()>0) {
@@ -110,30 +118,7 @@ public class SqlBuilder {
         }
     }
 
-    private void checkConditionBundle(ConditionBundle cb){
-        String targetTable = cb.getTargetTable();
-        List<Cond> conditionAndList = cb.getConditionAndList();
-        List<Cond> conditionOrList = cb.getConditionOrList();
-        List<Cond> allList = new ArrayList<>();
-        if(CollectionUtils.isNotEmpty(conditionAndList)) {
-            allList.addAll(conditionAndList);
-        }
-        if(CollectionUtils.isNotEmpty(conditionOrList)) {
-            allList.addAll(conditionOrList);
-        }
-        for(Cond unit:allList) {
-            String field = unit.getFieldName();
-            checkNoSemiColon(field);
-            String operator = unit.getCompareOpr();
-            if(!oprStore.getAllOperators().contains(StringUtils.trimToEmpty(operator).toLowerCase().replaceAll("\\s+", " "))){
-                throw new DBException("Unknown Operator:"+operator);
-            }
-        }
-        checkNoSemiColon(targetTable);
-    }
-
     private void checkQueryConditionBundle(QueryConditionBundle qc){
-        checkConditionBundle(qc);
         List<String> intendedFields = qc.getIntendedFields();
         if(CollectionUtils.isNotEmpty(intendedFields)) {
             checkNoSemiColon(intendedFields.toArray(new String[intendedFields.size()]));
@@ -154,7 +139,6 @@ public class SqlBuilder {
     }
 
     private void checkUpdateConditionBundle(UpdateConditionBundle uc){
-        checkConditionBundle(uc);
         List<FieldValuePair> values2Update = uc.getValues2Update();
         if(CollectionUtils.isNotEmpty(values2Update)){
             for (FieldValuePair pair : values2Update) {
@@ -196,7 +180,6 @@ public class SqlBuilder {
     }
 
     public SqlPreparedBundle composeDelete(ConditionBundle cb){
-        checkConditionBundle(cb);
         SqlPreparedBundle sp = new SqlPreparedBundle();
         List<Object> values= new ArrayList<Object>();
         StringBuilder delete = new StringBuilder("delete from ").append(regulateTable(cb.getTargetTable()));
@@ -249,9 +232,6 @@ public class SqlBuilder {
                                     checkNoSemiColon(fieldName);
                                     if (StringUtils.isBlank(fieldName)) {
                                         fieldName = field.getName();
-                                    }
-                                    if (!oprStore.getAllOperators().contains(opr)) {
-                                        throw new DBException("Unknown OrderByType:" + opr);
                                     }
                                     if (opr.contains("like")) {
                                         value = "%" + value + "%";
