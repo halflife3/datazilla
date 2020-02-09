@@ -7,4 +7,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface Table {
     String value();
+    boolean autoColumnDetection() default false;
 }

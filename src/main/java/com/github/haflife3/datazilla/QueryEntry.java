@@ -5,6 +5,7 @@ import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.pagination.OfflinePagination;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableLoc;
+import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal;
 import com.github.haflife3.datazilla.misc.MiscUtil;
@@ -36,6 +37,14 @@ public class QueryEntry {
 
     public QueryEntry(CoreRunner coreRunner) {
         this.coreRunner = coreRunner;
+    }
+
+    public CoreRunner getCoreRunner() {
+        return coreRunner;
+    }
+
+    public DataSource getDataSource(){
+        return coreRunner.getDataSource();
     }
 
     public List<String> getColNames(String table){
@@ -438,18 +447,37 @@ public class QueryEntry {
     private Map<String,Object> toFullFieldValueMap(Object obj) {
         Map<String,Object> condMap = new LinkedHashMap<>();
         try {
-            List<Field> fields = MiscUtil.getAllFields(obj.getClass());
-            for (Field field : fields) {
-                if (!field.isSynthetic()) {
-                    field.setAccessible(true);
-                    if(field.isAnnotationPresent(TblField.class)){
+            Class<?> tableClass = obj.getClass();
+            TableObjectMetaCache.initTableObjectMeta(tableClass,this);
+            boolean metaInitComplete = TableObjectMetaCache.metaInitComplete(tableClass);
+            List<Field> fields = MiscUtil.getAllFields(tableClass);
+            if(!metaInitComplete) {
+                for (Field field : fields) {
+                    if (field.isSynthetic()) {
+                        continue;
+                    }
+                    if (field.isAnnotationPresent(TblField.class)) {
+                        field.setAccessible(true);
                         TblField tblField = field.getAnnotation(TblField.class);
-                        String fieldName = StringUtils.isNotBlank(tblField.customField())?tblField.customField():tblField.value();
-                        if(StringUtils.isBlank(fieldName)){
+                        String fieldName = StringUtils.isNotBlank(tblField.customField()) ? tblField.customField() : tblField.value();
+                        if (StringUtils.isBlank(fieldName)) {
                             fieldName = field.getName();
                         }
                         Object value = field.get(obj);
                         condMap.put(fieldName, value);
+                    }
+                }
+            }else {
+                Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(tableClass);
+                for (Field field : fields) {
+                    if (!field.isSynthetic()) {
+                        String fieldName = field.getName();
+                        if(!fieldToColumnMap.containsKey(fieldName)){
+                            continue;
+                        }
+                        field.setAccessible(true);
+                        Object value = field.get(obj);
+                        condMap.put(fieldToColumnMap.get(fieldName), value);
                     }
                 }
             }

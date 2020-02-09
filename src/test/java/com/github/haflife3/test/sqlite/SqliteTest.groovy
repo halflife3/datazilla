@@ -2,6 +2,7 @@ package com.github.haflife3.test.sqlite
 
 import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.dataobject.DummyTableSqlite
+import com.github.haflife3.dataobject.DummyTableSqliteAlt
 import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.test.CommonTest
 import org.junit.Test
@@ -9,8 +10,8 @@ import org.junit.Test
 class SqliteTest extends CommonTest{
 
     @Override
-    protected Class<? extends DummyTable> getRecordClass() {
-        return DummyTableSqlite.class
+    protected List<Class<? extends DummyTable>> getRecordClass() {
+        return [DummyTableSqlite, DummyTableSqliteAlt]
     }
 
     @Override

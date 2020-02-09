@@ -4,6 +4,7 @@ import com.github.haflife3.datazilla.dialect.DialectConst;
 import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
+import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal;
 import com.github.haflife3.datazilla.misc.MoreGenerousBeanProcessor;
@@ -45,8 +46,13 @@ public class CoreRunner {
         entityRegulator = DialectFactory.getEntityRegulator(dbType);
     }
 
+    public DataSource getDataSource(){
+        return queryRunner.getDataSource();
+    }
+
     
     public <T> List<T> genericQry(String sql, Class<T> clazz, Object[] values)  {
+        TableObjectMetaCache.initTableObjectMeta(clazz,this);
         return genericQry(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(new MoreGenerousBeanProcessor(clazz))),values);
     }
 
