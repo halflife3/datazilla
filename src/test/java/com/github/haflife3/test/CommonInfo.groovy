@@ -113,9 +113,9 @@ CREATE TABLE IF NOT EXISTS dummy_table (
         )
         connInfoMap.put(DialectConst.PG,
             ConnInfo.builder()
-                .url("")
-                .username("")
-                .password("")
+                .url("jdbc:postgresql://localhost:5432/postgres")
+                .username("postgres")
+                .password("root")
                 .build()
         )
         connInfoMap.put(DialectConst.SQLITE,
