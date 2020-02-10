@@ -12,6 +12,7 @@ public class Table2JavaMeta {
     private String srcRoot;
     private String domainPackage;
     private boolean lombokMode;
+    private boolean autoColumnDetection;
     private Map<String,String> table2ClassMap;
     private Map<String,String> extraTypeMap;
 
@@ -89,6 +90,14 @@ public class Table2JavaMeta {
 
     public void setLombokMode(boolean lombokMode) {
         this.lombokMode = lombokMode;
+    }
+
+    public boolean isAutoColumnDetection() {
+        return autoColumnDetection;
+    }
+
+    public void setAutoColumnDetection(boolean autoColumnDetection) {
+        this.autoColumnDetection = autoColumnDetection;
     }
 
     public void setTable2ClassMap(Map<String, String> table2ClassMap) {

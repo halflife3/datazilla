@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.UUID;
 
 /**  */
-@Table(value = "DUMMY_TABLE",autoColumnDetection = true)
+@Table(value = "DUMMY_TABLE", autoColumnDetection = true)
 @Data
 public class DummyTableH2Alt extends DummyTable{
 

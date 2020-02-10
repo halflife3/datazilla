@@ -134,7 +134,9 @@ public class Table2Java {
             importPartSet.add("lombok.Data");
         }
         String importPart = "import "+ Table.class.getCanonicalName()+";\n";
-        importPart += "import "+ TblField.class.getCanonicalName()+";\n";
+        if(!meta.isAutoColumnDetection()) {
+            importPart += "import " + TblField.class.getCanonicalName() + ";\n";
+        }
         String fieldsPart = "";
         String getSetPart = "";
 
@@ -144,11 +146,11 @@ public class Table2Java {
         String builderFieldsPart = "";
         String builderGetSetPart = "";
 
-        for (ColumnMeta meta : metas) {
-            String name = meta.getName();
+        for (ColumnMeta columnMeta : metas) {
+            String name = columnMeta.getName();
             String javaVarName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name.toUpperCase());
-            String type = meta.getType();
-            String comment = meta.getComment();
+            String type = columnMeta.getType();
+            String comment = columnMeta.getComment();
             String javaType = TYPE_MAP.get(type.toUpperCase().replaceAll("\\s+"," ").replaceAll("UNSIGNED",""));
             if(StringUtils.isBlank(javaType)){
                 throw new DBException("type:"+type+" has no corresponding java type!");
@@ -169,7 +171,9 @@ public class Table2Java {
             if(StringUtils.isNotBlank(comment)) {
                 fieldsPart += "  /** " + comment + " */\n";
             }
-            fieldsPart += "  @TblField(\""+name+"\")\n";
+            if(!meta.isAutoColumnDetection()) {
+                fieldsPart += "  @TblField(\"" + name + "\")\n";
+            }
             fieldsPart += "  private "+simpleJavaType+" "+javaVarName+";\n";
             builderFieldsPart += "    private "+simpleJavaType+" "+javaVarName+";\n";
             getSetPart += "  public "+simpleJavaType+" get"+ StringUtils.capitalize(javaVarName)+"() {\n    return "+javaVarName+";\n  }\n\n";
@@ -206,7 +210,11 @@ public class Table2Java {
         if(StringUtils.isNotBlank(tableComment)){
             beanContent += "/** "+tableComment+" */\n";
         }
-        beanContent += "@Table(\""+tableName+"\")\n";
+        if(meta.isAutoColumnDetection()) {
+            beanContent += "@Table(value = \"" + tableName + "\", autoColumnDetection = true)\n";
+        }else {
+            beanContent += "@Table(\"" + tableName + "\")\n";
+        }
         if(meta.isLombokMode()){
             beanContent += "@Data\n";
         }

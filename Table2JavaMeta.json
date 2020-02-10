@@ -1,17 +1,18 @@
 {
-  "driver":"org.h2.Driver",
+  "driver":"com.mysql.jdbc.Driver",
   "dbSchema":"",
   "connectParams":"",
-  "dbUrl":"jdbc:h2:tcp://localhost/~/test",
-  "dbUser":"sa",
+  "dbUrl":"jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8",
+  "dbUser":"root",
   "dbPass":"",
   "srcRoot":"/src/test/java",
   "domainPackage":"com.github.haflife3.dataobject",
   "lombokMode":true,
+  "autoColumnDetection": true,
   "extraTypeMap":{
 
   },
   "table2ClassMap":{
-    "DUMMY_TABLE":"DummyTableH2"
+    "dummy_table":"DummyTableMMM"
   }
 }

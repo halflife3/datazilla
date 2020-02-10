@@ -2,6 +2,10 @@ package com.github.haflife3.test
 
 import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.datazilla.QueryEntry
+import com.github.haflife3.datazilla.annotation.Table
+import com.github.haflife3.datazilla.annotation.TblField
+import com.github.haflife3.datazilla.logic.TableLoc
+import com.github.haflife3.datazilla.logic.TableObjectMetaCache
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal
 import com.github.haflife3.datazilla.misc.MiscUtil
 import com.github.haflife3.datazilla.misc.PagingInjector
@@ -66,10 +70,11 @@ class CommonTest {
                 setup()
                 setCurrentClass(it)
                 logger.info("************ ${getCurrentClass()} *************")
-
+                tableMetas()
+                colNames()
                 batchInsert()
                 queryAll()
-                querySingle()
+                querySingleAndExist()
                 paging()
                 insertOne()
                 updateSelective()
@@ -81,6 +86,43 @@ class CommonTest {
             }
         }
         logger.info ' -- test finish -- '
+    }
+
+    void tableMetas(){
+        logger.info ' -- tableMetas -- '
+        def metas = qe.tableMetas
+        def tableName = TableLoc.findTableName(getCurrentClass()).toLowerCase()
+        assert metas.any {it.key.toLowerCase() == tableName }
+    }
+
+    void colNames(){
+        logger.info ' -- colNames -- '
+        Class<? extends DummyTable> clazz = getCurrentClass()
+        List<String> colNames = qe.getColNames(clazz)
+        List<String> lowerColNames = new ArrayList<>()
+        colNames.each {lowerColNames << it.toLowerCase()}
+        Collections.sort(lowerColNames)
+        List<String> compareColNames = new ArrayList<>()
+        Table table = clazz.getAnnotation(Table)
+        boolean autoColumnDetection = table.autoColumnDetection()
+        if(autoColumnDetection){
+            TableObjectMetaCache.initTableObjectMeta(clazz,qe)
+            def columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(clazz)
+            columnToFieldMap.each {
+                compareColNames << it.key
+            }
+        }else {
+            def fields = MiscUtil.getAllFields(clazz)
+            fields.each {
+                def tblField = it.getAnnotation(TblField)
+                String colName = (tblField.value()?:it.name).toLowerCase()
+                compareColNames << colName
+            }
+        }
+        Collections.sort(compareColNames)
+        lowerColNames.eachWithIndex { String entry, int i ->
+            assert entry == compareColNames.get(i)
+        }
     }
 
     void batchInsert(){
@@ -97,15 +139,18 @@ class CommonTest {
         GeneralThreadLocal.set("allRecords",list)
     }
 
-    void querySingle(){
-        logger.info ' -- querySingle -- '
+    void querySingleAndExist(){
+        logger.info ' -- querySingleAndExist -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def record = list.get(0)
         def search = getCurrentClass().newInstance()
         def id = MiscUtil.extractFieldValueFromObj(record,"id")
         MiscUtil.setValue(search,"id",id)
         def resultRecord = qe.searchObject(search)
-        assert MiscUtil.extractFieldValueFromObj(resultRecord,"id").equals(id)
+        assert MiscUtil.extractFieldValueFromObj(resultRecord, "id") == id
+
+        def exist = qe.exist(search)
+        assert exist
     }
 
     void paging(){

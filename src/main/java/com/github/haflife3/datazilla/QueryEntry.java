@@ -47,6 +47,10 @@ public class QueryEntry {
         return coreRunner.getDataSource();
     }
 
+    public List<String> getColNames(Class<?> clazz){
+        return getColNames(TableLoc.findTableName(clazz));
+    }
+
     public List<String> getColNames(String table){
         return coreRunner.getColNames(table);
     }
@@ -215,7 +219,7 @@ public class QueryEntry {
         if(records!=null&&records.length>0){
             Object first = records[0];
             if(records.length==1&& first instanceof List){
-                List list = (List) first;
+                List<?> list = (List<?>) first;
                 if(CollectionUtils.isNotEmpty(list)){
                     String tableName = TableLoc.findTableName(list.get(0).getClass());
                     return batchInsert(tableName,bulkSize, list.toArray());
