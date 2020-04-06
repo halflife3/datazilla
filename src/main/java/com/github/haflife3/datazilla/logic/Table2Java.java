@@ -151,7 +151,7 @@ public class Table2Java {
             String javaVarName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name.toUpperCase());
             String type = columnMeta.getType();
             String comment = columnMeta.getComment();
-            String javaType = TYPE_MAP.get(type.toUpperCase().replaceAll("\\s+"," ").replaceAll("UNSIGNED",""));
+            String javaType = TYPE_MAP.get(type.toUpperCase().replaceAll("\\s+UNSIGNED",""));
             if(StringUtils.isBlank(javaType)){
                 throw new DBException("type:"+type+" has no corresponding java type!");
             }
@@ -159,14 +159,6 @@ public class Table2Java {
             if(javaType.contains(".")){
                 importPartSet.add(javaType);
             }
-//            if(javaType.equals("java.util.Date")){
-//                importPartSet.add("com.fasterxml.jackson.annotation.JsonFormat");
-//                if(type.equalsIgnoreCase("DATE")) {
-//                    fieldsPart += "  @JsonFormat(pattern=\"yyyy-MM-dd\",timezone = \"GMT+8\")\n";
-//                }else {
-//                    fieldsPart += "  @JsonFormat(pattern=\"yyyy-MM-dd HH:mm:ss\",timezone = \"GMT+8\")\n";
-//                }
-//            }
             fieldsPart += "\n";
             if(StringUtils.isNotBlank(comment)) {
                 fieldsPart += "  /** " + comment + " */\n";
