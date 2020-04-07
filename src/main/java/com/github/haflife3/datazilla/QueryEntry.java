@@ -409,16 +409,6 @@ public class QueryEntry {
         return result;
     }
 
-//    private Map<String, Object> toCleanMap(Object record)  {
-//        Map<String, Object> map;
-//        map = MiscUtil.mapObject(record);
-//        map.remove("serialVersionUID");
-////        map.remove("gmt51_create");
-////        map.remove("gmt51_modify");
-//        map.entrySet().removeIf(entry -> entry.getValue()==null);
-//        return map;
-//    }
-
     private List<FieldValuePair> toFieldValuePair(Map<String, Object> map){
         List<FieldValuePair> pairs = toFullFieldValuePair(map);
         pairs.removeIf(pair -> pair.getValue()==null);
