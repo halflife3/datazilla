@@ -27,10 +27,10 @@ import java.util.*;
 
 public class CoreRunner {
     private static final Logger logger = LoggerFactory.getLogger(CoreRunner.class);
-    private QueryRunner queryRunner;
+    private final QueryRunner queryRunner;
     private String dbType;
-    private SqlBuilder sqlBuilder;
-    private EntityRegulator entityRegulator;
+    private final SqlBuilder sqlBuilder;
+    private final EntityRegulator entityRegulator;
 
     public String getDbType() {
         return dbType;

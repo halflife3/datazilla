@@ -151,7 +151,7 @@ public class Table2Java {
             String javaVarName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name.toUpperCase());
             String type = columnMeta.getType();
             String comment = columnMeta.getComment();
-            String javaType = TYPE_MAP.get(type.toUpperCase().replaceAll("\\s+UNSIGNED",""));
+            String javaType = TYPE_MAP.get(StringUtils.strip(type.toUpperCase().replaceAll("\\s+UNSIGNED","")));
             if(StringUtils.isBlank(javaType)){
                 throw new DBException("type:"+type+" has no corresponding java type!");
             }

@@ -13,14 +13,11 @@ import java.sql.SQLException;
 public class BigDecimalHandler implements ColumnHandler {
     @Override
     public boolean match(Class<?> propType) {
-        if(propType.equals(BigDecimal.class)){
-            return true;
-        }
-        return false;
+        return propType.equals(BigDecimal.class);
     }
 
     @Override
     public Object apply(ResultSet rs, int columnIndex) throws SQLException {
-        return new BigDecimal(rs.getDouble(columnIndex));
+        return BigDecimal.valueOf(rs.getDouble(columnIndex));
     }
 }

@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class QueryEntry {
-    private CoreRunner coreRunner;
+    private final CoreRunner coreRunner;
 
     public QueryEntry(DataSource ds) {
         this.coreRunner = new CoreRunner(new QueryRunner(ds));
