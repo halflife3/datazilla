@@ -182,7 +182,7 @@ class CommonTest {
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id2Update)
-        def updateNum = qe.updateSelective(record, condObj)
+        def updateNum = qe.updateSelectiveAutoCon(record, condObj)
         assert updateNum == 1
 
     }
@@ -194,7 +194,7 @@ class CommonTest {
         record.setId(id)
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id)
-        def persistNum = qe.persist(record, condObj)
+        def persistNum = qe.persistAutoCon(record, condObj)
         assert persistNum == 1
     }
 

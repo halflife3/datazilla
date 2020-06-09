@@ -261,7 +261,7 @@ public class QueryEntry {
         return num;
     }
 
-    public <T> int persist(T record, T condObj){
+    public <T> int persistAutoCon(T record, T condObj){
         return persist(record,fromTableDomain(condObj));
     }
 
@@ -278,7 +278,7 @@ public class QueryEntry {
         return num;
     }
 
-    public <T> int updateSelective(T record, T condObj){
+    public <T> int updateSelectiveAutoCon(T record, T condObj){
         return updateSelective(record,fromTableDomain(condObj));
     }
 
