@@ -5,9 +5,7 @@ import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
-import com.github.haflife3.datazilla.misc.DBException;
-import com.github.haflife3.datazilla.misc.GeneralThreadLocal;
-import com.github.haflife3.datazilla.misc.MoreGenerousBeanProcessor;
+import com.github.haflife3.datazilla.misc.*;
 import com.github.haflife3.datazilla.pojo.QueryConditionBundle;
 import com.github.haflife3.datazilla.pojo.SqlPreparedBundle;
 import org.apache.commons.dbutils.BasicRowProcessor;
@@ -17,7 +15,6 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.apache.commons.lang3.StringUtils;
-import com.github.haflife3.datazilla.misc.PlatformUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +50,7 @@ public class CoreRunner {
     
     public <T> List<T> genericQry(String sql, Class<T> clazz, Object[] values)  {
         TableObjectMetaCache.initTableObjectMeta(clazz,this);
-        return genericQry(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(new MoreGenerousBeanProcessor(clazz))),values);
+        return genericQry(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(MoreGenerousBeanProcessorFactory.populateBeanProcessor(clazz))),values);
     }
 
 
