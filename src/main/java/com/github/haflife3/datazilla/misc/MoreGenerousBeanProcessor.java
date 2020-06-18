@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -108,5 +109,27 @@ public class MoreGenerousBeanProcessor extends CustomBeanProcessor {
             }
         }
         return match;
+    }
+
+    @Override
+    protected <T> T populateBean(ResultSet rs, T bean, Map<String,Integer> fieldColIndexMap) throws SQLException {
+        for(Map.Entry<String,Integer> entry:fieldColIndexMap.entrySet()){
+            String fieldName = entry.getKey();
+            Integer colIndex = entry.getValue();
+            Field field = fieldMap.get(fieldName);
+            if(field!=null){
+                Class<?> fieldClass = field.getType();
+                Object value = this.processColumn(rs, colIndex, fieldClass);
+                if (value == null && fieldClass.isPrimitive()) {
+                    value = primitiveDefaults.get(fieldClass);
+                }
+                try {
+                    MiscUtil.setValue(bean,field,value);
+                } catch (Exception e) {
+                    throw new SQLException(e);
+                }
+            }
+        }
+        return bean;
     }
 }

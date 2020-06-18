@@ -55,7 +55,7 @@ public class CustomBeanProcessor extends BeanProcessor {
      * is returned.  These are the same as the defaults that ResultSet get*
      * methods return in the event of a NULL column.
      */
-    private static final Map<Class<?>, Object> primitiveDefaults = new HashMap<Class<?>, Object>();
+    protected static final Map<Class<?>, Object> primitiveDefaults = new HashMap<Class<?>, Object>();
 
     /**
      * ServiceLoader to find <code>ColumnHandler</code> implementations on the classpath.  The iterator for this is
@@ -242,12 +242,10 @@ public class CustomBeanProcessor extends BeanProcessor {
             return results;
         }
 
-        PropertyDescriptor[] props = this.propertyDescriptors(type);
         ResultSetMetaData rsmd = rs.getMetaData();
-        int[] columnToProperty = this.mapColumnsToProperties(rsmd, props);
-
+        Map<String,Integer> fieldColIndexMap = mapFieldsToIndex(rsmd);
         do {
-            results.add(this.createBean(rs, type, props, columnToProperty));
+            results.add(this.createBean(rs, type, fieldColIndexMap));
         } while (rs.next());
 
         return results;
@@ -271,6 +269,11 @@ public class CustomBeanProcessor extends BeanProcessor {
         return populateBean(rs, bean, props, columnToProperty);
     }
 
+    private  <T> T createBean(ResultSet rs, Class<T> type,Map<String,Integer> fieldColIndexMap) throws SQLException {
+        T bean = this.newInstance(type);
+        return this.populateBean(rs,bean,fieldColIndexMap);
+    }
+
     /**
      * Initializes the fields of the provided bean from the ResultSet.
      * @param <T> The type of bean
@@ -283,9 +286,9 @@ public class CustomBeanProcessor extends BeanProcessor {
     public <T> T populateBean(ResultSet rs, T bean) throws SQLException {
         PropertyDescriptor[] props = this.propertyDescriptors(bean.getClass());
         ResultSetMetaData rsmd = rs.getMetaData();
-        int[] columnToProperty = this.mapColumnsToProperties(rsmd, props);
 
-        return populateBean(rs, bean, props, columnToProperty);
+        Map<String,Integer> fieldColIndexMap = mapFieldsToIndex(rsmd);
+        return populateBean(rs, bean, fieldColIndexMap);
     }
 
     /**
@@ -327,9 +330,8 @@ public class CustomBeanProcessor extends BeanProcessor {
         return bean;
     }
 
-    private  <T> T populateBean(ResultSet rs, T bean, Map<String,Integer> fieldColIndexMap){
-
-        return bean;
+    protected <T> T populateBean(ResultSet rs, T bean, Map<String,Integer> fieldColIndexMap) throws SQLException {
+        throw new DBException("Not implemented!");
     }
 
     /**

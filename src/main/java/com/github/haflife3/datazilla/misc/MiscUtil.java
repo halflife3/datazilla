@@ -319,7 +319,12 @@ public class MiscUtil {
 
     public static void setValue(Object target,String fieldName,Object value) throws Exception {
         if(target!=null){
-            Field field = target.getClass().getDeclaredField(fieldName);
+            setValue(target,target.getClass().getDeclaredField(fieldName),value);
+        }
+    }
+
+    public static void setValue(Object target,Field field,Object value) throws Exception {
+        if(target!=null){
             field.setAccessible(true);
             field.set(target,value);
         }
