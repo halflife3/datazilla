@@ -195,14 +195,14 @@ public class MiscUtil {
         return mapFieldFromObj(o,true);
     }
     public static Map<String,Field> mapFieldFromObj(Object o,boolean caseSensitive){
-        Class type = o.getClass();
+        Class<?> type = o.getClass();
         return mapFieldFromClass(type,caseSensitive);
     }
 
-    public static Map<String,Field> mapFieldFromClass(Class type){
+    public static Map<String,Field> mapFieldFromClass(Class<?> type){
         return mapFieldFromClass(type,true);
     }
-    public static Map<String,Field> mapFieldFromClass(Class type,boolean caseSensitive){
+    public static Map<String,Field> mapFieldFromClass(Class<?> type,boolean caseSensitive){
         Map<String,Field> map = null;
         if(caseSensitive){
             map = new HashMap<>();
@@ -213,8 +213,13 @@ public class MiscUtil {
             Field[] declaredFields = c.getDeclaredFields();
             for (Field field : declaredFields) {
                 field.setAccessible(true);
+                if(field.isSynthetic()) {
+                    continue;
+                }
                 String name = field.getName();
-                map.put(name, field);
+                if(!map.containsKey(name)) {
+                    map.put(name, field);
+                }
             }
         }
         return map;

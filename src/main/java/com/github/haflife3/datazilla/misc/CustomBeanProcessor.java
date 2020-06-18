@@ -327,6 +327,11 @@ public class CustomBeanProcessor extends BeanProcessor {
         return bean;
     }
 
+    private  <T> T populateBean(ResultSet rs, T bean, Map<String,Integer> fieldColIndexMap){
+
+        return bean;
+    }
+
     /**
      * Calls the setter method on the target object for the given property.
      * If no setter method exists for the property, this method does nothing.
@@ -534,6 +539,23 @@ public class CustomBeanProcessor extends BeanProcessor {
         }
 
         return columnToProperty;
+    }
+
+    protected Map<String,Integer> mapFieldsToIndex(ResultSetMetaData rsmd)throws SQLException{
+        Map<String,Integer> colIndexMap = new HashMap<>();
+        int cols = rsmd.getColumnCount();
+        for (int col = 1; col <= cols; col++) {
+            String columnName = rsmd.getColumnLabel(col);
+            if (null == columnName || 0 == columnName.length()) {
+                columnName = rsmd.getColumnName(col);
+            }
+            String propertyName = columnToPropertyOverrides.get(columnName);
+            if (propertyName == null) {
+                propertyName = columnName;
+            }
+            colIndexMap.put(propertyName,col);
+        }
+        return colIndexMap;
     }
 
     /**

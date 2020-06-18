@@ -9,10 +9,13 @@ import java.lang.reflect.Field;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class MoreGenerousBeanProcessor extends CustomBeanProcessor {
-    private Class<?> beanClass;
+    private final Class<?> beanClass;
+    private final Map<String,Field> fieldMap;
 
     /**
      * Default constructor.
@@ -20,6 +23,7 @@ public class MoreGenerousBeanProcessor extends CustomBeanProcessor {
     public MoreGenerousBeanProcessor(Class<?> beanClass) {
         super();
         this.beanClass = beanClass;
+        this.fieldMap = MiscUtil.mapFieldFromClass(beanClass);
     }
 
     @Override
@@ -54,6 +58,37 @@ public class MoreGenerousBeanProcessor extends CustomBeanProcessor {
         }
 
         return columnToProperty;
+    }
+
+
+    @Override
+    protected Map<String,Integer> mapFieldsToIndex(ResultSetMetaData rsmd)throws SQLException{
+        Map<String,Integer> colIndexMap = new HashMap<>();
+        int cols = rsmd.getColumnCount();
+        Map<String, String> columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(beanClass);
+        Set<String> fieldNames = fieldMap.keySet();
+        for (int col = 1; col <= cols; col++) {
+            String columnName = rsmd.getColumnLabel(col);
+
+            if (null == columnName || 0 == columnName.length()) {
+                columnName = rsmd.getColumnName(col);
+            }
+            String cachedFieldName = columnToFieldMap==null?null:columnToFieldMap.get(columnName.toLowerCase());
+
+            if(StringUtils.isNotBlank(cachedFieldName)){
+                colIndexMap.put(cachedFieldName,col);
+            }else {
+                final String generousColumnName = columnName.replace("_", "");
+                for (String fieldName:fieldNames){
+                    if(columnName.equalsIgnoreCase(fieldName)||generousColumnName.equalsIgnoreCase(fieldName)){
+                        colIndexMap.put(fieldName,col);
+                        break;
+                    }
+                }
+            }
+
+        }
+        return colIndexMap;
     }
 
     private boolean matchTblField(String columnName,String propName,String cachedFieldName){

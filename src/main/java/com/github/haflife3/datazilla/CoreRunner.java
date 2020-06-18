@@ -190,7 +190,11 @@ public class CoreRunner {
                 ResultSetMetaData metaData = resultSet.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 for (int i =1;i<=columnCount;i++){
-                    cols1.add(metaData.getColumnName(i));
+                    String columnName = metaData.getColumnLabel(i);
+                    if (null == columnName || 0 == columnName.length()) {
+                        columnName = metaData.getColumnName(i);
+                    }
+                    cols1.add(columnName);
                 }
                 return cols1;
             });
