@@ -100,15 +100,14 @@ public class CoreRunner {
 
     
     public <T> List<T> genericQry(QueryConditionBundle qryCondition) {
-        String resultClass = qryCondition.getResultClass();
+        Class<?> resultClass = qryCondition.getResultClass();
         List<T> list = null;
         try {
-            Class<T> aClass = (Class<T>) Class.forName(resultClass);
             SqlPreparedBundle sqlPreparedBundle = sqlBuilder.composeSelect(qryCondition);
             String sql = sqlPreparedBundle.getSql();
             Object[] values = sqlPreparedBundle.getValues();
-            list = genericQry(sql,aClass,values);
-        } catch (ClassNotFoundException e) {
+            list = genericQry(sql,(Class<T>)resultClass,values);
+        } catch (Exception e) {
             throw new DBException(e);
         }
         return list;

@@ -78,7 +78,7 @@ public class QueryEntry {
 
     public String genericQry2Str(QueryConditionBundle qryCondition){
         String result = "";
-        if(StringUtils.isBlank(qryCondition.getResultClass())) {
+        if(qryCondition.getResultClass()==null) {
             List<Map<String, Object>> listMap = coreRunner.genericMapQry(qryCondition);
             if (CollectionUtils.isNotEmpty(listMap)) {
                 result = new Gson().toJson(listMap);
@@ -134,7 +134,7 @@ public class QueryEntry {
         try {
             PagingInjector.dropResult();
             QueryConditionBundle qryCondition = new QueryConditionBundle.Builder()
-                    .resultClass(clazz.getCanonicalName())
+                    .resultClass(clazz)
                     .targetTable(table)
                     .conditionAndList(conds)
                     .pageNo(PagingInjector.getPageNo())
@@ -146,7 +146,7 @@ public class QueryEntry {
                 QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
                     .targetTable(qryCondition.getTargetTable())
                     .onlyCount(true)
-                    .resultClass(CountInfo.class.getCanonicalName())
+                    .resultClass(CountInfo.class)
                     .conditionAndList(qryCondition.getConditionAndList())
                     .conditionOrList(qryCondition.getConditionOrList())
                     .build();
@@ -342,7 +342,7 @@ public class QueryEntry {
     }
     public boolean exist(String table, List<Cond> conds){
         QueryConditionBundle qryCondition = new QueryConditionBundle.Builder()
-                .resultClass(CountInfo.class.getCanonicalName())
+                .resultClass(CountInfo.class)
                 .onlyCount(true)
                 .targetTable(table)
                 .conditionAndList(conds)
@@ -363,7 +363,7 @@ public class QueryEntry {
         QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
             .targetTable(table)
             .onlyCount(true)
-            .resultClass(CountInfo.class.getCanonicalName())
+            .resultClass(CountInfo.class)
             .conditionAndList(conds)
             .build();
         List<CountInfo> counts = genericQry(qcCount);
@@ -395,7 +395,7 @@ public class QueryEntry {
                 QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
                     .targetTable(qc.getTargetTable())
                     .onlyCount(true)
-                    .resultClass(CountInfo.class.getCanonicalName())
+                    .resultClass(CountInfo.class)
                     .conditionAndList(qc.getConditionAndList())
                     .conditionOrList(qc.getConditionOrList())
                     .build();

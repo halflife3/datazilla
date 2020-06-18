@@ -3,7 +3,7 @@ package com.github.haflife3.datazilla.pojo;
 import java.util.List;
 
 public class QueryConditionBundle extends ConditionBundle {
-    private String resultClass;
+    private Class<?> resultClass;
     private List<String> intendedFields;
     private boolean onlyCount;
     private List<OrderCond> orderConds;
@@ -25,11 +25,11 @@ public class QueryConditionBundle extends ConditionBundle {
         setPageSize(builder.pageSize);
     }
 
-    public String getResultClass() {
+    public Class<?> getResultClass() {
         return resultClass;
     }
 
-    public void setResultClass(String resultClass) {
+    public void setResultClass(Class<?> resultClass) {
         this.resultClass = resultClass;
     }
 
@@ -81,7 +81,7 @@ public class QueryConditionBundle extends ConditionBundle {
         private Integer pageSize;
         private List<Cond> conditionAndList;
         private List<Cond> conditionOrList;
-        private String resultClass;
+        private Class<?> resultClass;
         private String targetTable;
 
         public Builder() {
@@ -126,7 +126,7 @@ public class QueryConditionBundle extends ConditionBundle {
             return this;
         }
 
-        public Builder resultClass(String resultClass) {
+        public Builder resultClass(Class<?> resultClass) {
             this.resultClass = resultClass;
             return this;
         }
