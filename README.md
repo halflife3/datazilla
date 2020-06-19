@@ -71,7 +71,7 @@ public class Dummy {
   @TblField("varchar_f")
   private String varcharF;
 
-  // getter setter emitted. 
+  // getter setter ...
 }
 ```
 
