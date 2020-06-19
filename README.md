@@ -15,12 +15,12 @@ Table of Contents
 * [Maven Setting](#maven-setting)
 * [Usage](#usage)
   * [Setup](#Setup)
-  * [Simple Cases](#Simple Cases)
+  * [Simple Cases](#Simple-Cases)
     * [insert](#insert)
     * [update](#update)
     * [query](#query)
     * [delete](#delete)
-  * [Advanced cases](#Advanced cases)
+  * [Advanced cases](#Advanced-cases)
 
 # Maven Setting
 datazilla is available in maven central repo.
