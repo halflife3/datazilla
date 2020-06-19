@@ -9,6 +9,7 @@ import com.github.haflife3.datazilla.logic.TableObjectMetaCache
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal
 import com.github.haflife3.datazilla.misc.MiscUtil
 import com.github.haflife3.datazilla.misc.PagingInjector
+import com.github.haflife3.datazilla.pojo.Cond
 import com.github.haflife3.datazilla.pojo.OrderCond
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -33,7 +34,7 @@ class CommonTest {
     protected String cleanUpSql(){
         return "truncate table "+tableName()
     }
-    
+
     private static Class<? extends DummyTable> getCurrentClass(){
         return GeneralThreadLocal.get("CurrentClass");
     }
@@ -74,11 +75,13 @@ class CommonTest {
                 colNames()
                 batchInsert()
                 queryAll()
+                genericQry4Map()
                 querySingleAndExist()
                 paging()
                 insertOne()
                 updateSelective()
                 persist()
+                insertAndReturnAutoGen()
                 delOne()
                 delAll()
             } finally {
@@ -139,6 +142,46 @@ class CommonTest {
         GeneralThreadLocal.set("allRecords",list)
     }
 
+    void genericQry4Map(){
+        logger.info ' -- genericQry4Map -- '
+        def clazz = getCurrentClass()
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        String sql = "select * from ${tableName()} where id = ?"
+        List<Map<String,Object>> result = qe.genericQry(sql,id2Query)
+        assert result.size() == 1
+        def search = clazz.newInstance()
+        MiscUtil.setValue(search,"id",id2Query)
+        def objRecord = qe.searchObject(search)
+        def mapRecord = result.get(0)
+        def fields = MiscUtil.getAllFields(clazz)
+
+        Table table = clazz.getAnnotation(Table)
+        boolean autoColumnDetection = table.autoColumnDetection()
+        if(autoColumnDetection){
+            TableObjectMetaCache.initTableObjectMeta(clazz,qe)
+            def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(clazz)
+            fields.each {
+                String colName = fieldToColumnMap.get(it.getName())
+                it.setAccessible(true)
+                def value = it.get(objRecord)
+                if(value!=null){
+                    assert mapRecord.get(colName)!=null
+                }
+            }
+        }else {
+            fields.each {
+                def tblField = it.getAnnotation(TblField)
+                String colName = (tblField.value()?:it.name).toLowerCase()
+                it.setAccessible(true)
+                def value = it.get(objRecord)
+                if(value!=null){
+                    assert mapRecord.get(colName)!=null
+                }
+            }
+        }
+    }
+
     void querySingleAndExist(){
         logger.info ' -- querySingleAndExist -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
@@ -184,7 +227,6 @@ class CommonTest {
         condObj.setId(id2Update)
         def updateNum = qe.updateSelectiveAutoCon(record, condObj)
         assert updateNum == 1
-
     }
 
     void persist(){
@@ -196,6 +238,33 @@ class CommonTest {
         condObj.setId(id)
         def persistNum = qe.persistAutoCon(record, condObj)
         assert persistNum == 1
+    }
+
+    void insertAndReturnAutoGen(){
+        logger.info ' -- insertAndReturnAutoGen -- '
+        def clazz = getCurrentClass()
+        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(clazz, 1))
+        def autoGenValue = qe.insertAndReturnAutoGen(record)
+        assert autoGenValue!=null
+        def resultRecord = qe.findObject(clazz, new Cond("id", autoGenValue))
+        record.setId(autoGenValue)
+        def fields = MiscUtil.getAllFields(clazz)
+        fields.each {
+            it.setAccessible(true)
+            def origValue = it.get(record)
+            def resultValue = it.get(resultRecord)
+            if(origValue!=null){
+                if(origValue instanceof Double){
+                    assert ((Double) origValue).intValue() == ((Double) resultValue).intValue()
+                }else if(origValue instanceof Date){
+                    assert resultValue !=null
+                }else if(origValue instanceof String){
+                    assert ((String)origValue).trim() == ((String)resultValue).trim()
+                } else {
+                    assert origValue == resultValue
+                }
+            }
+        }
     }
 
     void delOne(){
