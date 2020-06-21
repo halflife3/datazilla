@@ -11,8 +11,12 @@ import com.github.haflife3.datazilla.misc.MiscUtil
 import com.github.haflife3.datazilla.misc.PagingInjector
 import com.github.haflife3.datazilla.pojo.Cond
 import com.github.haflife3.datazilla.pojo.OrderCond
+import org.apache.commons.dbutils.ResultSetHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import java.sql.ResultSet
+import java.sql.SQLException
 
 class CommonTest {
     private static final Logger logger = LoggerFactory.getLogger(CommonTest.class);
@@ -74,6 +78,7 @@ class CommonTest {
                 tableMetas()
                 colNames()
                 batchInsert()
+                typeMapping()
                 queryAll()
                 genericQry4Map()
                 querySingleAndExist()
@@ -133,6 +138,27 @@ class CommonTest {
         List<? extends DummyTable> list = CommonTool.generateDummyRecords(getCurrentClass(),200)
         def insertNum = qe.batchInsert(list)
         assert insertNum == 200
+    }
+
+    void typeMapping(){
+        logger.info ' -- typeMapping -- '
+        qe.genericQry("select * from ${tableName()}",new ResultSetHandler<List<Void>>() {
+            @Override
+            List<Void> handle(ResultSet rs) throws SQLException {
+                def metaData = rs.getMetaData()
+                def count = metaData.getColumnCount()
+                while (rs.next()){
+                    for (i in 1 .. count){
+                        def object = rs.getObject(i)
+                        if(object!=null){
+                            logger.info ("${object.getClass().name} # ${metaData.getColumnTypeName(i)} # ${object}")
+                        }
+                    }
+                    break
+                }
+                return null
+            }
+        })
     }
 
     void queryAll(){
