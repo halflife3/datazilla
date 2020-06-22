@@ -28,7 +28,7 @@ datazilla is available in maven central repo.
 <dependency>
     <groupId>com.github.haflife3</groupId>
     <artifactId>datazilla</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
 </dependency>
 ```
 
