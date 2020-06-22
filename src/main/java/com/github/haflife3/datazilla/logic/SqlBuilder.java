@@ -181,7 +181,7 @@ public class SqlBuilder {
 
     public SqlPreparedBundle composeDelete(ConditionBundle cb){
         SqlPreparedBundle sp = new SqlPreparedBundle();
-        List<Object> values= new ArrayList<Object>();
+        List<Object> values= new ArrayList<>();
         StringBuilder delete = new StringBuilder("delete from ").append(regulateTable(cb.getTargetTable()));
         StringBuilder where = new StringBuilder(" where 1=1 ");
         fillWherePart(cb,where,values);

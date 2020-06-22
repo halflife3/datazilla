@@ -85,11 +85,37 @@ CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  (
 
     static String createSqliteTestTable =
             '''
-CREATE TABLE IF NOT EXISTS dummy_table ( 
+CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER ( 
    id INTEGER PRIMARY KEY NOT NULL, 
    text_f TEXT , 
    real_f REAL , 
    numeric_f NUMERIC
+)
+'''
+
+    static String createHsqlDbTestTable =
+        '''
+CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER  ( 
+   id            IDENTITY NOT NULL,
+   tinyint_f     tinyint NULL,
+   smallint_f    smallint NULL,
+   integer_f        INTEGER NULL,
+   BIGINT_f         BIGINT NULL,
+   REAL_f         REAL NULL,
+   FLOAT_f      FLOAT  NULL,
+   double_f      double NULL,
+   decimal_f     decimal(10,5) NULL,
+   numeric_f     numeric(10,5) NULL,
+   BOOLEAN_f     BOOLEAN NULL,
+   dateTime_f    datetime NULL,
+   timestamp_f   timestamp NULL,
+   date_f        date NULL,
+   time_f        time NULL,
+   char_f        char(25) NULL,
+   varchar_f     varchar(200) NULL,
+   LONGVARCHAR_f        LONGVARCHAR NULL,
+   UUID_f    UUID NULL,
+    PRIMARY KEY(id)
 )
 '''
 
@@ -98,6 +124,7 @@ CREATE TABLE IF NOT EXISTS dummy_table (
         createTableMap.put(DialectConst.H2,createH2TestTable)
         createTableMap.put(DialectConst.PG,createPgTestTable)
         createTableMap.put(DialectConst.SQLITE,createSqliteTestTable)
+        createTableMap.put(DialectConst.HSQLDB,createHsqlDbTestTable)
         connInfoMap.put(DialectConst.MYSQL,
             ConnInfo.builder()
                 .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8")
@@ -123,10 +150,17 @@ CREATE TABLE IF NOT EXISTS dummy_table (
                         .url("jdbc:sqlite::memory:")
                         .build()
         )
+        connInfoMap.put(DialectConst.HSQLDB,
+            ConnInfo.builder()
+                .url("jdbc:hsqldb:mem:test")
+                .username("SA")
+                .build()
+        )
         driverClassNameMap.put(DialectConst.MYSQL,"com.mysql.jdbc.Driver")
         driverClassNameMap.put(DialectConst.H2,"org.h2.Driver")
         driverClassNameMap.put(DialectConst.PG,"org.postgresql.Driver")
         driverClassNameMap.put(DialectConst.SQLITE,"org.sqlite.JDBC")
+        driverClassNameMap.put(DialectConst.HSQLDB,"org.hsqldb.jdbc.JDBCDriver")
     }
 
     static DataSource getDataSource(String dbType){

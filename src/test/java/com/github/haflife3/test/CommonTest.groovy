@@ -39,6 +39,10 @@ class CommonTest {
         return "truncate table "+tableName()
     }
 
+    protected boolean idInt(){
+        return false
+    }
+
     private static Class<? extends DummyTable> getCurrentClass(){
         return GeneralThreadLocal.get("CurrentClass");
     }
@@ -75,6 +79,7 @@ class CommonTest {
                 setup()
                 setCurrentClass(it)
                 logger.info("************ ${getCurrentClass()} *************")
+                dbType()
                 tableMetas()
                 colNames()
                 batchInsert()
@@ -94,6 +99,11 @@ class CommonTest {
             }
         }
         logger.info ' -- test finish -- '
+    }
+
+    void dbType(){
+        logger.info ' -- dbType -- '
+        assert getDbType() == qe.getDbType()
     }
 
     void tableMetas(){
@@ -258,7 +268,7 @@ class CommonTest {
     void persist(){
         logger.info ' -- persist -- '
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
-        def id = System.currentTimeMillis()
+        def id = idInt()?1:System.currentTimeMillis()
         record.setId(id)
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id)

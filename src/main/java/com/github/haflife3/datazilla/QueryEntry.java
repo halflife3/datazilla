@@ -47,6 +47,10 @@ public class QueryEntry {
         return coreRunner.getDataSource();
     }
 
+    public String getDbType() {
+        return coreRunner.getDbType();
+    }
+
     public List<String> getColNames(Class<?> clazz){
         return getColNames(TableLoc.findTableName(clazz));
     }
