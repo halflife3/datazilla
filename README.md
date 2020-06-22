@@ -6,7 +6,7 @@ It is based on and inspired by [Apache Commons DbUtils](https://commons.apache.o
 Requirement: JDK1.8+ .
 
 
-Specially optimized for MySQL, PostgreSql, H2, SQLite.
+Specially optimized for MySQL, PostgreSql, H2, SQLite, HsqlDb.
 (paging, bulk insert, Table entity Java file generation)
 
 Table of Contents
