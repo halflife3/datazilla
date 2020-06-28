@@ -4,7 +4,7 @@ import java.util.List;
 
 public class QueryConditionBundle extends ConditionBundle {
     private Class<?> resultClass;
-    private List<String> intendedFields;
+    private List<String> selectColumns;
     private boolean onlyCount;
     private List<OrderCond> orderConds;
     private Integer pageNo;
@@ -18,7 +18,7 @@ public class QueryConditionBundle extends ConditionBundle {
         setConditionAndList(builder.conditionAndList);
         setConditionOrList(builder.conditionOrList);
         setResultClass(builder.resultClass);
-        setIntendedFields(builder.intendedFields);
+        setSelectColumns(builder.selectColumns);
         setOnlyCount(builder.onlyCount);
         setOrderConds(builder.orderConds);
         setPageNo(builder.pageNo);
@@ -33,12 +33,12 @@ public class QueryConditionBundle extends ConditionBundle {
         this.resultClass = resultClass;
     }
 
-    public List<String> getIntendedFields() {
-        return intendedFields;
+    public List<String> getSelectColumns() {
+        return selectColumns;
     }
 
-    public void setIntendedFields(List<String> intendedFields) {
-        this.intendedFields = intendedFields;
+    public void setSelectColumns(List<String> selectColumns) {
+        this.selectColumns = selectColumns;
     }
 
     public boolean isOnlyCount() {
@@ -74,7 +74,7 @@ public class QueryConditionBundle extends ConditionBundle {
     }
 
     public static final class Builder {
-        private List<String> intendedFields;
+        private List<String> selectColumns;
         private boolean onlyCount;
         private List<OrderCond> orderConds;
         private Integer pageNo;
@@ -87,8 +87,8 @@ public class QueryConditionBundle extends ConditionBundle {
         public Builder() {
         }
 
-        public Builder intendedFields(List<String> intendedFields) {
-            this.intendedFields = intendedFields;
+        public Builder selectColumns(List<String> selectColumns) {
+            this.selectColumns = selectColumns;
             return this;
         }
 

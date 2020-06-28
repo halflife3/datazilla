@@ -6,10 +6,7 @@ import com.github.haflife3.datazilla.dialect.pagination.OfflinePagination;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableLoc;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
-import com.github.haflife3.datazilla.misc.DBException;
-import com.github.haflife3.datazilla.misc.GeneralThreadLocal;
-import com.github.haflife3.datazilla.misc.MiscUtil;
-import com.github.haflife3.datazilla.misc.PagingInjector;
+import com.github.haflife3.datazilla.misc.*;
 import com.github.haflife3.datazilla.pojo.*;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -141,6 +138,7 @@ public class QueryEntry {
                     .resultClass(clazz)
                     .targetTable(table)
                     .conditionAndList(conds)
+                    .selectColumns(ExtraParamInjector.getSelectColumns())
                     .pageNo(PagingInjector.getPageNo())
                     .pageSize(PagingInjector.getPageSize())
                     .orderByConds(PagingInjector.getOrderConds())
@@ -158,7 +156,7 @@ public class QueryEntry {
                 PagingInjector.setCount(counts.get(0).getCount());
             }
         } finally {
-            PagingInjector.unSet();
+            ExtraParamInjector.unSet();
         }
         return rtList;
     }

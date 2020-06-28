@@ -6,6 +6,7 @@ import com.github.haflife3.datazilla.annotation.Table
 import com.github.haflife3.datazilla.annotation.TblField
 import com.github.haflife3.datazilla.logic.TableLoc
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache
+import com.github.haflife3.datazilla.misc.ExtraParamInjector
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal
 import com.github.haflife3.datazilla.misc.MiscUtil
 import com.github.haflife3.datazilla.misc.PagingInjector
@@ -87,6 +88,7 @@ class CommonTest {
                 queryAll()
                 genericQry4Map()
                 querySingleAndExist()
+                selectColumns()
                 paging()
                 insertOne()
                 updateSelective()
@@ -230,6 +232,25 @@ class CommonTest {
 
         def exist = qe.exist(search)
         assert exist
+    }
+
+    void selectColumns(){
+        logger.info ' -- selectColumns -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def record = list.get(0)
+        def search = getCurrentClass().newInstance()
+        def id = MiscUtil.extractFieldValueFromObj(record,"id")
+        MiscUtil.setValue(search,"id",id)
+        ExtraParamInjector.selectColumns("id")
+        def resultRecord = qe.searchObject(search)
+        def mapObject = MiscUtil.mapObject(resultRecord)
+        mapObject.each {
+            if(it.key=="id"){
+                assert it.value!=null
+            }else {
+                assert it.value==null
+            }
+        }
     }
 
     void paging(){

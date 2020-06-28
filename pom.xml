@@ -11,7 +11,7 @@
   <groupId>com.github.haflife3</groupId>
   <artifactId>datazilla</artifactId>
   <packaging>jar</packaging>
-  <version>1.1.8</version>
+  <version>1.1.9</version>
 
   <name>datazilla</name>
   <url>http://maven.apache.org</url>

@@ -18,10 +18,10 @@ import java.util.Collection;
 import java.util.List;
 
 public class SqlBuilder {
-    private static List<String> availableOrderByTypes = Arrays.asList("desc","asc");
-    private EntityRegulator entityRegulator;
-    private OprStore oprStore;
-    private Pagination pagination;
+    private static final List<String> availableOrderByTypes = Arrays.asList("desc","asc");
+    private final EntityRegulator entityRegulator;
+    private final OprStore oprStore;
+    private final Pagination pagination;
 
     public SqlBuilder(String dbType) {
         this.oprStore = DialectFactory.getOprStore(dbType);
@@ -119,9 +119,9 @@ public class SqlBuilder {
     }
 
     private void checkQueryConditionBundle(QueryConditionBundle qc){
-        List<String> intendedFields = qc.getIntendedFields();
-        if(CollectionUtils.isNotEmpty(intendedFields)) {
-            checkNoSemiColon(intendedFields.toArray(new String[intendedFields.size()]));
+        List<String> selectColumns = qc.getSelectColumns();
+        if(CollectionUtils.isNotEmpty(selectColumns)) {
+            checkNoSemiColon(selectColumns.toArray(new String[0]));
         }
         List<OrderCond> orderConds = qc.getOrderConds();
         if(CollectionUtils.isNotEmpty(orderConds)){
@@ -157,9 +157,9 @@ public class SqlBuilder {
         StringBuilder where = new StringBuilder(" where 1=1 ");
         List<Object> values= new ArrayList<Object>();
         StringBuilder select = new StringBuilder("select ");
-        List<String> intendedFields = qc.getIntendedFields();
-        if(intendedFields!=null&&!intendedFields.isEmpty()){
-            for(String intendedField:intendedFields){
+        List<String> selectColumns = qc.getSelectColumns();
+        if(selectColumns!=null&&!selectColumns.isEmpty()){
+            for(String intendedField:selectColumns){
                 select.append(" "+ regulateField(intendedField)+",");
             }
             select.deleteCharAt(select.length()-1);
