@@ -133,6 +133,7 @@ public class QueryEntry {
     public <T> List<T> findObjects(String table, List<Cond> conds, Class<T> clazz){
         List<T> rtList;
         try {
+            String sqlId = ExtraParamInjector.getSqlId();
             PagingInjector.dropResult();
             QueryConditionBundle qryCondition = new QueryConditionBundle.Builder()
                     .resultClass(clazz)
@@ -152,6 +153,7 @@ public class QueryEntry {
                     .conditionAndList(qryCondition.getConditionAndList())
                     .conditionOrList(qryCondition.getConditionOrList())
                     .build();
+                ExtraParamInjector.sqlId(sqlId);
                 List<CountInfo> counts = genericQry(qcCount);
                 PagingInjector.setCount(counts.get(0).getCount());
             }

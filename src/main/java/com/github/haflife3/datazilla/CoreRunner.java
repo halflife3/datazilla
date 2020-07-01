@@ -194,6 +194,7 @@ public class CoreRunner {
             long start = System.currentTimeMillis();
             table = entityRegulator.regulateTable(table);
             String sql = "select * from "+table+" where 1=2";
+            sql = getIdSql(sql);
             cols = queryRunner.query(sql, resultSet -> {
                 List<String> cols1 = new ArrayList<>();
                 ResultSetMetaData metaData = resultSet.getMetaData();
@@ -211,6 +212,8 @@ public class CoreRunner {
             log(sql,null,cols,"RESULT-SIZE",(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
+        }finally {
+            ExtraParamInjector.unsetSqlId();
         }
         return cols;
     }

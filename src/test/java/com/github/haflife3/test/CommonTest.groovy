@@ -120,6 +120,7 @@ class CommonTest {
     void colNames(){
         logger.info ' -- colNames -- '
         Class<? extends DummyTable> clazz = getCurrentClass()
+        ExtraParamInjector.sqlId("colNames")
         List<String> colNames = qe.getColNames(clazz)
         List<String> lowerColNames = new ArrayList<>()
         colNames.each {lowerColNames << it.toLowerCase()}
