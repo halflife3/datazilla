@@ -253,9 +253,11 @@ public class QueryEntry {
                     }
                 }
             }
+            String sqlId = ExtraParamInjector.getSqlId();
             for (List<Map<String, Object>> list : dataMap.values()) {
                 List<List<Map<String, Object>>> partitions = Lists.partition(list, bulkSize);
                 for (List<Map<String, Object>> partition : partitions) {
+                    ExtraParamInjector.sqlId(sqlId);
                     num+=coreRunner.batchInsert(table,partition);
                 }
             }

@@ -57,12 +57,15 @@ public class CoreRunner {
     public <T> List<T> genericQry(String sql, ResultSetHandler<List<T>> resultSetHandler, Object[] values)  {
         List<T> list;
         try {
+            sql = getIdSql(sql);
             long start = System.currentTimeMillis();
             list = queryRunner.query(sql,resultSetHandler,values);
             long end = System.currentTimeMillis();
-            log(sql,values,list,(end-start));
+            log(sql,values,list,"RESULT-SIZE",(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
+        }finally {
+            ExtraParamInjector.unsetSqlId();
         }
         return list;
     }
@@ -71,12 +74,15 @@ public class CoreRunner {
     public List<Map<String, Object>> genericQry(String sql, Object[] values){
         List<Map<String, Object>> list = null;
         try {
+            sql = getIdSql(sql);
             long start = System.currentTimeMillis();
             list = queryRunner.query(sql,new MapListHandler(),values);
             long end = System.currentTimeMillis();
-            log(sql,values,list,(end-start));
+            log(sql,values,list,"RESULT-SIZE",(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
+        }finally {
+            ExtraParamInjector.unsetSqlId();
         }
         return list;
     }
@@ -85,12 +91,15 @@ public class CoreRunner {
     public int genericUpdate(String sql, Object[] values) {
         int affected = 0;
         try {
+            sql = getIdSql(sql);
             long start = System.currentTimeMillis();
             affected = queryRunner.update(sql, values);
             long end = System.currentTimeMillis();
-            log(sql,values,affected,(end-start));
+            log(sql,values,affected,"AFFECTED",(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
+        }finally {
+            ExtraParamInjector.unsetSqlId();
         }
         return affected;
     }
@@ -161,12 +170,15 @@ public class CoreRunner {
             sql = StringUtils.stripEnd(sql,",")+") ";
             valueSql = StringUtils.stripEnd(valueSql,",")+") ";
             sql = sql+valueSql;
+            sql = getIdSql(sql);
             Object[] valueArr = values.toArray();
             rt = queryRunner.insert(sql, new ScalarHandler<>(), valueArr);
             long end = System.currentTimeMillis();
-            log(sql,valueArr,rt,(end-start));
+            log(sql,valueArr,rt,"OUTPUT",(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
+        }finally {
+            ExtraParamInjector.unsetSqlId();
         }
         return rt;
     }
@@ -196,7 +208,7 @@ public class CoreRunner {
                 return cols1;
             });
             long end = System.currentTimeMillis();
-            log(sql,null,cols,(end-start));
+            log(sql,null,cols,"RESULT-SIZE",(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
         }
@@ -221,7 +233,7 @@ public class CoreRunner {
         return map;
     }
 
-    private void log(String sql,Object[] values,Object output,long elapsed){
+    private void log(String sql,Object[] values,Object output,String outputDenote,long elapsed){
         try {
 //            StackTraceElement[] stack = new Throwable().getStackTrace();
             Boolean ignoreLog = GeneralThreadLocal.get("ignoreDaoLog");
@@ -234,12 +246,10 @@ public class CoreRunner {
                 log += "  VALUES: "+new ArrayList<>(Arrays.asList(values));
             }
             if(output!=null) {
-                if (output instanceof Integer) {
-                    log += "\n<=== AFFECTED: " + output;
-                } else if (output instanceof List) {
-                    log += "\n<=== RESULT-SIZE: " + ((List) output).size();
+                if("RESULT-SIZE".equalsIgnoreCase(outputDenote)){
+                    log += "\n<=== "+outputDenote+": " + ((List) output).size();
                 }else {
-                    log += "\n<=== OUTPUT: " + output;
+                    log += "\n<=== "+outputDenote+": " + output;
                 }
             }
             log +="\n<==> ELAPSED: "+elapsed+" ms.";
@@ -249,6 +259,15 @@ public class CoreRunner {
         } catch (Exception e) {
             logger.info(e.getMessage(),e);
         }
+    }
+
+    private String getIdSql(String sql){
+        String idSql = sql;
+        String sqlId = ExtraParamInjector.getSqlId();
+        if(StringUtils.isNotBlank(sqlId)){
+            idSql = "/* "+sqlId+" */ "+sql;
+        }
+        return idSql;
     }
 
     private String conciseStack(StackTraceElement[] stack){

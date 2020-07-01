@@ -58,6 +58,7 @@ class CommonTest {
         qe = new QueryEntry(CommonInfo.getDataSource(getDbType()))
         String createTableTemplate = CommonInfo.createTableMap.get(getDbType())
         String createTableSql = createTableTemplate.replace("TABLE_PLACEHOLDER",tableName())
+        ExtraParamInjector.sqlId("setup create table")
         qe.genericUpdate(createTableSql)
         String cleanUpSql = cleanUpSql()
         qe.genericUpdate(cleanUpSql)
@@ -68,6 +69,7 @@ class CommonTest {
     void cleanup(){
         logger.info '>>cleanup<<'
         String sql = "drop table "+tableName()
+        ExtraParamInjector.sqlId("cleanup drop table")
         qe.genericUpdate(sql)
         GeneralThreadLocal.unset()
         logger.info '>>cleanup finish<<'
@@ -134,9 +136,11 @@ class CommonTest {
         }else {
             def fields = MiscUtil.getAllFields(clazz)
             fields.each {
-                def tblField = it.getAnnotation(TblField)
-                String colName = (tblField.value()?:it.name).toLowerCase()
-                compareColNames << colName
+                if(!it.isSynthetic()){
+                    def tblField = it.getAnnotation(TblField)
+                    String colName = (tblField.value()?:it.name).toLowerCase()
+                    compareColNames << colName
+                }
             }
         }
         Collections.sort(compareColNames)
@@ -148,12 +152,14 @@ class CommonTest {
     void batchInsert(){
         logger.info ' -- batchInsert -- '
         List<? extends DummyTable> list = CommonTool.generateDummyRecords(getCurrentClass(),200)
+        ExtraParamInjector.sqlId("batchInsert")
         def insertNum = qe.batchInsert(list)
         assert insertNum == 200
     }
 
     void typeMapping(){
         logger.info ' -- typeMapping -- '
+        ExtraParamInjector.sqlId("typeMapping")
         qe.genericQry("select * from ${tableName()}",new ResultSetHandler<List<Void>>() {
             @Override
             List<Void> handle(ResultSet rs) throws SQLException {
@@ -175,6 +181,7 @@ class CommonTest {
 
     void queryAll(){
         logger.info ' -- queryAll -- '
+        ExtraParamInjector.sqlId("queryAll")
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         assert list.size() == 200
         GeneralThreadLocal.set("allRecords",list)
@@ -186,10 +193,12 @@ class CommonTest {
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         String sql = "select * from ${tableName()} where id = ?"
+        ExtraParamInjector.sqlId("genericQry4Map step1")
         List<Map<String,Object>> result = qe.genericQry(sql,id2Query)
         assert result.size() == 1
         def search = clazz.newInstance()
         MiscUtil.setValue(search,"id",id2Query)
+        ExtraParamInjector.sqlId("genericQry4Map step2")
         def objRecord = qe.searchObject(search)
         def mapRecord = result.get(0)
         def fields = MiscUtil.getAllFields(clazz)
@@ -209,12 +218,14 @@ class CommonTest {
             }
         }else {
             fields.each {
-                def tblField = it.getAnnotation(TblField)
-                String colName = (tblField.value()?:it.name).toLowerCase()
-                it.setAccessible(true)
-                def value = it.get(objRecord)
-                if(value!=null){
-                    assert mapRecord.get(colName)!=null
+                if(!it.isSynthetic()){
+                    def tblField = it.getAnnotation(TblField)
+                    String colName = (tblField.value()?:it.name).toLowerCase()
+                    it.setAccessible(true)
+                    def value = it.get(objRecord)
+                    if(value!=null){
+                        assert mapRecord.get(colName)!=null
+                    }
                 }
             }
         }
@@ -227,9 +238,11 @@ class CommonTest {
         def search = getCurrentClass().newInstance()
         def id = MiscUtil.extractFieldValueFromObj(record,"id")
         MiscUtil.setValue(search,"id",id)
+        ExtraParamInjector.sqlId("querySingleAndExist step1")
         def resultRecord = qe.searchObject(search)
         assert MiscUtil.extractFieldValueFromObj(resultRecord, "id") == id
 
+        ExtraParamInjector.sqlId("querySingleAndExist step2")
         def exist = qe.exist(search)
         assert exist
     }
@@ -242,6 +255,7 @@ class CommonTest {
         def id = MiscUtil.extractFieldValueFromObj(record,"id")
         MiscUtil.setValue(search,"id",id)
         ExtraParamInjector.selectColumns("id")
+        ExtraParamInjector.sqlId("selectColumns")
         def resultRecord = qe.searchObject(search)
         def mapObject = MiscUtil.mapObject(resultRecord)
         mapObject.each {
@@ -255,7 +269,8 @@ class CommonTest {
 
     void paging(){
         logger.info ' -- paging -- '
-        PagingInjector.fillParam(1,10,true,new OrderCond("id","desc"))
+        ExtraParamInjector.paging(1,10,true,new OrderCond("id","desc"))
+        ExtraParamInjector.sqlId("paging")
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         def count = PagingInjector.count
         assert list.size() == 10
@@ -271,6 +286,7 @@ class CommonTest {
     void insertOne(){
         logger.info ' -- insertOne -- '
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
+        ExtraParamInjector.sqlId("insertOne")
         def insertNum = qe.insert(record)
         assert insertNum == 1
     }
@@ -282,6 +298,7 @@ class CommonTest {
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id2Update)
+        ExtraParamInjector.sqlId("updateSelective")
         def updateNum = qe.updateSelectiveAutoCon(record, condObj)
         assert updateNum == 1
     }
@@ -293,6 +310,7 @@ class CommonTest {
         record.setId(id)
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id)
+        ExtraParamInjector.sqlId("persist")
         def persistNum = qe.persistAutoCon(record, condObj)
         assert persistNum == 1
     }
@@ -301,8 +319,10 @@ class CommonTest {
         logger.info ' -- insertAndReturnAutoGen -- '
         def clazz = getCurrentClass()
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(clazz, 1))
+        ExtraParamInjector.sqlId("insertAndReturnAutoGen step1")
         def autoGenValue = qe.insertAndReturnAutoGen(record)
         assert autoGenValue!=null
+        ExtraParamInjector.sqlId("insertAndReturnAutoGen step2")
         def resultRecord = qe.findObject(clazz, new Cond("id", autoGenValue))
         record.setId(autoGenValue)
         def fields = MiscUtil.getAllFields(clazz)
@@ -330,6 +350,7 @@ class CommonTest {
         def id2Del = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def del = getCurrentClass().newInstance()
         MiscUtil.setValue(del,"id",id2Del)
+        ExtraParamInjector.sqlId("delOne")
         def delNum = qe.delObjects(del)
         assert delNum == 1
     }
@@ -337,6 +358,7 @@ class CommonTest {
     void delAll(){
         logger.info ' -- delAll -- '
         def del = getCurrentClass().newInstance()
+        ExtraParamInjector.sqlId("delAll")
         def delNum = qe.delObjects(del)
         assert delNum > 0
     }

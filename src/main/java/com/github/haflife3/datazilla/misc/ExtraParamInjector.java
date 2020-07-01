@@ -1,6 +1,7 @@
 package com.github.haflife3.datazilla.misc;
 
 import com.github.haflife3.datazilla.pojo.OrderCond;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +22,16 @@ public class ExtraParamInjector {
         }
     }
 
+    public static void sqlId(String sqlId){
+        if(StringUtils.isNotBlank(sqlId)){
+            GeneralThreadLocal.set("sqlId", sqlId);
+        }
+    }
+
+    public static String getSqlId(){
+        return GeneralThreadLocal.get("sqlId");
+    }
+
     public static List<String> getSelectColumns(){
         return GeneralThreadLocal.get("selectColumns");
     }
@@ -28,5 +39,9 @@ public class ExtraParamInjector {
     public static void unSet(){
         PagingInjector.unSet();
         GeneralThreadLocal.unset("selectColumns");
+    }
+
+    public static void unsetSqlId(){
+        GeneralThreadLocal.unset("sqlId");
     }
 }
