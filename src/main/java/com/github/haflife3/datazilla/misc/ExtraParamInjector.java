@@ -16,6 +16,10 @@ public class ExtraParamInjector {
         PagingInjector.fillParam(pageNo,pageSize,needCount,orderConds);
     }
 
+    public static void offset(Integer offset, Integer limit, boolean needCount, OrderCond... orderConds){
+        PagingInjector.offset(offset,limit,needCount,orderConds);
+    }
+
     public static void selectColumns(String ... selectColumns){
         if(selectColumns!=null&&selectColumns.length>0){
             GeneralThreadLocal.set("selectColumns", Arrays.asList(selectColumns));

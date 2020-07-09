@@ -1,8 +1,6 @@
 package com.github.haflife3.datazilla;
 
 import com.github.haflife3.datazilla.annotation.TblField;
-import com.github.haflife3.datazilla.dialect.DialectFactory;
-import com.github.haflife3.datazilla.dialect.pagination.OfflinePagination;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableLoc;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
@@ -140,8 +138,8 @@ public class QueryEntry {
                     .targetTable(table)
                     .conditionAndList(conds)
                     .selectColumns(ExtraParamInjector.getSelectColumns())
-                    .pageNo(PagingInjector.getPageNo())
-                    .pageSize(PagingInjector.getPageSize())
+                    .offset(PagingInjector.getOffset())
+                    .limit(PagingInjector.getLimit())
                     .orderByConds(PagingInjector.getOrderConds())
                     .build();
             rtList = genericQry(qryCondition);
@@ -381,38 +379,6 @@ public class QueryEntry {
     }
     public <T> int count(T obj){
         return count(TableLoc.findTableName(obj.getClass()),fromTableDomain(obj));
-    }
-
-    public <T> PagedResult<T> commonPagedQuery(QueryConditionBundle qc){
-        PagedResult<T> result = new PagedResult<>();
-        List<T> records = genericQry(qc);
-        Integer pageNo = qc.getPageNo();
-        Integer pageSize = qc.getPageSize();
-        if(pageNo!=null&&pageSize!=null&&pageNo!=0&&pageSize!=0) {
-            OfflinePagination offlinePagination = DialectFactory.getOfflinePagination(coreRunner.getDbType());
-            if(offlinePagination!=null){
-                records = offlinePagination.paginate(records,pageNo,pageSize);
-                if(records!=null){
-                    result.setTotalCount(records.size());
-                }else {
-                    result.setTotalCount(0);
-                }
-            }else {
-                QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
-                    .targetTable(qc.getTargetTable())
-                    .onlyCount(true)
-                    .resultClass(CountInfo.class)
-                    .conditionAndList(qc.getConditionAndList())
-                    .conditionOrList(qc.getConditionOrList())
-                    .build();
-                List<CountInfo> counts = genericQry(qcCount);
-                result.setTotalCount(counts.get(0).getCount());
-            }
-        }else{
-            result.setTotalCount(records.size());
-        }
-        result.setResult(records);
-        return result;
     }
 
     private List<FieldValuePair> toFieldValuePair(Map<String, Object> map){

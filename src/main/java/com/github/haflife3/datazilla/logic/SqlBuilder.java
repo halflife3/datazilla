@@ -174,7 +174,7 @@ public class SqlBuilder {
         fillWherePart(qc,where,values);
         fillOrderByPart(qc.getOrderConds(),where);
         String baseSql = cleanSqlCond(select.append(where).toString());
-        sp.setSql(pagination.paging(qc.getPageNo(),qc.getPageSize(),baseSql,values));
+        sp.setSql(pagination.paging(qc.getOffset(),qc.getLimit(),baseSql,values));
         sp.setValues(values.toArray());
         return sp;
     }

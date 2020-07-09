@@ -4,12 +4,11 @@ import java.util.List;
 
 public class HsqlDbPagination implements Pagination{
     @Override
-    public String paging(Integer pageNo, Integer pageSize, String sql, List<Object> values) {
-        if(pageNo!=null&&pageSize!=null&&pageNo!=0&&pageSize!=0) {
-            int fromIndex = (pageNo - 1) * pageSize;
+    public String paging(Integer offset, Integer limit, String sql, List<Object> values) {
+        if(offset!=null&&limit!=null) {
             sql+=" limit ?,? ";
-            values.add(fromIndex);
-            values.add(pageSize);
+            values.add(offset);
+            values.add(limit);
         }
         return sql;
     }

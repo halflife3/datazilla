@@ -92,6 +92,7 @@ class CommonTest {
                 querySingleAndExist()
                 selectColumns()
                 paging()
+                offset()
                 insertOne()
                 updateSelective()
                 persist()
@@ -282,6 +283,25 @@ class CommonTest {
             assert id < lastId
             lastId = id
         }
+    }
+
+    void offset(){
+        logger.info ' -- offset -- '
+        ExtraParamInjector.offset(0,10,false,new OrderCond("id","desc"))
+        ExtraParamInjector.sqlId("offset step1")
+        List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
+        assert list.size() == 10
+
+        ExtraParamInjector.offset(3,5,false,new OrderCond("id","desc"))
+        ExtraParamInjector.sqlId("offset step2")
+        List<? extends DummyTable> otherList = qe.searchObjects(getCurrentClass().newInstance())
+        assert otherList.size() == 5
+
+        def subList = list.subList(3, (5 + 3))
+        subList.eachWithIndex { def record, int i ->
+            record.getId() == otherList[i].getId()
+        }
+
     }
 
     void insertOne(){

@@ -8,7 +8,7 @@ import java.util.List;
 
 public class DefaultOfflinePagination implements OfflinePagination {
     @Override
-    public <T> List<T> paginate(List<T> collection, Integer pageNo, Integer pageSize) {
-        return MiscUtil.paginate(collection,pageNo,pageSize);
+    public <T> List<T> paginate(List<T> collection, Integer offset, Integer limit) {
+        return MiscUtil.paginate(collection,offset,limit);
     }
 }

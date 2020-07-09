@@ -7,8 +7,8 @@ public class QueryConditionBundle extends ConditionBundle {
     private List<String> selectColumns;
     private boolean onlyCount;
     private List<OrderCond> orderConds;
-    private Integer pageNo;
-    private Integer pageSize;
+    private Integer offset;
+    private Integer limit;
 
     public QueryConditionBundle() {
     }
@@ -21,8 +21,8 @@ public class QueryConditionBundle extends ConditionBundle {
         setSelectColumns(builder.selectColumns);
         setOnlyCount(builder.onlyCount);
         setOrderConds(builder.orderConds);
-        setPageNo(builder.pageNo);
-        setPageSize(builder.pageSize);
+        setOffset(builder.offset);
+        setLimit(builder.limit);
     }
 
     public Class<?> getResultClass() {
@@ -57,28 +57,28 @@ public class QueryConditionBundle extends ConditionBundle {
         this.orderConds = orderConds;
     }
 
-    public Integer getPageNo() {
-        return pageNo;
+    public Integer getOffset() {
+        return offset;
     }
 
-    public void setPageNo(Integer pageNo) {
-        this.pageNo = pageNo;
+    public void setOffset(Integer offset) {
+        this.offset = offset;
     }
 
-    public Integer getPageSize() {
-        return pageSize;
+    public Integer getLimit() {
+        return limit;
     }
 
-    public void setPageSize(Integer pageSize) {
-        this.pageSize = pageSize;
+    public void setLimit(Integer limit) {
+        this.limit = limit;
     }
 
     public static final class Builder {
         private List<String> selectColumns;
         private boolean onlyCount;
         private List<OrderCond> orderConds;
-        private Integer pageNo;
-        private Integer pageSize;
+        private Integer offset;
+        private Integer limit;
         private List<Cond> conditionAndList;
         private List<Cond> conditionOrList;
         private Class<?> resultClass;
@@ -102,13 +102,13 @@ public class QueryConditionBundle extends ConditionBundle {
             return this;
         }
 
-        public Builder pageNo(Integer pageNo) {
-            this.pageNo = pageNo;
+        public Builder offset(Integer offset) {
+            this.offset = offset;
             return this;
         }
 
-        public Builder pageSize(Integer pageSize) {
-            this.pageSize = pageSize;
+        public Builder limit(Integer limit) {
+            this.limit = limit;
             return this;
         }
 

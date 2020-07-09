@@ -402,12 +402,11 @@ public class MiscUtil {
         }
         return null;
     }
-    public static <T> List<T> paginate(List<T> collection, Integer pageNo, Integer pageSize){
-        if(CollectionUtils.isNotEmpty(collection)&&pageNo!=null&&pageSize!=null&&pageNo!=0&&pageSize!=0) {
-            int fromIndex = (pageNo - 1) * pageSize;
+    public static <T> List<T> paginate(List<T> collection, Integer offset, Integer limit){
+        if(CollectionUtils.isNotEmpty(collection)&&offset!=null&&limit!=null) {
             return collection.stream()
-                .skip(fromIndex)
-                .limit(pageSize)
+                .skip(offset)
+                .limit(limit)
                 .collect(Collectors.toList());
         }else {
             return collection;
