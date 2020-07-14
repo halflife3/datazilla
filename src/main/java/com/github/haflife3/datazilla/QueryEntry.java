@@ -397,7 +397,7 @@ public class QueryEntry {
         return pairs;
     }
 
-    private  List<Cond> fromTableDomain(Object obj){
+    public List<Cond> fromTableDomain(Object obj){
         List<Cond> conds = new ArrayList<>();
         Map<String,Object> condMap = toFieldValueMap(obj);
         condMap.forEach((fieldName,value)-> conds.add(new Cond(fieldName,value)));

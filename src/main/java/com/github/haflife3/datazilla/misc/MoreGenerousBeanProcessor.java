@@ -81,6 +81,18 @@ public class MoreGenerousBeanProcessor extends CustomBeanProcessor {
             }else {
                 final String generousColumnName = columnName.replace("_", "");
                 for (String fieldName:fieldNames){
+                    Field field = fieldMap.get(fieldName);
+                    TblField tblField = field.getAnnotation(TblField.class);
+                    if(tblField!=null){
+                        String tblColName = tblField.value();
+                        if(StringUtils.isBlank(tblColName)){
+                            tblColName = field.getName();
+                        }
+                        if(columnName.equalsIgnoreCase(tblColName)){
+                            colIndexMap.put(fieldName,col);
+                            break;
+                        }
+                    }
                     if(columnName.equalsIgnoreCase(fieldName)||generousColumnName.equalsIgnoreCase(fieldName)){
                         colIndexMap.put(fieldName,col);
                         break;
