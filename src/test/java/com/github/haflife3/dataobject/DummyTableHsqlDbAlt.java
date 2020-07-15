@@ -1,6 +1,7 @@
 package com.github.haflife3.dataobject;
 
 import com.github.haflife3.datazilla.annotation.Table;
+import com.github.haflife3.datazilla.annotation.TblField;
 import lombok.Data;
 import uk.co.jemos.podam.common.*;
 
@@ -57,6 +58,10 @@ public class DummyTableHsqlDbAlt extends DummyTable{
 
   @PodamStringValue(length = 5)
   private String varcharF;
+
+  @PodamStringValue(length = 5)
+  @TblField("name_mismatch_f")
+  private String mismatchedName;
 
   @PodamStringValue(length = 100)
   private String longvarcharF;

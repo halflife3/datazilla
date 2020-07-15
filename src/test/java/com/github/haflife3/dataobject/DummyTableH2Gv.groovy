@@ -75,6 +75,10 @@ class DummyTableH2Gv extends DummyTable{
     @TblField("VARCHAR_F")
     private String varcharF
 
+    @PodamStringValue(length = 5)
+    @TblField("name_mismatch_f")
+    private String mismatchedName
+
     /**  */
     @PodamCharValue
     @TblField("CHAR_F")
@@ -218,5 +222,13 @@ class DummyTableH2Gv extends DummyTable{
 
     void setUuidF(UUID uuidF) {
         this.uuidF = uuidF
+    }
+
+    String getMismatchedName() {
+        return mismatchedName
+    }
+
+    void setMismatchedName(String mismatchedName) {
+        this.mismatchedName = mismatchedName
     }
 }

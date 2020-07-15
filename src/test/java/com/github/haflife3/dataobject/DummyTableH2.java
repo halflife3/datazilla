@@ -82,6 +82,10 @@ public class DummyTableH2 extends DummyTable{
   @TblField("VARCHAR_F")
   private String varcharF;
 
+  @PodamStringValue(length = 5)
+  @TblField("name_mismatch_f")
+  private String mismatchedName;
+
   /**  */
   @PodamCharValue(maxValue = 'Z')
   @TblField("CHAR_F")

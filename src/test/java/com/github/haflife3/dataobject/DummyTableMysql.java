@@ -92,6 +92,10 @@ public class DummyTableMysql extends DummyTable{
   @TblField("varchar_f")
   private String varcharF;
 
+  @PodamStringValue(length = 5)
+  @TblField("name_mismatch_f")
+  private String mismatchedName;
+
   /**  */
   @PodamStringValue(length = 20)
   @TblField("text_f")

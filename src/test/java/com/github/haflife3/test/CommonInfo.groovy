@@ -14,25 +14,26 @@ class CommonInfo {
     static String createMysqlTestTable =
         '''
 CREATE TABLE IF NOT EXISTS `TABLE_PLACEHOLDER`  ( 
-   `id`            bigint(20) AUTO_INCREMENT NOT NULL,
-   `tinyint_f`     tinyint(4) NULL,
-   `smallint_f`    smallint(6) NULL,
-   `year_f`        year(4) NULL,
-   `int_f`         int(11) NULL,
-   `bit_f`         bit(1) NULL,
-   `bigint_f`      bigint(20) NULL,
-   `float_f`       float NULL,
-   `double_f`      double NULL,
-   `decimal_f`     decimal(10,5) NULL,
-   `numeric_f`     numeric(10,5) NULL,
-   `dateTime_f`    datetime NULL,
-   `timestamp_f`   timestamp NULL,
-   `date_f`        date NULL,
-   `time_f`        time NULL,
-   `char_f`        char(25) NULL,
-   `varchar_f`     varchar(200) NULL,
-   `text_f`        text NULL,
-   `longtext_f`    longtext NULL,
+   `id`                 bigint(20) AUTO_INCREMENT NOT NULL,
+   `tinyint_f`          tinyint(4) NULL,
+   `smallint_f`         smallint(6) NULL,
+   `year_f`             year(4) NULL,
+   `int_f`              int(11) NULL,
+   `bit_f`              bit(1) NULL,
+   `bigint_f`           bigint(20) NULL,
+   `float_f`            float NULL,
+   `double_f`           double NULL,
+   `decimal_f`          decimal(10,5) NULL,
+   `numeric_f`          numeric(10,5) NULL,
+   `dateTime_f`         datetime NULL,
+   `timestamp_f`        timestamp NULL,
+   `date_f`             date NULL,
+   `time_f`             time NULL,
+   `char_f`             char(25) NULL,
+   `varchar_f`          varchar(200) NULL,
+   `name_mismatch_f`    varchar(200) NULL,
+   `text_f`             text NULL,
+   `longtext_f`         longtext NULL,
     PRIMARY KEY(id)
    )
         '''
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER (
    timestamp_f TIMESTAMP, 
    datetime_f DATETIME, 
    varchar_f VARCHAR(255), 
+   name_mismatch_f VARCHAR(255), 
    char_f CHAR(10), 
    uuid_f UUID
 )
@@ -72,6 +74,7 @@ CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  (
    "double_precision_f"   double precision NULL,
    "float8_f"             float8 NULL,
    "varchar_f"            varchar(200) NULL,
+   "name_mismatch_f"      varchar(200) NULL,
    "character_f"          character(25) NULL,
    "char_f"               char(25) NULL,
    "text_f"               text NULL,
@@ -88,6 +91,7 @@ CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  (
 CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER ( 
    id INTEGER PRIMARY KEY NOT NULL, 
    text_f TEXT , 
+   name_mismatch_f TEXT , 
    real_f REAL , 
    numeric_f NUMERIC
 )
@@ -113,6 +117,7 @@ CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER  (
    time_f        time NULL,
    char_f        char(25) NULL,
    varchar_f     varchar(200) NULL,
+   name_mismatch_f     varchar(200) NULL,
    LONGVARCHAR_f        LONGVARCHAR NULL,
    UUID_f    UUID NULL,
     PRIMARY KEY(id)

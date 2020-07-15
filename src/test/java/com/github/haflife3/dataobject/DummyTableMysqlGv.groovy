@@ -92,6 +92,10 @@ class DummyTableMysqlGv  extends DummyTable{
     @TblField("varchar_f")
     private String varcharF
 
+    @PodamStringValue(length = 5)
+    @TblField("name_mismatch_f")
+    private String mismatchedName
+
     /**  */
     @PodamStringValue(length = 20)
     @TblField("text_f")
@@ -252,5 +256,13 @@ class DummyTableMysqlGv  extends DummyTable{
 
     void setLongtextF(String longtextF) {
         this.longtextF = longtextF
+    }
+
+    String getMismatchedName() {
+        return mismatchedName
+    }
+
+    void setMismatchedName(String mismatchedName) {
+        this.mismatchedName = mismatchedName
     }
 }

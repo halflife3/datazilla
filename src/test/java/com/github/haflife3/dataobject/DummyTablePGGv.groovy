@@ -57,6 +57,10 @@ class DummyTablePGGv extends DummyTable{
     private String varcharF
 
     @PodamStringValue(length = 5)
+    @TblField("name_mismatch_f")
+    private String mismatchedName
+
+    @PodamStringValue(length = 5)
     @TblField("character_f")
     private String characterF
 
@@ -215,5 +219,13 @@ class DummyTablePGGv extends DummyTable{
 
     void setBooleanF(Boolean booleanF) {
         this.booleanF = booleanF
+    }
+
+    String getMismatchedName() {
+        return mismatchedName
+    }
+
+    void setMismatchedName(String mismatchedName) {
+        this.mismatchedName = mismatchedName
     }
 }

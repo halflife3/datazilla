@@ -29,6 +29,10 @@ class DummyTableSqliteGv extends DummyTable{
     @TblField("text_f")
     private String textF
 
+    @PodamStringValue(length = 5)
+    @TblField("name_mismatch_f")
+    private String mismatchedName
+
     Long getId() {
         return id
     }
@@ -59,5 +63,13 @@ class DummyTableSqliteGv extends DummyTable{
 
     void setTextF(String textF) {
         this.textF = textF
+    }
+
+    String getMismatchedName() {
+        return mismatchedName
+    }
+
+    void setMismatchedName(String mismatchedName) {
+        this.mismatchedName = mismatchedName
     }
 }

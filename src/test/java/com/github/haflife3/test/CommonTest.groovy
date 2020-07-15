@@ -93,6 +93,7 @@ class CommonTest {
                 selectColumns()
                 paging()
                 offset()
+                nameMismatch()
                 insertOne()
                 updateSelective()
                 persist()
@@ -301,7 +302,20 @@ class CommonTest {
         subList.eachWithIndex { def record, int i ->
             record.getId() == otherList[i].getId()
         }
+    }
 
+    void nameMismatch(){
+        logger.info ' -- nameMismatch -- '
+        ExtraParamInjector.sqlId("nameMismatch step1")
+        List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
+        list.each {
+            assert it.getMismatchedName()!=null
+        }
+        def search = getCurrentClass().newInstance()
+        MiscUtil.setValue(search,"mismatchedName",list[0].getMismatchedName())
+        ExtraParamInjector.sqlId("nameMismatch step2")
+        def result = qe.searchObject(search)
+        assert result!=null
     }
 
     void insertOne(){

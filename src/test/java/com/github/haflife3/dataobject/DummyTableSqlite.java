@@ -3,11 +3,9 @@ package com.github.haflife3.dataobject;
 import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.annotation.TblField;
 import lombok.Data;
-import uk.co.jemos.podam.common.*;
-
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.UUID;
+import uk.co.jemos.podam.common.PodamDoubleValue;
+import uk.co.jemos.podam.common.PodamExclude;
+import uk.co.jemos.podam.common.PodamStringValue;
 
 /**  */
 @Table("dummy_table")
@@ -33,5 +31,9 @@ public class DummyTableSqlite extends DummyTable{
   @PodamStringValue(length = 5)
   @TblField("text_f")
   private String textF;
+
+  @PodamStringValue(length = 5)
+  @TblField("name_mismatch_f")
+  private String mismatchedName;
 
 }
