@@ -26,8 +26,16 @@ public class QueryEntry {
         this.coreRunner = new CoreRunner(new QueryRunner(ds));
     }
 
+    public QueryEntry(DataSource ds,String dbType) {
+        this.coreRunner = new CoreRunner(new QueryRunner(ds),dbType);
+    }
+
     public QueryEntry(QueryRunner qr) {
         this.coreRunner = new CoreRunner(qr);
+    }
+
+    public QueryEntry(QueryRunner qr,String dbType) {
+        this.coreRunner = new CoreRunner(qr,dbType);
     }
 
     public QueryEntry(CoreRunner coreRunner) {

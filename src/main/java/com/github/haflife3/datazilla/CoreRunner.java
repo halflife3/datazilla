@@ -34,13 +34,21 @@ public class CoreRunner {
     }
 
     public CoreRunner(QueryRunner queryRunner) {
+        this(queryRunner,null);
+    }
+
+    public CoreRunner(QueryRunner queryRunner,String dbType) {
         this.queryRunner = queryRunner;
-        dbType = new PlatformUtils().determineDatabaseType(queryRunner.getDataSource());
-        if(DialectFactory.SUPPORTED_DB.stream().noneMatch(dbType::equalsIgnoreCase)){
-            dbType = DialectConst.DEFAULT;
+        if(dbType==null){
+            this.dbType = new PlatformUtils().determineDatabaseType(queryRunner.getDataSource());
+        }else {
+            this.dbType = dbType;
         }
-        sqlBuilder = new SqlBuilder(dbType);
-        entityRegulator = DialectFactory.getEntityRegulator(dbType);
+        if(DialectFactory.SUPPORTED_DB.stream().noneMatch(this.dbType::equalsIgnoreCase)){
+            this.dbType = DialectConst.DEFAULT;
+        }
+        sqlBuilder = new SqlBuilder(this.dbType);
+        entityRegulator = DialectFactory.getEntityRegulator(this.dbType);
     }
 
     public DataSource getDataSource(){
