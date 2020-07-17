@@ -282,9 +282,11 @@ public class QueryEntry {
     }
 
     public int persist(Object record, List<Cond> conds){
+        String sqlId = ExtraParamInjector.getSqlId();
         int num = 0;
         num = updateSelective(record,conds);
         if(num == 0){
+            ExtraParamInjector.sqlId(sqlId);
             num = insert(record);
         }
         return num;
