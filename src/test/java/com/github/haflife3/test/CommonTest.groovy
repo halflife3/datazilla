@@ -61,6 +61,7 @@ class CommonTest {
         ExtraParamInjector.sqlId("setup create table")
         qe.genericUpdate(createTableSql)
         String cleanUpSql = cleanUpSql()
+        ExtraParamInjector.sqlId("cleanUpSql")
         qe.genericUpdate(cleanUpSql)
         logger.info '>>setup finish<<'
     }
