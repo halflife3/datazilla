@@ -1,6 +1,7 @@
 package com.github.haflife3.test
 
 import com.github.haflife3.datazilla.dialect.DialectConst
+import com.google.gson.Gson
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 
@@ -130,7 +131,9 @@ CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER  (
         createTableMap.put(DialectConst.PG,createPgTestTable)
         createTableMap.put(DialectConst.SQLITE,createSqliteTestTable)
         createTableMap.put(DialectConst.HSQLDB,createHsqlDbTestTable)
+        String mysqlConn = System.getenv("DATAZILLA_MYSQL_CONN")
         connInfoMap.put(DialectConst.MYSQL,
+            mysqlConn?new Gson().fromJson(mysqlConn,ConnInfo):
             ConnInfo.builder()
                 .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8")
                 .username("root")
@@ -143,7 +146,9 @@ CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER  (
                 .username("sa")
                 .build()
         )
+        String pgConn = System.getenv("DATAZILLA_PG_CONN")
         connInfoMap.put(DialectConst.PG,
+            pgConn?new Gson().fromJson(pgConn,ConnInfo):
             ConnInfo.builder()
                 .url("jdbc:postgresql://localhost:5432/postgres")
                 .username("postgres")
