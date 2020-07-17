@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * @author Jianfeng.Mao2
+ * @author mjf
  * @date 2019/12/3
  */
 public class PlatformUtils {
