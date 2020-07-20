@@ -89,6 +89,7 @@ class CommonTest {
                 batchInsert()
                 typeMapping()
                 queryAll()
+                count()
                 genericQry4Map()
                 querySingleAndExist()
                 selectColumns()
@@ -189,6 +190,17 @@ class CommonTest {
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         assert list.size() == 200
         GeneralThreadLocal.set("allRecords",list)
+    }
+
+    void count(){
+        logger.info ' -- count -- '
+        ExtraParamInjector.sqlId("count step1")
+        assert qe.count(getCurrentClass().newInstance()) == 200
+
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        ExtraParamInjector.sqlId("count step2")
+        assert qe.count(getCurrentClass(),new Cond("id",id2Query)) == 1
     }
 
     void genericQry4Map(){

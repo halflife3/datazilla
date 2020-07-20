@@ -367,10 +367,10 @@ public class QueryEntry {
         return exist(obj.getClass(),fromTableDomain(obj));
     }
 
-    public int count(String table, List<Cond> conds){
+    public int count(Class<?> clazz, List<Cond> conds){
         int count = 0;
         QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
-            .targetTable(table)
+            .targetTable(TableLoc.findTableName(clazz))
             .onlyCount(true)
             .resultClass(CountInfo.class)
             .conditionAndList(conds)
@@ -380,10 +380,10 @@ public class QueryEntry {
         return count;
     }
     public int count(Class<?> clazz, Cond... conds){
-        return count(TableLoc.findTableName(clazz),Arrays.asList(conds));
+        return count(clazz,Arrays.asList(conds));
     }
     public <T> int count(T obj){
-        return count(TableLoc.findTableName(obj.getClass()),fromTableDomain(obj));
+        return count(obj.getClass(),fromTableDomain(obj));
     }
 
     private List<FieldValuePair> toFieldValuePair(Map<String, Object> map){
