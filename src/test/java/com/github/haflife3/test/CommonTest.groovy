@@ -373,7 +373,7 @@ class CommonTest {
         def clazz = getCurrentClass()
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(clazz, 1))
         ExtraParamInjector.sqlId("insertAndReturnAutoGen step1")
-        def autoGenValue = qe.insertAndReturnAutoGen(record)
+        Long autoGenValue = qe.insertAndReturnAutoGen(record)
         assert autoGenValue!=null
         ExtraParamInjector.sqlId("insertAndReturnAutoGen step2")
         def resultRecord = qe.findObject(clazz, new Cond("id", autoGenValue))
