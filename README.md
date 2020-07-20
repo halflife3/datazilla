@@ -35,13 +35,15 @@ datazilla is available in maven central repo.
 # Usage
 ## Setup
 Instantiate QueryEntry with a DataSource as the constructor parameter, and it's all done.
+
+The underlying DB type will be automatically determined.
 ```java
 DataSource ds = ... // it can be any implementation of javax.sql.DataSource
 QueryEntry queryEntry = new QueryEntry(ds);
 ```
 
 ## Simple Cases
-First we create a table, and a corresponding Java bean file:
+First we create a table, and a corresponding Java bean file: [Java file generation](#generate-Java-file-from-table-definition)
 ```sql
 CREATE TABLE IF NOT EXISTS `dummy`  ( 
    `id`            bigint(20) AUTO_INCREMENT NOT NULL,
@@ -84,12 +86,20 @@ dummy.setDatetimeF(new Date());
 dummy.setVarcharF("some text");
 queryEntry.insert(dummy);
 ```
+Corresponding sql:
+```sql
+insert into dummy (int_f,decimal_f,dateTime_f,varchar_f) values(?,?,?,?) -- values[10,12.34,<new Date()>,"some text"]
+```
 
 ### update
 ```java
 Dummy dummy = new Dummy();
 dummy.setVarcharF("other text");
 queryEntry.updateSelective(dummy,new Cond("id",1L));
+```
+Corresponding sql:
+```sql
+update dummy set varchar_f = ? where id = ? -- values["other text",1]
 ```
 
 ### query
@@ -105,6 +115,14 @@ dummies = queryEntry.findObjects(Dummy.class, new Cond("id", ">", 0));
 dummies = queryEntry.findObjects(Dummy.class, new Cond("id", 1), new Cond("int_f", 10));
 dummies = queryEntry.findObjects(Dummy.class, new Cond.Builder().fieldName("id").compareOpr("is not null").build());
 ```
+Corresponding sqls:
+```sql
+select * from dummy where id = ? -- values[1]
+select * from dummy where id = ? -- values[1]
+select * from dummy where id > ? -- values[0]
+select * from dummy where id = ? and int_f = ? -- values[1,10]
+select * from dummy where id is not null
+```
 
 ### delete
 ```java
@@ -112,6 +130,21 @@ Dummy dummy = new Dummy();
 dummy.setId(1L);
 queryEntry.delObjects(dummy);
 ```
+Corresponding sql:
+```sql
+delete from dummy where id = ? -- values[1]
+```
 
 ## Advanced cases
-...
+
+### batchInsert
+
+### persist
+
+### paging and offset
+
+### sql identify
+
+## Other functionalities
+
+### generate Java file from table definition
