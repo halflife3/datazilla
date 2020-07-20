@@ -39,7 +39,7 @@ public class PagingInjector {
         return GeneralThreadLocal.get("limit");
     }
 
-    public static boolean isNeedCount(){
+    public static boolean needCount(){
         Boolean needCount = GeneralThreadLocal.get("needCount");
         return needCount!=null&&needCount;
     }

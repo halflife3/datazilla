@@ -20,7 +20,17 @@ Table of Contents
     * [update](#update)
     * [query](#query)
     * [delete](#delete)
-  * [Advanced cases](#Advanced-cases)
+  * [Advanced Cases](#Advanced-Cases)
+    * [batch insert](#batch-insert)
+    * [persist](#persist)
+    * [paging and offset](#paging-and-offset)
+    * [sql identify](#sql-identify)
+    * [column selection](#column-selection)
+    * [custom ColumnHandler](#custom-column-handler)
+    * [column selection](#column-selection)
+    * [column selection](#column-selection)
+  * [Other functionalities](#Other-functionalities)
+    * [Java file generation](#Java-file-generation)
 
 # Maven Setting
 datazilla is available in maven central repo.
@@ -43,7 +53,7 @@ QueryEntry queryEntry = new QueryEntry(ds);
 ```
 
 ## Simple Cases
-First we create a table, and a corresponding Java bean file: [Java file generation](#generate-Java-file-from-table-definition)
+First we create a table, and a corresponding Java bean file: [Java file generation](#Java-file-generation)
 ```sql
 CREATE TABLE IF NOT EXISTS `dummy`  ( 
    `id`            bigint(20) AUTO_INCREMENT NOT NULL,
@@ -135,9 +145,9 @@ Corresponding sql:
 delete from dummy where id = ? -- values[1]
 ```
 
-## Advanced cases
+## Advanced Cases
 
-### batchInsert
+### batch insert
 
 ### persist
 
@@ -145,6 +155,10 @@ delete from dummy where id = ? -- values[1]
 
 ### sql identify
 
+### column selection
+
+### custom column handler
+
 ## Other functionalities
 
-### generate Java file from table definition
+### Java file generation

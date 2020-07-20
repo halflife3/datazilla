@@ -151,7 +151,7 @@ public class QueryEntry {
                     .orderByConds(PagingInjector.getOrderConds())
                     .build();
             rtList = genericQry(qryCondition);
-            if(PagingInjector.isNeedCount()){
+            if(PagingInjector.needCount()){
                 QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
                     .targetTable(qryCondition.getTargetTable())
                     .onlyCount(true)
@@ -175,6 +175,7 @@ public class QueryEntry {
         return findObjects(conds, (Class<T>) clazz);
     }
     public <T> T searchObject(T obj){
+        PagingInjector.offset(0,1,false);
         return MiscUtil.getFirst(searchObjects(obj));
     }
 
@@ -187,6 +188,7 @@ public class QueryEntry {
     }
 
     public <T> T findObject(String table, List<Cond> conds, Class<T> clazz){
+        PagingInjector.offset(0,1,false);
         return MiscUtil.getFirst(findObjects(table, conds, clazz));
     }
 
@@ -354,22 +356,15 @@ public class QueryEntry {
     public <T> List<T> genericQry(QueryConditionBundle qryCondition){
         return coreRunner.genericQry(qryCondition);
     }
-    public boolean exist(String table, List<Cond> conds){
-        QueryConditionBundle qryCondition = new QueryConditionBundle.Builder()
-                .resultClass(CountInfo.class)
-                .onlyCount(true)
-                .targetTable(table)
-                .conditionAndList(conds)
-                .build();
-        List<CountInfo> countInfos = genericQry(qryCondition);
-        return MiscUtil.getFirst(countInfos).getCount()>0;
+    public boolean exist(Class<?> clazz, List<Cond> conds){
+        return findObject(conds,clazz)!=null;
     }
     public boolean exist(Class<?> clazz, Cond... conds){
-        return exist(TableLoc.findTableName(clazz),Arrays.asList(conds));
+        return exist(clazz,Arrays.asList(conds));
     }
 
     public <T> boolean exist(T obj){
-        return exist(TableLoc.findTableName(obj.getClass()),fromTableDomain(obj));
+        return exist(obj.getClass(),fromTableDomain(obj));
     }
 
     public int count(String table, List<Cond> conds){

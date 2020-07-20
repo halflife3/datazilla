@@ -241,7 +241,7 @@ class CommonTest {
         def record = list.get(0)
         def search = getCurrentClass().newInstance()
         def id = MiscUtil.extractFieldValueFromObj(record,"id")
-        MiscUtil.setValue(search,"id",id)
+        search.setId(id)
         ExtraParamInjector.sqlId("querySingleAndExist step1")
         def resultRecord = qe.searchObject(search)
         assert MiscUtil.extractFieldValueFromObj(resultRecord, "id") == id
@@ -249,6 +249,11 @@ class CommonTest {
         ExtraParamInjector.sqlId("querySingleAndExist step2")
         def exist = qe.exist(search)
         assert exist
+
+        ExtraParamInjector.sqlId("querySingleAndExist step3")
+        search.setId(-1)
+        def notExist = !qe.exist(search)
+        assert notExist
     }
 
     void selectColumns(){
