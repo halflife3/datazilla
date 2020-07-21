@@ -24,7 +24,6 @@ Table of Contents
     * [query](#query)
     * [delete](#delete)
   * [Advanced Cases](#Advanced-Cases)
-    * [auto column detection](#auto-column-detection)
     * [batch insert](#batch-insert)
     * [persist](#persist)
     * [paging and offset](#paging-and-offset)
@@ -32,6 +31,7 @@ Table of Contents
     * [column selection](#column-selection)
     * [custom column handler](#custom-column-handler)
     * [custom result set handler](#custom-result-set-handler)
+    * [auto column detection](#auto-column-detection)
   * [Other functionalities](#Other-functionalities)
     * [Java file generation](#Java-file-generation)
     * [transaction support](#transaction-support)
@@ -58,19 +58,22 @@ QueryEntry queryEntry = new QueryEntry(ds);
 
 ## Simple Cases
 First we create a table, and a corresponding Java bean file: [Java file generation](#Java-file-generation)
+
+**`Note:`** All sql parts here, including DDL, DQL and DML, are conform to MySQL semantics, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
 ```sql
 CREATE TABLE IF NOT EXISTS `dummy`  ( 
    `id`            bigint(20) AUTO_INCREMENT NOT NULL,
    `int_f`         int(11) NULL,
    `decimal_f`     decimal(10,5) NULL,
-   `dateTime_f`    datetime NULL,
+   `dateTime_f`    datetime DEFAULT CURRENT_TIMESTAMP,
    `varchar_f`     varchar(200) NULL,
     PRIMARY KEY(id)
 )
 ```
+**`Note:`** The `implements Serializable` part has no special meaning here, it is only added to conform to the Java Bean Specification, you can safely omit this without having to worry about any side effect. 
 ```java
 @Table("dummy")
-public class Dummy {
+public class Dummy implements Serializable {
 
   @TblField("id")
   private Long id;
@@ -92,7 +95,7 @@ public class Dummy {
 ```
 
 ### insert
-To create a record and save it to database, simply instantiate the java object and fill it with data, then call `QueryEntry.insert()`.
+To create a record and save it to database, simply instantiate a Java object and fill it with data, then call `QueryEntry.insert()`. Any null values will be ignored, and the database itself may decide either give them default values or simply left empty. In this case, we left the `id` field unset and let database to give it an auto incremented value.
 ```java
 Dummy dummy = new Dummy();
 dummy.setIntF(10);
@@ -107,9 +110,9 @@ insert into dummy (int_f,decimal_f,dateTime_f,varchar_f) values(?,?,?,?) -- valu
 ```
 
 ### update
-To update records by conditions (in this case, by one id), instantiate the java object and fill it with data you wish to modify, add conditions which will filter out the records in question, then call `QueryEntry.updateSelective()`. <span style="color:green">Do note this:</span> any null value fields will be ignored for record modification, if however, you wish to include those null value fields, you can use `QueryEntry.updateFull()` instead.
+To update records by conditions (in this case, by one id), instantiate a Java object and fill it with data you wish to modify, add conditions which will filter out the records in question, then call `QueryEntry.updateSelective()`. Do note this: any null value fields will be ignored for record modification, if however, you wish to include those null value fields, you can use `QueryEntry.updateFull()` instead.
 
-Tip: It's almost always a bad practice to have primitive typed fields be mapped to database columns, for those fields can never be null and may raise unexpected behaviours.
+**`Tip:`** It's almost always a bad practice to have primitive typed fields be mapped to database columns, for those fields can never be null and may raise unexpected behaviours.
 ```java
 Dummy dummy = new Dummy();
 dummy.setVarcharF("other text");
@@ -162,15 +165,54 @@ Corresponding sql:
 ```sql
 delete from dummy where id = ? -- values[1]
 ```
-Tip: Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related java object at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
+**`Tip:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related java object at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
 
 ## Advanced Cases
-
-### auto column detection
+In this part, the examples are still based on the table and the Java Bean we created in the beginning.
 
 ### batch insert
+To save multiple records to database at the same time, instantiate one or more Java objects and fill them with data, then call `QueryEntry.batchInsert()`. Null values are ignored as always. You can place records separately into the method call as `Varargs` or altogether as a list.
+
+**`Tip:`** The default bulk size for batch insert is 100, you can specify the size by place an integer number as the first method parameter (e.g: `QueryEntry.batchInsert(200, Arrays.asList(dummy1,dummy2,dummy3 ... ))`).
+
+**`Note:`** The single `batchInsert` operation below is separated into two insert queries. datazilla will automatically group together those records which can be operated in a single query. The reason for this seemingly odd behaviour is that we must let database decide how to deal with the null values, `dummy3` here doesn't have `varcharF` set, if there is only one insert query, it would look like this: `insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?), ( ?,?) -- values: [10, "some text", 20, "other text", 30, null]`. Note the last value is null, if `varchar_f` has a default value, the default value can never be applied. 
+
+**`Note:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
+```java
+Dummy dummy1 = new Dummy();
+dummy1.setIntF(10);
+dummy1.setVarcharF("some text");
+Dummy dummy2 = new Dummy();
+dummy2.setIntF(20);
+dummy2.setVarcharF("other text");
+Dummy dummy3 = new Dummy();
+dummy3.setIntF(30);
+//or queryEntry.batchInsert(Arrays.asList(dummy1,dummy2,dummy3));
+queryEntry.batchInsert(dummy1,dummy2,dummy3);
+
+
+```
+Corresponding sql:
+```sql
+insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?) -- values: [10, "some text", 20, "other text"]
+insert into dummy (int_f) values (?)  -- values: [30]
+```
 
 ### persist
+To persist (same as upsert if you are more familiar with this term) a record into database, instantiate a Java object and fill it with data, specify the conditions to filter out the record to be updated if it ever exists, then call `QueryEntry.persist()`. datazilla will first try to perform an update operation by the conditions, if no database record is updated, the object will be inserted into database instead.
+
+**`Note:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
+```java
+Dummy dummy = new Dummy();
+dummy.setIntF(40);
+dummy.setVarcharF("some text");
+queryEntry.persist(dummy,new Cond("id",10L));
+```
+Corresponding sql:
+```sql
+update dummy set int_f=?,varchar_f=? where id = ?  -- values: [40, some text, 10]
+insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, some text]
+```
 
 ### paging and offset
 
@@ -181,6 +223,8 @@ Tip: Actually, there are more ways to implement those basic operations, such as 
 ### custom column handler
 
 ### custom result set handler
+
+### auto column detection
 
 ## Other Functionalities
 
