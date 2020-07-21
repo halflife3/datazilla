@@ -59,7 +59,7 @@ QueryEntry queryEntry = new QueryEntry(ds);
 ## Simple Cases
 First we create a table, and a corresponding Java bean file: [Java file generation](#Java-file-generation)
 
-**`Note:`** All sql parts here, including DDL, DQL and DML, are conform to MySQL semantics, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
+**`Note:`** All sql parts here, including DDL, DQL and DML, conform to MySQL semantics, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
 ```sql
 CREATE TABLE IF NOT EXISTS `dummy`  ( 
    `id`            bigint(20) AUTO_INCREMENT NOT NULL,
@@ -165,7 +165,7 @@ Corresponding sql:
 ```sql
 delete from dummy where id = ? -- values[1]
 ```
-**`Tip:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related java object at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
+**`Tip:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related Java object at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
 
 ## Advanced Cases
 In this part, the examples are still based on the table and the Java Bean we created in the beginning.
