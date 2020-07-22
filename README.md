@@ -42,7 +42,7 @@ datazilla is available in maven central repo.
 <dependency>
     <groupId>com.github.haflife3</groupId>
     <artifactId>datazilla</artifactId>
-    <version>1.1.12</version>
+    <version>1.1.13</version>
 </dependency>
 ```
 
@@ -189,8 +189,6 @@ Dummy dummy3 = new Dummy();
 dummy3.setIntF(30);
 //or queryEntry.batchInsert(Arrays.asList(dummy1,dummy2,dummy3));
 queryEntry.batchInsert(dummy1,dummy2,dummy3);
-
-
 ```
 Corresponding sql:
 ```sql
@@ -215,9 +213,11 @@ insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, "some text"]
 ```
 
 ### paging and offset
-To query a subset of records filtered by conditions, and optionally get the total count, supply a paging(`ExtraParamInjector.paging`) or offset(`ExtraParamInjector.offset`) solution right before the query action(`QueryEntry.findObjects` or `QueryEntry.searchObjects`). The total count, if required, can be acquired right after the query action(`ExtraParamInjector.getTotalCount()`).
+To query a subset of records filtered by conditions, and optionally get the total count, supply a paging(`ExtraParamInjector.paging()`) or an offset(`ExtraParamInjector.offset()`) solution right before the query action(`QueryEntry.findObjects()` or `QueryEntry.searchObjects()`). The total count, if required, can be retrieved(`ExtraParamInjector.getTotalCount()`) right after the query action.
 
-**`TIP:`** `ExtraParamInjector.paging` and `ExtraParamInjector.offset` should be placed right before the related query action, and `ExtraParamInjector.getTotalCount()` right after it, or else they may be intercepted by other queries by accident and yield undesired result.
+**`TIP:`** `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()` should be placed right before the related query action, and `ExtraParamInjector.getTotalCount()` right after it, or else they may be intercepted by other queries by accident and yield undesired result.
+
+**`NOTE:`**  The calculation formula of `pageNo, pageSize` to `offset, limit`: <offset = (pageNo - 1) * pageSize, limit = pageSize> .
 ```java
 //paging by pageNo and pageSize, order by id in descending order, and return total count
 ExtraParamInjector.paging(2,5,true,new OrderCond("id","desc"));
@@ -240,8 +240,30 @@ select * from dummy where id > ? order by id desc limit ?,?   -- values: [0, 1, 
 ```
 
 ### sql identify
+Due to datazilla's nature of constructing SQL at runtime, SQL query can be hard to trace back to, by adding a comment as its identity, tracing will no longer be as hard. 
+
+**`TIP:`** Place `ExtraParamInjector.sqlId()` right before your query action for the same reason as when you are using `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()`.
+```java
+ExtraParamInjector.sqlId("find the dumbest dummy");
+Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
+```
+Corresponding sql:
+```sql
+/* find the dumbest dummy */ select * from dummy where id = ?  -- values: [1]
+```
 
 ### column selection
+To specify which table columns to query instead of all, supply a list of column names in `ExtraParamInjector.selectColumns()` and place it right before the query action.
+
+**`TIP:`** Place `ExtraParamInjector.selectColumns()` right before your query action for the same reason as when you are using `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()`.
+```java
+ExtraParamInjector.selectColumns("int_f","varchar_f");
+Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
+```
+Corresponding sql:
+```sql
+select int_f, varchar_f from dummy where id = ?  -- values: [1]
+```
 
 ### custom column handler
 
