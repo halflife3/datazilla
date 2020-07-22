@@ -175,7 +175,6 @@ public class QueryEntry {
         return findObjects(conds, (Class<T>) clazz);
     }
     public <T> T searchObject(T obj){
-        PagingInjector.offset(0,1,false);
         return MiscUtil.getFirst(searchObjects(obj));
     }
 
@@ -188,7 +187,6 @@ public class QueryEntry {
     }
 
     public <T> T findObject(String table, List<Cond> conds, Class<T> clazz){
-        PagingInjector.offset(0,1,false);
         return MiscUtil.getFirst(findObjects(table, conds, clazz));
     }
 
@@ -284,6 +282,9 @@ public class QueryEntry {
     }
 
     public int persist(Object record, List<Cond> conds){
+        if(CollectionUtils.isEmpty(conds)){
+            throw new DBException("conditions can't be empty for persist");
+        }
         String sqlId = ExtraParamInjector.getSqlId();
         int num = 0;
         num = updateSelective(record,conds);

@@ -59,7 +59,7 @@ QueryEntry queryEntry = new QueryEntry(ds);
 ## Simple Cases
 First we create a table, and a corresponding Java bean file: [Java file generation](#Java-file-generation)
 
-**`Note:`** All sql parts here, including DDL, DQL and DML, conform to MySQL semantics, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
+**`NOTE:`** All sql snippets here, including DDL, DQL and DML, conform to MySQL semantics, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
 ```sql
 CREATE TABLE IF NOT EXISTS `dummy`  ( 
    `id`            bigint(20) AUTO_INCREMENT NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `dummy`  (
     PRIMARY KEY(id)
 )
 ```
-**`Note:`** The `implements Serializable` part has no special meaning here, it is only added to conform to the Java Bean Specification, you can safely omit this without having to worry about any side effect. 
+**`NOTE:`** The `implements Serializable` part has no special meaning here, it is only added to conform to the Java Bean Specification, you can safely omit this without having to worry about any side effect. 
 ```java
 @Table("dummy")
 public class Dummy implements Serializable {
@@ -112,7 +112,7 @@ insert into dummy (int_f,decimal_f,dateTime_f,varchar_f) values(?,?,?,?) -- valu
 ### update
 To update records by conditions (in this case, by one id), instantiate a Java object and fill it with data you wish to modify, add conditions which will filter out the records in question, then call `QueryEntry.updateSelective()`. Do note this: any null value fields will be ignored for record modification, if however, you wish to include those null value fields, you can use `QueryEntry.updateFull()` instead.
 
-**`Tip:`** It's almost always a bad practice to have primitive typed fields be mapped to database columns, for those fields can never be null and may raise unexpected behaviours.
+**`TIP:`** It's almost always a bad practice to have primitive typed fields be mapped to database columns, for those fields can never be null and may raise unexpected behaviours.
 ```java
 Dummy dummy = new Dummy();
 dummy.setVarcharF("other text");
@@ -165,7 +165,7 @@ Corresponding sql:
 ```sql
 delete from dummy where id = ? -- values[1]
 ```
-**`Tip:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related Java object at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
+**`TIP:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related Java class at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
 
 ## Advanced Cases
 In this part, the examples are still based on the table and the Java Bean we created in the beginning.
@@ -173,11 +173,11 @@ In this part, the examples are still based on the table and the Java Bean we cre
 ### batch insert
 To save multiple records to database at the same time, instantiate one or more Java objects and fill them with data, then call `QueryEntry.batchInsert()`. Null values are ignored as always. You can place records separately into the method call as `Varargs` or altogether as a list.
 
-**`Tip:`** The default bulk size for batch insert is 100, you can specify the size by place an integer number as the first method parameter (e.g: `QueryEntry.batchInsert(200, Arrays.asList(dummy1,dummy2,dummy3 ... ))`).
+**`TIP:`** The default bulk size for batch insert is 100, you can specify the size by place an integer number as the first method parameter (e.g: `QueryEntry.batchInsert(200, Arrays.asList(dummy1,dummy2,dummy3 ... ))`).
 
-**`Note:`** The single `batchInsert` operation below is separated into two insert queries. datazilla will automatically group together those records which can be operated in a single query. The reason for this seemingly odd behaviour is that we must let database decide how to deal with the null values, `dummy3` here doesn't have `varcharF` set, if there is only one insert query, it would look like this: `insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?), ( ?,?) -- values: [10, "some text", 20, "other text", 30, null]`. Note the last value is null, if `varchar_f` has a default value, the default value can never be applied. 
+**`TIP:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
 
-**`Note:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
+**`NOTE:`** The single `batchInsert` operation below is separated into two insert queries. datazilla will automatically group together those records which can be operated in a single query. The reason for this seemingly odd behaviour is that we must let database decide how to deal with the null values, `dummy3` here doesn't have `varcharF` set, if there is only one insert query, it would look like this: `insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?), ( ?,?) -- values: [10, "some text", 20, "other text", 30, null]`. Note the last value is null, if `varchar_f` has a default value, the default value can never be applied. 
 ```java
 Dummy dummy1 = new Dummy();
 dummy1.setIntF(10);
@@ -201,7 +201,7 @@ insert into dummy (int_f) values (?)  -- values: [30]
 ### persist
 To persist (same as upsert if you are more familiar with this term) a record into database, instantiate a Java object and fill it with data, specify the conditions to filter out the record to be updated if it ever exists, then call `QueryEntry.persist()`. datazilla will first try to perform an update operation by the conditions, if no database record is updated, the object will be inserted into database instead.
 
-**`Note:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
+**`TIP:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
 ```java
 Dummy dummy = new Dummy();
 dummy.setIntF(40);
@@ -210,11 +210,34 @@ queryEntry.persist(dummy,new Cond("id",10L));
 ```
 Corresponding sql:
 ```sql
-update dummy set int_f=?,varchar_f=? where id = ?  -- values: [40, some text, 10]
-insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, some text]
+update dummy set int_f=?,varchar_f=? where id = ?  -- values: [40, "some text", 10]
+insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, "some text"]
 ```
 
 ### paging and offset
+To query a subset of records filtered by conditions, and optionally get the total count, supply a paging(`ExtraParamInjector.paging`) or offset(`ExtraParamInjector.offset`) solution right before the query action(`QueryEntry.findObjects` or `QueryEntry.searchObjects`). The total count, if required, can be acquired right after the query action(`ExtraParamInjector.getTotalCount()`).
+
+**`TIP:`** `ExtraParamInjector.paging` and `ExtraParamInjector.offset` should be placed right before the related query action, and `ExtraParamInjector.getTotalCount()` right after it, or else they may be intercepted by other queries by accident and yield undesired result.
+```java
+//paging by pageNo and pageSize, order by id in descending order, and return total count
+ExtraParamInjector.paging(2,5,true,new OrderCond("id","desc"));
+List<Dummy> dummies1 = queryEntry.findObjects(Dummy.class, new Cond("id", ">", 0));
+//total count
+Integer totalCount = ExtraParamInjector.getTotalCount();
+
+//paging by offset and limit, order by id in descending order, and skip total count
+ExtraParamInjector.offset(1,2,false,new OrderCond("id","desc"));
+List<Dummy> dummies2 = queryEntry.findObjects(Dummy.class,new Cond("id",">",0));
+```
+Corresponding sql:
+```sql
+-- paging by pageNo and pageSize
+select * from dummy where id > ? order by id desc limit ?,?  -- values: [0, 5, 5]
+select count(*) as count from dummy where id > ?  -- values: [0]
+
+-- paging by offset and limit
+select * from dummy where id > ? order by id desc limit ?,?   -- values: [0, 1, 2]
+```
 
 ### sql identify
 

@@ -9,7 +9,6 @@ import com.github.haflife3.datazilla.logic.TableObjectMetaCache
 import com.github.haflife3.datazilla.misc.ExtraParamInjector
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal
 import com.github.haflife3.datazilla.misc.MiscUtil
-import com.github.haflife3.datazilla.misc.PagingInjector
 import com.github.haflife3.datazilla.pojo.Cond
 import com.github.haflife3.datazilla.pojo.OrderCond
 import org.apache.commons.dbutils.ResultSetHandler
@@ -293,7 +292,7 @@ class CommonTest {
         ExtraParamInjector.paging(1,10,true,new OrderCond("id","desc"))
         ExtraParamInjector.sqlId("paging")
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
-        def count = PagingInjector.count
+        def count = ExtraParamInjector.totalCount
         assert list.size() == 10
         assert count == 200
         def lastId = Integer.MAX_VALUE
@@ -373,8 +372,11 @@ class CommonTest {
         def clazz = getCurrentClass()
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(clazz, 1))
         ExtraParamInjector.sqlId("insertAndReturnAutoGen step1")
-        Long autoGenValue = qe.insertAndReturnAutoGen(record)
+        def autoGenValue = qe.insertAndReturnAutoGen(record)
         assert autoGenValue!=null
+        if(autoGenValue instanceof BigInteger){
+            autoGenValue = autoGenValue.longValue()
+        }
         ExtraParamInjector.sqlId("insertAndReturnAutoGen step2")
         def resultRecord = qe.findObject(clazz, new Cond("id", autoGenValue))
         record.setId(autoGenValue)

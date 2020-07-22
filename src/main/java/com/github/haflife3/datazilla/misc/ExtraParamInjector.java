@@ -32,6 +32,10 @@ public class ExtraParamInjector {
         }
     }
 
+    public static Integer getTotalCount(){
+        return PagingInjector.getCount();
+    }
+
     public static String getSqlId(){
         return GeneralThreadLocal.get("sqlId");
     }

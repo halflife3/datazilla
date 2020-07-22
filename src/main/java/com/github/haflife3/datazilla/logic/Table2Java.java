@@ -133,7 +133,7 @@ public class Table2Java {
         if(meta.isLombokMode()){
             importPartSet.add("lombok.Data");
         }
-        String importPart = "import "+ Table.class.getCanonicalName()+";\n";
+        String importPart = "import java.io.Serializable;\nimport "+ Table.class.getCanonicalName()+";\n";
         if(!meta.isAutoColumnDetection()) {
             importPart += "import " + TblField.class.getCanonicalName() + ";\n";
         }
@@ -210,7 +210,7 @@ public class Table2Java {
         if(meta.isLombokMode()){
             beanContent += "@Data\n";
         }
-        beanContent += "public class "+className+" {\n";
+        beanContent += "public class "+className+" implements Serializable {\n";
         beanContent += fieldsPart+"\n";
         if(!meta.isLombokMode()) {
             beanContent += noArgConstructor + "\n";
