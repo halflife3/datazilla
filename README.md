@@ -324,5 +324,27 @@ public class Dummy implements Serializable {
 ## Other Functionalities
 
 ### Java file generation
+Manually compose Java Bean files from database table definition can be both tedious and error prone, datazilla provides a small tool to take over this job.
+
+Place a file named "Table2JavaMeta.json" (see below) inside your project's root directory, execute the main method inside `Table2Java.java`, and the Java files will be generated at this location: \[your project root/\<srcRoot\>/\<domainPackage\>\]. Based on the example json below, a file named "Dummy.java" can be located at "your project root/src/test/java/com/github/haflife3/dataobject/Dummy.java" after a successful generation.
+
+`Table2JavaMeta.json`
+```json
+{
+  "driver":"com.mysql.jdbc.Driver",
+  "dbUrl":"jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8",
+  "dbUser":"root",
+  "dbPass":"",
+  "srcRoot":"/src/test/java",
+  "domainPackage":"com.github.haflife3.dataobject",
+  "autoColumnDetection": true,
+  "extraTypeMap":{
+
+  },
+  "table2ClassMap":{
+    "dummy":"Dummy"
+  }
+}
+```
 
 ### transaction support
