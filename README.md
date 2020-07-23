@@ -29,7 +29,6 @@ Table of Contents
     * [paging and offset](#paging-and-offset)
     * [sql identify](#sql-identify)
     * [column selection](#column-selection)
-    * [custom column handler](#custom-column-handler)
     * [custom result set handler](#custom-result-set-handler)
     * [auto column detection](#auto-column-detection)
   * [Other functionalities](#Other-functionalities)
@@ -59,7 +58,7 @@ QueryEntry queryEntry = new QueryEntry(ds);
 ## Simple Cases
 First we create a table, and a corresponding Java bean file: [Java file generation](#Java-file-generation)
 
-**`NOTE:`** All sql snippets here, including DDL, DQL and DML, conform to MySQL semantics, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
+**`NOTE:`** All sql snippets here, including DDL, DQL and DML, conform to MySQL syntax, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
 ```sql
 CREATE TABLE IF NOT EXISTS `dummy`  ( 
    `id`            bigint(20) AUTO_INCREMENT NOT NULL,
@@ -265,11 +264,62 @@ Corresponding sql:
 select int_f, varchar_f from dummy where id = ?  -- values: [1]
 ```
 
-### custom column handler
-
 ### custom result set handler
+To fully control the SQL constructing and result handling yourself, supply a predefined SQL, a `ResultSetHandler` implementation, and a list of values as positional parameters for the SQL(can be skipped if none is required), then call `QueryEntry.genericQry()`.
+
+**`TIP:`** See also `QueryEntry.genericUpdate` for custom update.
+```java
+List<Dummy> dummies = queryEntry.genericQry("select * from dummy where id > ?",new ResultSetHandler<List<Dummy>>(){
+            @Override
+            public List<Dummy> handle(ResultSet rs) throws SQLException {
+                List<Dummy> dummyList = new ArrayList<>();
+                while (rs.next()){
+                    int intF = rs.getInt("int_f");
+                    Dummy dummy = new Dummy();
+                    dummy.setIntF(intF*2);
+                    dummyList.add(dummy);
+                }
+                return dummyList;
+            }
+        },0L);
+```
+Corresponding sql:
+```sql
+select * from dummy where id > ?  -- values: [0]
+```
 
 ### auto column detection
+If table column names and corresponding Java field names meet a [certain pattern](#match-pattern), they can be automatically paired by adding this configuration(`autoColumnDetection = true`) to `@Table` annotation, and no longer we have to add `@TblField` on each Java field.
+
+**`TIP:`** `@TblField` can still take precedence over `autoColumnDetection`.
+#### match pattern:
+case-insensitive and underscore ignored
+
+| table column   | Java field   | match    |
+| :------------- | :----------: | -------: |
+|  varchar_f     | varchar_f    | YES      |
+|  varchar_f     | varcharf     | YES      |
+|  varchar_f     | varcharF     | YES      |
+|  VARCHAR_F     | varcharF     | YES      |
+|  varchar_f     | VARcharF     | YES      |
+|  varchar_f     | varchar_x    | NO       |
+|  varchar_f     | varcharX     | NO       |
+```java
+@Table(value = "dummy", autoColumnDetection = true)
+public class Dummy implements Serializable {
+
+  private Long id;
+
+  private Integer intF;
+
+  private Double decimalF;
+
+  private Date datetimeF;
+
+  private String varcharF;
+
+  // getter setter omitted...
+```
 
 ## Other Functionalities
 
