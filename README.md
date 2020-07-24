@@ -348,3 +348,9 @@ Place a file named "Table2JavaMeta.json" (see below) inside your project's root 
 ```
 
 ### transaction support
+By wrapping your dataSource in a `TransactionAwareDataSourceProxy`, datazilla can fully support Spring's Transaction Management.
+
+Please refer to [this doc](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/data-access.html#transaction) for more information.
+```java
+QueryEntry queryEntry = new QueryEntry(new TransactionAwareDataSourceProxy(dataSource));
+```
