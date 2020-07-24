@@ -174,7 +174,7 @@ To save multiple records to database at the same time, instantiate one or more J
 
 **`TIP:`** The default bulk size for batch insert is 100, you can specify the size by place an integer number as the first method parameter (e.g: `QueryEntry.batchInsert(200, Arrays.asList(dummy1,dummy2,dummy3 ... ))`).
 
-**`TIP:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
+**`TIP:`** It is recommended to use this inside a transaction scope. [transaction support](#transaction-support)
 
 **`NOTE:`** The single `batchInsert` operation below is separated into two insert queries. datazilla will automatically group together those records which can be operated in a single query. The reason for this seemingly odd behaviour is that we must let database decide how to deal with the null values, `dummy3` here doesn't have `varcharF` set, if there is only one insert query, it would look like this: `insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?), ( ?,?) -- values: [10, "some text", 20, "other text", 30, null]`. Note the last value is null, if `varchar_f` has a default value, the default value can never be applied. 
 ```java
@@ -198,7 +198,7 @@ insert into dummy (int_f) values (?)  -- values: [30]
 ### persist
 To persist (same as upsert if you are more familiar with this term) a record into database, instantiate a Java object and fill it with data, specify the conditions to filter out the record to be updated if it ever exists, then call `QueryEntry.persist()`. datazilla will first try to perform an update operation by the conditions, if no database record is updated, the object will be inserted into database instead.
 
-**`TIP:`** It is recommended to use this inside a transactional session. [transaction support](#transaction-support)
+**`TIP:`** It is recommended to use this inside a transaction scope. [transaction support](#transaction-support)
 ```java
 Dummy dummy = new Dummy();
 dummy.setIntF(40);
@@ -215,6 +215,8 @@ insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, "some text"]
 To query a subset of records filtered by conditions, and optionally get the total count, supply a paging(`ExtraParamInjector.paging()`) or an offset(`ExtraParamInjector.offset()`) instruction right before the query action(`QueryEntry.findObjects()` or `QueryEntry.searchObjects()`). The total count, if required, can be retrieved(`ExtraParamInjector.getTotalCount()`) right after the query action.
 
 **`TIP:`** `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()` should be placed right before the related query action, and `ExtraParamInjector.getTotalCount()` right after it, or else they may be intercepted by other queries by accident and yield undesired result.
+
+**`TIP:`** It is recommended to use this inside a read-only transaction scope. [transaction support](#transaction-support)
 
 **`NOTE:`**  The calculation formula of `pageNo, pageSize` to `offset, limit`: <offset = (pageNo - 1) * pageSize, limit = pageSize> .
 ```java
