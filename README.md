@@ -212,7 +212,7 @@ insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, "some text"]
 ```
 
 ### paging and offset
-To query a subset of records filtered by conditions, and optionally get the total count, supply a paging(`ExtraParamInjector.paging()`) or an offset(`ExtraParamInjector.offset()`) solution right before the query action(`QueryEntry.findObjects()` or `QueryEntry.searchObjects()`). The total count, if required, can be retrieved(`ExtraParamInjector.getTotalCount()`) right after the query action.
+To query a subset of records filtered by conditions, and optionally get the total count, supply a paging(`ExtraParamInjector.paging()`) or an offset(`ExtraParamInjector.offset()`) instruction right before the query action(`QueryEntry.findObjects()` or `QueryEntry.searchObjects()`). The total count, if required, can be retrieved(`ExtraParamInjector.getTotalCount()`) right after the query action.
 
 **`TIP:`** `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()` should be placed right before the related query action, and `ExtraParamInjector.getTotalCount()` right after it, or else they may be intercepted by other queries by accident and yield undesired result.
 
