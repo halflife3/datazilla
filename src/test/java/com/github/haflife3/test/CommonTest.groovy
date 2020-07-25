@@ -10,6 +10,7 @@ import com.github.haflife3.datazilla.misc.ExtraParamInjector
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal
 import com.github.haflife3.datazilla.misc.MiscUtil
 import com.github.haflife3.datazilla.pojo.Cond
+import com.github.haflife3.datazilla.pojo.Null
 import com.github.haflife3.datazilla.pojo.OrderCond
 import org.apache.commons.dbutils.ResultSetHandler
 import org.slf4j.Logger
@@ -21,26 +22,41 @@ import java.sql.SQLException
 class CommonTest {
     private static final Logger logger = LoggerFactory.getLogger(CommonTest.class);
 
-    protected QueryEntry qe
+    private QueryEntry qe
 
-    protected List<Class<? extends DummyTable>> getRecordClass(){
-        return null
+    private List<Class<? extends DummyTable>> getRecordClass(){
+        return configMap().get("recordClass") as List<Class<? extends DummyTable>>
     }
 
-    protected String getDbType(){
-        return ''
+    private String getDbType(){
+        return configMap().get("dbType")
     }
 
-    protected String tableName(){
-        return 'dummy_table'
+    private String tableName(){
+        return configMap().get("tableName")
     }
 
-    protected String cleanUpSql(){
-        return "truncate table "+tableName()
+    private String cleanUpSql(){
+        return configMap().get("cleanUpSql")
     }
 
-    protected boolean idInt(){
-        return false
+    private boolean idInt(){
+        return configMap().get("idInt")
+    }
+
+    private List<String> nullField4Test(){
+        return configMap().get("nullField4Test") as List<String>
+    }
+
+    protected Map<String,Object> configMap(){
+        return [
+            "recordClass":[],
+            "dbType":"",
+            "tableName":"dummy_table",
+            "cleanUpSql":"truncate table dummy_table",
+            "idInt":false,
+            "nullField4Test":["varcharF","varchar_f"],
+        ] as Map<String, Object>
     }
 
     private static Class<? extends DummyTable> getCurrentClass(){
@@ -80,6 +96,7 @@ class CommonTest {
         getRecordClass().each {
             try {
                 setup()
+                condBuild()
                 setCurrentClass(it)
                 logger.info("************ ${getCurrentClass()} *************")
                 dbType()
@@ -89,17 +106,24 @@ class CommonTest {
                 typeMapping()
                 queryAll()
                 count()
+                extraCondCount()
                 genericQry4Map()
                 querySingleAndExist()
                 selectColumns()
                 paging()
                 offset()
                 nameMismatch()
+                extraCondQuery()
                 insertOne()
+                nullCond()
                 updateSelective()
+                extraCondUpdateSelective()
+                updateFull()
+                extraCondUpdateFull()
                 persist()
                 insertAndReturnAutoGen()
                 delOne()
+                extraCondDel()
                 delAll()
             } finally {
                 cleanup()
@@ -200,6 +224,15 @@ class CommonTest {
         def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         ExtraParamInjector.sqlId("count step2")
         assert qe.count(getCurrentClass(),new Cond("id",id2Query)) == 1
+    }
+
+    void extraCondCount(){
+        logger.info ' -- extraCondCount -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        ExtraParamInjector.sqlId("extraCondCount")
+        ExtraParamInjector.addCond([new Cond("id",id2Query)])
+        assert qe.count(getCurrentClass().newInstance()) == 1
     }
 
     void genericQry4Map(){
@@ -335,6 +368,18 @@ class CommonTest {
         assert result!=null
     }
 
+    void extraCondQuery(){
+        logger.info ' -- extraCondQuery -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def record = list.get(0)
+        def search = getCurrentClass().newInstance()
+        def id = MiscUtil.extractFieldValueFromObj(record,"id")
+        ExtraParamInjector.addCond([new Cond("id",id)])
+        ExtraParamInjector.sqlId("extraCondQuery")
+        def result = qe.searchObject(search)
+        assert result.getId() == id
+    }
+
     void insertOne(){
         logger.info ' -- insertOne -- '
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
@@ -343,16 +388,101 @@ class CommonTest {
         assert insertNum == 1
     }
 
+    void nullCond(){
+        logger.info ' -- nullCond -- '
+        def clazz = getCurrentClass()
+        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(clazz, 1))
+        MiscUtil.setValue(record,nullField4Test()[0],null)
+        ExtraParamInjector.sqlId("nullCond step1")
+        qe.insert(record)
+        ExtraParamInjector.offset(0,1,false,new OrderCond("id","desc"))
+        ExtraParamInjector.sqlId("nullCond step2")
+        def result = qe.findObject(clazz, new Cond(nullField4Test()[1], new Null()))
+        def fields = MiscUtil.getAllFields(clazz)
+        fields.each {
+            it.setAccessible(true)
+            def origValue = it.get(record)
+            def resultValue = it.get(result)
+            if(it.name != "id"){
+                compareValueEqual(origValue,resultValue)
+            }
+        }
+    }
+
     void updateSelective(){
         logger.info ' -- updateSelective -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
-        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id2Update)
-        ExtraParamInjector.sqlId("updateSelective")
+        ExtraParamInjector.sqlId("updateSelective step1")
+        def origRecord = qe.searchObject(condObj)
+        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
+        MiscUtil.setValue(record,nullField4Test()[0],null)
+        ExtraParamInjector.sqlId("updateSelective step2")
         def updateNum = qe.updateSelectiveAutoCon(record, condObj)
         assert updateNum == 1
+        ExtraParamInjector.sqlId("updateSelective step3")
+        def updatedRecord = qe.searchObject(condObj)
+        assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
+    }
+
+    void extraCondUpdateSelective(){
+        logger.info ' -- updateSelective -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        def condObj = getCurrentClass().newInstance()
+        condObj.setId(id2Update)
+        ExtraParamInjector.sqlId("updateSelective step1")
+        def origRecord = qe.searchObject(condObj)
+        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
+        MiscUtil.setValue(record,nullField4Test()[0],null)
+        ExtraParamInjector.sqlId("updateSelective step2")
+        ExtraParamInjector.addCond([new Cond("id",id2Update)])
+        def updateNum = qe.updateSelective(record)
+        assert updateNum == 1
+        ExtraParamInjector.sqlId("updateSelective step3")
+        def updatedRecord = qe.searchObject(condObj)
+        assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
+    }
+
+    void updateFull(){
+        logger.info ' -- updateFull -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        def condObj = getCurrentClass().newInstance()
+        condObj.setId(id2Update)
+        ExtraParamInjector.sqlId("updateFull step1")
+        def origRecord = qe.searchObject(condObj)
+        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
+        MiscUtil.setValue(record,nullField4Test()[0],null)
+        ExtraParamInjector.sqlId("updateFull step2")
+        def updateNum = qe.updateFull(record, condObj,["id"])
+        assert updateNum == 1
+        ExtraParamInjector.sqlId("updateFull step3")
+        def updatedRecord = qe.searchObject(condObj)
+        assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) != null
+        assert MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0]) == null
+    }
+
+    void extraCondUpdateFull(){
+        logger.info ' -- updateFull -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Update = MiscUtil.extractFieldValueFromObj(list.get(1),"id")
+        def condObj = getCurrentClass().newInstance()
+        condObj.setId(id2Update)
+        ExtraParamInjector.sqlId("updateFull step1")
+        def origRecord = qe.searchObject(condObj)
+        def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
+        MiscUtil.setValue(record,nullField4Test()[0],null)
+        ExtraParamInjector.sqlId("updateFull step2")
+        ExtraParamInjector.addCond([new Cond("id",id2Update)])
+        def updateNum = qe.updateFull(record, [],["id"])
+        assert updateNum == 1
+        ExtraParamInjector.sqlId("updateFull step3")
+        def updatedRecord = qe.searchObject(condObj)
+        assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) != null
+        assert MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0]) == null
     }
 
     void persist(){
@@ -385,17 +515,7 @@ class CommonTest {
             it.setAccessible(true)
             def origValue = it.get(record)
             def resultValue = it.get(resultRecord)
-            if(origValue!=null){
-                if(origValue instanceof Double){
-                    assert ((Double) origValue).intValue() == ((Double) resultValue).intValue()
-                }else if(origValue instanceof Date){
-                    assert resultValue !=null
-                }else if(origValue instanceof String){
-                    assert ((String)origValue).trim() == ((String)resultValue).trim()
-                } else {
-                    assert origValue == resultValue
-                }
-            }
+            compareValueEqual(origValue,resultValue)
         }
     }
 
@@ -410,11 +530,53 @@ class CommonTest {
         assert delNum == 1
     }
 
+    void extraCondDel(){
+        logger.info ' -- extraCondDel -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Del = MiscUtil.extractFieldValueFromObj(list.get(1),"id")
+        def del = getCurrentClass().newInstance()
+        ExtraParamInjector.sqlId("extraCondDel")
+        ExtraParamInjector.addCond([new Cond("id",id2Del)])
+        def delNum = qe.delObjects(del)
+        assert delNum == 1
+    }
+
     void delAll(){
         logger.info ' -- delAll -- '
         def del = getCurrentClass().newInstance()
         ExtraParamInjector.sqlId("delAll")
         def delNum = qe.delObjects(del)
         assert delNum > 0
+    }
+
+    void condBuild(){
+        logger.info ' -- condBuild -- '
+        CondBuildObj obj = new CondBuildObj(
+            val1: "v1",
+            val2: "v2",
+            val3: "v3",
+            val4: [1234L,4567L],
+            val5: []
+        )
+        def conds = qe.buildConds(obj)
+        assert conds.size() == 4
+        assert conds[0].columnName == "val1" && conds[0].compareOpr == "=" && conds[0].value == "v1"
+        assert conds[1].columnName == "val_2" && conds[1].compareOpr == "=" && conds[1].value == "v2"
+        assert conds[2].columnName == "val3" && conds[2].compareOpr == "like" && conds[2].value == "%v3%"
+        assert conds[3].columnName == "val_4" && conds[3].compareOpr == "in" && conds[3].value == [1234L,4567L]
+    }
+
+    static void compareValueEqual(Object origValue, Object resultValue){
+        if(origValue!=null){
+            if(origValue instanceof Double){
+                assert ((Double) origValue).intValue() == ((Double) resultValue).intValue()
+            }else if(origValue instanceof Date){
+                assert resultValue !=null
+            }else if(origValue instanceof String){
+                assert ((String)origValue).trim() == ((String)resultValue).trim()
+            } else {
+                assert origValue == resultValue
+            }
+        }
     }
 }

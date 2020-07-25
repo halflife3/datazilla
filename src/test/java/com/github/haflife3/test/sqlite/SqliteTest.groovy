@@ -1,6 +1,6 @@
 package com.github.haflife3.test.sqlite
 
-import com.github.haflife3.dataobject.DummyTable
+
 import com.github.haflife3.dataobject.DummyTableSqlite
 import com.github.haflife3.dataobject.DummyTableSqliteAlt
 import com.github.haflife3.dataobject.DummyTableSqliteGv
@@ -11,23 +11,15 @@ import org.junit.Test
 class SqliteTest extends CommonTest{
 
     @Override
-    protected List<Class<? extends DummyTable>> getRecordClass() {
-        return [DummyTableSqlite, DummyTableSqliteAlt, DummyTableSqliteGv]
-    }
-
-    @Override
-    protected String getDbType() {
-        return DialectConst.SQLITE
-    }
-
-    @Override
-    protected String tableName() {
-        return super.tableName()
-    }
-
-    @Override
-    protected String cleanUpSql(){
-        return "delete from "+tableName()
+    protected Map<String,Object> configMap(){
+        def configMap = super.configMap()
+        configMap.putAll([
+            "recordClass":[DummyTableSqlite, DummyTableSqliteAlt, DummyTableSqliteGv],
+            "dbType":DialectConst.SQLITE,
+            "cleanUpSql":"delete from dummy_table",
+            "nullField4Test":["textF","text_f"],
+        ])
+        return configMap
     }
 
 //    @Ignore

@@ -1,6 +1,8 @@
 package com.github.haflife3.datazilla.misc;
 
+import com.github.haflife3.datazilla.pojo.Cond;
 import com.github.haflife3.datazilla.pojo.OrderCond;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -32,6 +34,12 @@ public class ExtraParamInjector {
         }
     }
 
+    public static void addCond(List<Cond> conds){
+        if(CollectionUtils.isNotEmpty(conds)){
+            GeneralThreadLocal.set("extraConds", conds);
+        }
+    }
+
     public static Integer getTotalCount(){
         return PagingInjector.getCount();
     }
@@ -44,12 +52,21 @@ public class ExtraParamInjector {
         return GeneralThreadLocal.get("selectColumns");
     }
 
+    public static List<Cond> getExtraConds(){
+        return GeneralThreadLocal.get("extraConds");
+    }
+
     public static void unSet(){
         PagingInjector.unSet();
         GeneralThreadLocal.unset("selectColumns");
+        unsetExtraConds();
     }
 
     public static void unsetSqlId(){
         GeneralThreadLocal.unset("sqlId");
+    }
+
+    public static void unsetExtraConds(){
+        GeneralThreadLocal.unset("extraConds");
     }
 }

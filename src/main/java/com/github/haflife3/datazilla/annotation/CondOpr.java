@@ -7,6 +7,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface CondOpr {
     String value() default "=";
-    String fieldName() default "";
-    boolean ignore() default false;
+    String columnName() default "";
 }

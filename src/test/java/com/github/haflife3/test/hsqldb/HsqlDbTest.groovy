@@ -1,6 +1,6 @@
 package com.github.haflife3.test.hsqldb
 
-import com.github.haflife3.dataobject.DummyTable
+
 import com.github.haflife3.dataobject.DummyTableHsqlDb
 import com.github.haflife3.dataobject.DummyTableHsqlDbAlt
 import com.github.haflife3.dataobject.DummyTableHsqlDbGv
@@ -11,23 +11,14 @@ import org.junit.Test
 class HsqlDbTest extends CommonTest{
 
     @Override
-    protected List<Class<? extends DummyTable>> getRecordClass() {
-        return [DummyTableHsqlDb, DummyTableHsqlDbAlt, DummyTableHsqlDbGv]
-    }
-
-    @Override
-    protected String getDbType() {
-        return DialectConst.HSQLDB
-    }
-
-    @Override
-    protected String tableName() {
-        return super.tableName()
-    }
-
-    @Override
-    protected boolean idInt(){
-        return true
+    protected Map<String,Object> configMap(){
+        def configMap = super.configMap()
+        configMap.putAll([
+            "recordClass":[DummyTableHsqlDb, DummyTableHsqlDbAlt, DummyTableHsqlDbGv],
+            "dbType":DialectConst.HSQLDB,
+            "idInt":true,
+        ])
+        return configMap
     }
 
     @Test

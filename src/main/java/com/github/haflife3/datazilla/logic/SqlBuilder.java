@@ -34,7 +34,7 @@ public class SqlBuilder {
             List<Cond> conditionAndList = cond.getConditionAndList();
             if(CollectionUtils.isNotEmpty(conditionAndList)) {
                 for(Cond unit:conditionAndList){
-                    String field = regulateField(unit.getFieldName());
+                    String field = regulateField(unit.getColumnName());
                     String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
                     Object value = unit.getValue();
                     if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
@@ -50,13 +50,11 @@ public class SqlBuilder {
                         }
                     }else if(value==null){
                         where.append(" and "+field+" "+operator+" ");
+                    }else if(value instanceof Null){
+                        where.append(" and "+field+" is null ");
                     }else{
                         where.append(" and "+field+" "+operator+" ?");
-                        if(value instanceof Null){
-                            values.add(null);
-                        }else {
-                            values.add(value);
-                        }
+                        values.add(value);
                     }
                 }
             }
@@ -64,7 +62,7 @@ public class SqlBuilder {
             if(CollectionUtils.isNotEmpty(conditionOrList)){
                 StringBuilder whereOr = new StringBuilder();
                 for(Cond unit:conditionOrList){
-                    String field = regulateField(unit.getFieldName());
+                    String field = regulateField(unit.getColumnName());
                     String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
                     Object value = unit.getValue();
                     if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
@@ -79,14 +77,12 @@ public class SqlBuilder {
                             where.append(") ");
                         }
                     }else if(value==null){
-                        where.append(" and "+field+" "+operator+" ");
+                        where.append(" or "+field+" "+operator+" ");
+                    }else if(value instanceof Null){
+                        where.append(" or "+field+" is null ");
                     }else{
-                        where.append(" and "+field+" "+operator+" ?");
-                        if(value instanceof Null){
-                            values.add(null);
-                        }else {
-                            values.add(value);
-                        }
+                        where.append(" or "+field+" "+operator+" ?");
+                        values.add(value);
                     }
                 }
                 if(whereOr.length()>0) {
@@ -214,37 +210,45 @@ public class SqlBuilder {
     }
 
     public List<Cond> buildConds(Object obj){
+        if(obj==null){
+            return null;
+        }
         List<Cond> conds = new ArrayList<>();
-        if(obj!=null){
-            try {
-                Class<?> clazz = obj.getClass();
-                Collection<Field> fields = MiscUtil.mapFieldFromClass(clazz).values();
-                for (Field field : fields) {
-                    if(!field.isSynthetic()) {
-                        field.setAccessible(true);
-                        Object value = field.get(obj);
-                        if (value != null && StringUtils.isNotBlank("" + value)) {
-                            CondOpr condOpr = field.getAnnotation(CondOpr.class);
-                            if (condOpr != null) {
-                                if (!condOpr.ignore()) {
-                                    String opr = StringUtils.trimToEmpty(condOpr.value()).toLowerCase().replaceAll("\\s+", " ");
-                                    String fieldName = condOpr.fieldName();
-                                    checkNoSemiColon(fieldName);
-                                    if (StringUtils.isBlank(fieldName)) {
-                                        fieldName = field.getName();
-                                    }
-                                    if (opr.contains("like")) {
-                                        value = "%" + value + "%";
-                                    }
-                                    conds.add(new Cond(fieldName, opr, value));
-                                }
-                            }
-                        }
-                    }
+        try {
+            Class<?> clazz = obj.getClass();
+            List<Field> fields = MiscUtil.getAllFields(clazz);
+            for (Field field : fields) {
+                if(field.isSynthetic()) {
+                   continue;
                 }
-            } catch (IllegalAccessException e) {
-                throw new DBException(e);
+                field.setAccessible(true);
+                Object value = field.get(obj);
+                if (value == null || StringUtils.isBlank("" + value)) {
+                    continue;
+                }
+                if(value instanceof Collection && CollectionUtils.isEmpty((Collection)value)){
+                    continue;
+                }
+                CondOpr condOpr = field.getAnnotation(CondOpr.class);
+                if (condOpr == null) {
+                    continue;
+                }
+                String opr = StringUtils.trimToEmpty(condOpr.value()).toLowerCase().replaceAll("\\s+", " ");
+                String columnName = condOpr.columnName();
+                if(StringUtils.isBlank(columnName)){
+                    columnName = field.getName();
+                }
+                checkNoSemiColon(columnName);
+                if (StringUtils.isBlank(columnName)) {
+                    columnName = field.getName();
+                }
+                if (opr.contains("like")) {
+                    value = "%" + value + "%";
+                }
+                conds.add(new Cond(columnName, opr, value));
             }
+        } catch (IllegalAccessException e) {
+            throw new DBException(e);
         }
         return conds;
     }

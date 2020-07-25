@@ -41,7 +41,7 @@ datazilla is available in maven central repo.
 <dependency>
     <groupId>com.github.haflife3</groupId>
     <artifactId>datazilla</artifactId>
-    <version>1.1.13</version>
+    <version>1.1.14</version>
 </dependency>
 ```
 
@@ -138,7 +138,7 @@ Dummy dummyFound = queryEntry.searchObject(dummy);
 //some more flexible ways to query
 dummies = queryEntry.findObjects(Dummy.class, new Cond("id", ">", 0));
 dummies = queryEntry.findObjects(Dummy.class, new Cond("id", 1), new Cond("int_f", 10));
-dummies = queryEntry.findObjects(Dummy.class, new Cond.Builder().fieldName("id").compareOpr("is not null").build());
+dummies = queryEntry.findObjects(Dummy.class, new Cond.Builder().columnName("id").compareOpr("is not null").build());
 ```
 Corresponding sqls:
 ```sql

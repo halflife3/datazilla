@@ -18,6 +18,7 @@ import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class QueryEntry {
     private final CoreRunner coreRunner;
@@ -118,12 +119,16 @@ public class QueryEntry {
     }
 
     public int delObjects(String table, List<Cond> conds){
-        ConditionBundle delCond = new ConditionBundle.Builder()
-                .targetTable(table)
-                .conditionAndList(conds)
-                .build();
-        SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeDelete(delCond);
-        return coreRunner.genericUpdate(sqlPreparedBundle.getSql(), sqlPreparedBundle.getValues());
+        try {
+            ConditionBundle delCond = new ConditionBundle.Builder()
+                    .targetTable(table)
+                    .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                    .build();
+            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeDelete(delCond);
+            return coreRunner.genericUpdate(sqlPreparedBundle.getSql(), sqlPreparedBundle.getValues());
+        } finally {
+            ExtraParamInjector.unsetExtraConds();
+        }
     }
 
     public int delObjects(Class<?> clazz, Cond... conds){
@@ -144,7 +149,7 @@ public class QueryEntry {
             QueryConditionBundle qryCondition = new QueryConditionBundle.Builder()
                     .resultClass(clazz)
                     .targetTable(table)
-                    .conditionAndList(conds)
+                    .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
                     .selectColumns(ExtraParamInjector.getSelectColumns())
                     .offset(PagingInjector.getOffset())
                     .limit(PagingInjector.getLimit())
@@ -316,42 +321,57 @@ public class QueryEntry {
     }
 
     public int updateSelective(String table, Map<String, Object> updateValueMap, List<Cond> conds){
-        stripUnknownFields(table,updateValueMap);
-        List<FieldValuePair> pairs = toFieldValuePair(updateValueMap);
-        UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
-            .targetTable(table)
-            .values2Update(pairs)
-            .conditionAndList(conds)
-            .build();
-        SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeUpdate(upCond);
-        return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
+        try {
+            stripUnknownFields(table,updateValueMap);
+            List<FieldValuePair> pairs = toFieldValuePair(updateValueMap);
+            UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
+                .targetTable(table)
+                .values2Update(pairs)
+                .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .build();
+            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeUpdate(upCond);
+            return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
+        } finally {
+            ExtraParamInjector.unsetExtraConds();
+        }
     }
 
-    public <T> int updateFull(T record, T condObj, List<String> excludeFields){
-        return updateFull(record,fromTableDomain(condObj),excludeFields);
+    public <T> int updateFull(T record, T condObj, List<String> excludeColumns){
+        return updateFull(record,fromTableDomain(condObj),excludeColumns);
     }
 
-    public int updateFull(Object record, List<Cond> conds, List<String> excludeFields){
-        return updateFull(TableLoc.findTableName(record.getClass()),record, conds,excludeFields);
+    public int updateFull(Object record, List<Cond> conds, List<String> excludeColumns){
+        return updateFull(TableLoc.findTableName(record.getClass()),record, conds,excludeColumns);
     }
 
-    public int updateFull(String table, Object record, List<Cond> conds, List<String> excludeFields){
+    public int updateFull(String table, Object record, List<Cond> conds, List<String> excludeColumns){
         Map<String, Object> map = toFullFieldValueMap(record);
-        if(CollectionUtils.isNotEmpty(excludeFields)){
-            excludeFields.forEach(map::remove);
+        if(CollectionUtils.isNotEmpty(excludeColumns)){
+            List<String> lowercaseColNames = excludeColumns.stream().map(String::toLowerCase).collect(Collectors.toList());
+            List<String> keys2Remove = new ArrayList<>();
+            map.forEach((key,value) -> {
+                if(lowercaseColNames.contains(key.toLowerCase())){
+                    keys2Remove.add(key);
+                }
+            });
+            keys2Remove.forEach(map::remove);
         }
         return updateFull(table, map, conds);
     }
     public int updateFull(String table, Map<String, Object> valueMap, List<Cond> conds){
-        stripUnknownFields(table,valueMap);
-        List<FieldValuePair> pairs = toFullFieldValuePair(valueMap);
-        UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
-                .targetTable(table)
-                .values2Update(pairs)
-                .conditionAndList(conds)
-                .build();
-        SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeUpdate(upCond);
-        return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
+        try {
+            stripUnknownFields(table,valueMap);
+            List<FieldValuePair> pairs = toFullFieldValuePair(valueMap);
+            UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
+                    .targetTable(table)
+                    .values2Update(pairs)
+                    .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                    .build();
+            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeUpdate(upCond);
+            return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
+        } finally {
+            ExtraParamInjector.unsetExtraConds();
+        }
     }
 
     public <T> List<T> genericQry(QueryConditionBundle qryCondition){
@@ -370,14 +390,18 @@ public class QueryEntry {
 
     public int count(Class<?> clazz, List<Cond> conds){
         int count = 0;
-        QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
-            .targetTable(TableLoc.findTableName(clazz))
-            .onlyCount(true)
-            .resultClass(CountInfo.class)
-            .conditionAndList(conds)
-            .build();
-        List<CountInfo> counts = genericQry(qcCount);
-        count = counts.get(0).getCount();
+        try {
+            QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
+                .targetTable(TableLoc.findTableName(clazz))
+                .onlyCount(true)
+                .resultClass(CountInfo.class)
+                .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .build();
+            List<CountInfo> counts = genericQry(qcCount);
+            count = counts.get(0).getCount();
+        } finally {
+            ExtraParamInjector.unsetExtraConds();
+        }
         return count;
     }
     public int count(Class<?> clazz, Cond... conds){
@@ -385,6 +409,13 @@ public class QueryEntry {
     }
     public <T> int count(T obj){
         return count(obj.getClass(),fromTableDomain(obj));
+    }
+
+    private static List<Cond> combineConds(List<Cond> conds1,List<Cond> conds2){
+        return Stream.of(conds1,conds2)
+            .filter(CollectionUtils::isNotEmpty)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
     }
 
     private List<FieldValuePair> toFieldValuePair(Map<String, Object> map){
