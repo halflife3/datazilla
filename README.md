@@ -58,7 +58,7 @@ QueryEntry queryEntry = new QueryEntry(ds);
 ## Simple Cases
 First we create a table, and a corresponding Java bean file: [Java file generation](#Java-file-generation)
 
-**`NOTE:`** All sql snippets here, including DDL, DQL and DML, conform to MySQL syntax, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
+**`NOTE:`** All SQL snippets here, including DDL, DQL and DML, conform to MySQL syntax, these may vary slightly under other databases, but generally don't affect the validity of those examples listed below.
 ```sql
 CREATE TABLE IF NOT EXISTS `dummy`  ( 
    `id`            bigint(20) AUTO_INCREMENT NOT NULL,
@@ -94,7 +94,7 @@ public class Dummy implements Serializable {
 ```
 
 ### insert
-To create a record and save it to database, simply instantiate a Java object and fill it with data, then call `QueryEntry.insert()`. Any null values will be ignored, and the database itself may decide either give them default values or simply left empty. In this case, we left the `id` field unset and let database to give it an auto incremented value.
+To create a record and save it to database, simply instantiate a Java object and fill it with data, then call `QueryEntry.insert()`. Any null values will be ignored, and the database itself may decide either give them default values or simply left empty. In this case, we left the `id` field unset and let database give it an auto incremented value.
 ```java
 Dummy dummy = new Dummy();
 dummy.setIntF(10);
@@ -103,7 +103,7 @@ dummy.setDatetimeF(new Date());
 dummy.setVarcharF("some text");
 queryEntry.insert(dummy);
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 insert into dummy (int_f,decimal_f,dateTime_f,varchar_f) values(?,?,?,?) -- values[10,12.34,<new Date()>,"some text"]
 ```
@@ -117,7 +117,7 @@ Dummy dummy = new Dummy();
 dummy.setVarcharF("other text");
 queryEntry.updateSelective(dummy,new Cond("id",1L));
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 update dummy set varchar_f = ? where id = ? -- values["other text",1]
 ```
@@ -140,7 +140,7 @@ dummies = queryEntry.findObjects(Dummy.class, new Cond("id", ">", 0));
 dummies = queryEntry.findObjects(Dummy.class, new Cond("id", 1), new Cond("int_f", 10));
 dummies = queryEntry.findObjects(Dummy.class, new Cond.Builder().columnName("id").compareOpr("is not null").build());
 ```
-Corresponding sqls:
+Corresponding SQLs:
 ```sql
 select * from dummy where id = ? -- values[1]
 select * from dummy where id = ? -- values[1]
@@ -160,7 +160,7 @@ queryEntry.delObjects(dummy);
 //a more flexible way to delete
 queryEntry.delObjects(Dummy.class, new Cond("id", 1));
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 delete from dummy where id = ? -- values[1]
 ```
@@ -189,7 +189,7 @@ dummy3.setIntF(30);
 //or queryEntry.batchInsert(Arrays.asList(dummy1,dummy2,dummy3));
 queryEntry.batchInsert(dummy1,dummy2,dummy3);
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?) -- values: [10, "some text", 20, "other text"]
 insert into dummy (int_f) values (?)  -- values: [30]
@@ -205,7 +205,7 @@ dummy.setIntF(40);
 dummy.setVarcharF("some text");
 queryEntry.persist(dummy,new Cond("id",10L));
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 update dummy set int_f=?,varchar_f=? where id = ?  -- values: [40, "some text", 10]
 insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, "some text"]
@@ -230,7 +230,7 @@ Integer totalCount = ExtraParamInjector.getTotalCount();
 ExtraParamInjector.offset(1,2,false,new OrderCond("id","desc"));
 List<Dummy> dummies2 = queryEntry.findObjects(Dummy.class,new Cond("id",">",0));
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 -- paging by pageNo and pageSize
 select * from dummy where id > ? order by id desc limit ?,?  -- values: [0, 5, 5]
@@ -248,7 +248,7 @@ Due to datazilla's nature of constructing SQL at runtime, SQL query can be hard 
 ExtraParamInjector.sqlId("find the dumbest dummy");
 Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 /* find the dumbest dummy */ select * from dummy where id = ?  -- values: [1]
 ```
@@ -261,7 +261,7 @@ To specify which table columns to query instead of all, supply a list of column 
 ExtraParamInjector.selectColumns("int_f","varchar_f");
 Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 select int_f, varchar_f from dummy where id = ?  -- values: [1]
 ```
@@ -285,7 +285,7 @@ List<Dummy> dummies = queryEntry.genericQry("select * from dummy where id > ?",n
             }
         },0L);
 ```
-Corresponding sql:
+Corresponding SQL:
 ```sql
 select * from dummy where id > ?  -- values: [0]
 ```
