@@ -214,7 +214,7 @@ insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, "some text"]
 
 **`提示:`** `ExtraParamInjector.paging()` 和 `ExtraParamInjector.offset()` 最好放在紧挨着查询请求的前面, `ExtraParamInjector.getTotalCount()` 放在紧挨着查询请求的后面, 不然有可能会被其他查询请求拦截然后得到意料之外的结果.
 
-**`提示:`** 建议在事务作用域下使用. [事务支持](#事务支持)
+**`提示:`** 建议在只读事务作用域下使用. [事务支持](#事务支持)
 
 **`注意:`** `pageNo, pageSize` 到 `offset, limit`的算法公式: <offset = (pageNo - 1) * pageSize, limit = pageSize> .
 ```java
