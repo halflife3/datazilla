@@ -10,7 +10,7 @@ datazilla 是一个可以用来操作关系型数据库的Java工具库.
 
 对以下数据库有特殊优化: MySQL, PostgreSql, H2, SQLite, HsqlDb.(分页, 批量插入, 根据表结构生成Java文件)
 
-Table of Contents
+目录
 =================
 
 * [Maven 配置](#Maven-配置)
