@@ -162,19 +162,19 @@ queryEntry.delObjects(Dummy.class, new Cond("id", 1));
 ```sql
 delete from dummy where id = ? -- values[1]
 ```
-**`提示:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related Java class at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
+**`提示:`** 还有很多其他方式来实现这些基本操作, 例如你不想要创建表对应的Java类的话, 可以直接指定表名和条件列表来操作删除. 更进一步, 你还可以直接执行SQL语句进行查询并自行处理返回的结果. 这类操作当然也不太符合ORM. 你可以在`QueryEntry`里找到更多的用法.
 
 ## 进阶用法
 这部分中, 下面例子所用到的表和Java Bean仍旧沿用上面创建好的.
 
 ### 批量插入
-To save multiple records to database at the same time, instantiate one or more Java objects and fill them with data, then call `QueryEntry.batchInsert()`. Null values are ignored as always. You can place records separately into the method call as `Varargs` or altogether as a list.
+要将一批数据同时插入数据库中, 实例化一个或多个Java对象并填充数据, 然后调用`QueryEntry.batchInsert()`. null值仍旧一样会被忽略. 你可以用可变参数列表的形式或者一整个list的形式来传参.
 
-**`提示:`** The default bulk size for batch insert is 100, you can specify the size by place an integer number as the first method parameter (e.g: `QueryEntry.batchInsert(200, Arrays.asList(dummy1,dummy2,dummy3 ... ))`).
+**`提示:`** 批量插入时默认批次数量是100, 你可以在方法的第一个参数指定其他的值 (例如: `QueryEntry.batchInsert(200, Arrays.asList(dummy1,dummy2,dummy3 ... ))`).
 
-**`提示:`** It is recommended to use this inside a transaction scope. [transaction support](#transaction-support)
+**`提示:`** 建议在事务作用域下使用. [事务支持](#事务支持)
 
-**`注意:`** The single `batchInsert` operation below is separated into two insert queries. datazilla will automatically group together those records which can be operated in a single query. The reason for this seemingly odd behaviour is that we must let database decide how to deal with the null values, `dummy3` here doesn't have `varcharF` set, if there is only one insert query, it would look like this: `insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?), ( ?,?) -- values: [10, "some text", 20, "other text", 30, null]`. Note the last value is null, if `varchar_f` has a default value, the default value can never be applied. 
+**`注意:`** 下面代码示例的一个单次`batchInsert`调用会被分成两个SQL. datazilla会自动聚合可以在同一个语句中进行插入的数据. 这个看似奇怪的行为其实是因为针对null值的字段我们必须交给数据库自身去处理, 这里的`dummy3`里字段`varcharF`的值没设置, 如果只有一个SQL语句的话就会变成这种: ` insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?), ( ?,?) -- values: [10, "some text", 20, "other text", 30, null]`. 注意最后一个值是null, 如果`varchar_f`有默认值的话那这个默认值就没法被应用了.
 ```java
 Dummy dummy1 = new Dummy();
 dummy1.setIntF(10);
@@ -193,8 +193,8 @@ insert into dummy (int_f,varchar_f) values (?,?) , ( ?,?) -- values: [10, "some 
 insert into dummy (int_f) values (?)  -- values: [30]
 ```
 
-### persist
-To persist (same as upsert if you are more familiar with this term) a record into database, instantiate a Java object and fill it with data, specify the conditions to filter out the record to be updated if it ever exists, then call `QueryEntry.persist()`. datazilla will first try to perform an update operation by the conditions, if no database record is updated, the object will be inserted into database instead.
+### 持久化
+要将一个数据持久化(或者叫更新插入)到数据库中, 实例化一个Java对象并填充数据, 指定更新的条件, 然后调用`QueryEntry.persist()`. datazilla会首先尝试根据指定的条件更新, 如果没有数据最终被更新, 则执行插入操作.
 
 **`提示:`** It is recommended to use this inside a transaction scope. [transaction support](#transaction-support)
 ```java
@@ -209,14 +209,14 @@ update dummy set int_f=?,varchar_f=? where id = ?  -- values: [40, "some text", 
 insert into dummy (int_f,varchar_f)  values( ?,?)   -- values: [40, "some text"]
 ```
 
-### paging and offset
-To query a subset of records filtered by conditions, and optionally get the total count, supply a paging(`ExtraParamInjector.paging()`) or an offset(`ExtraParamInjector.offset()`) instruction right before the query action(`QueryEntry.findObjects()` or `QueryEntry.searchObjects()`). The total count, if required, can be retrieved(`ExtraParamInjector.getTotalCount()`) right after the query action.
+### 分页及偏移
+要从数据库获取一部分根据条件筛选的数据, 同时得到数据的总量(如果需要总量), 指定一个分页(`ExtraParamInjector.paging()`)或偏移(`ExtraParamInjector.paging()`)指令并放置在查询请求之前. 数据的总量(如果需要总量)可以在查询请求后用`ExtraParamInjector.getTotalCount()`获取
 
-**`提示:`** `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()` should be placed right before the related query action, and `ExtraParamInjector.getTotalCount()` right after it, or else they may be intercepted by other queries by accident and yield undesired result.
+**`提示:`** `ExtraParamInjector.paging()` 和 `ExtraParamInjector.offset()` 最好放在紧挨着查询请求的前面, `ExtraParamInjector.getTotalCount()` 放在紧挨着查询请求的后面, 不然有可能会被其他查询请求拦截然后得到意料之外的结果.
 
-**`提示:`** It is recommended to use this inside a read-only transaction scope. [transaction support](#transaction-support)
+**`提示:`** 建议在事务作用域下使用. [事务支持](#事务支持)
 
-**`注意:`**  The calculation formula of `pageNo, pageSize` to `offset, limit`: <offset = (pageNo - 1) * pageSize, limit = pageSize> .
+**`注意:`** `pageNo, pageSize` 到 `offset, limit`的算法公式: <offset = (pageNo - 1) * pageSize, limit = pageSize> .
 ```java
 //paging by pageNo and pageSize, order by id in descending order, and return total count
 ExtraParamInjector.paging(2,5,true,new OrderCond("id","desc"));
@@ -238,10 +238,10 @@ select count(*) as count from dummy where id > ?  -- values: [0]
 select * from dummy where id > ? order by id desc limit ?,?   -- values: [0, 1, 2]
 ```
 
-### sql identify
-Due to datazilla's nature of constructing SQL at runtime, SQL query can be hard to trace back to, by adding a comment as its identity, tracing will no longer be as hard. 
+### sql标注
+由于datazilla本身会在运行时才组装SQL, 就不容易追查SQL语句的来源, 如果在语句前面加一个身份标签那就可以方便追查了. 
 
-**`提示:`** Place `ExtraParamInjector.sqlId()` right before your query action for the same reason as when you are using `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()`.
+**`提示:`** 将`ExtraParamInjector.sqlId()`放在紧挨着查询操作的前面, 理由同`ExtraParamInjector.paging()` 和 `ExtraParamInjector.offset()`的使用方式.
 ```java
 ExtraParamInjector.sqlId("find the dumbest dummy");
 Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
@@ -251,10 +251,10 @@ Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
 /* find the dumbest dummy */ select * from dummy where id = ?  -- values: [1]
 ```
 
-### column selection
-To specify which table columns to query instead of all, supply a list of column names in `ExtraParamInjector.selectColumns()` and place it right before the query action.
+### 选择查找的表字段
+要指定查询某几个表字段, 在`ExtraParamInjector.selectColumns()`里指定字段列表并将其放在查询操作的前面.
 
-**`提示:`** Place `ExtraParamInjector.selectColumns()` right before your query action for the same reason as when you are using `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()`.
+**`提示:`** 将`ExtraParamInjector.selectColumns()`放在紧挨着查询操作的前面, 理由同`ExtraParamInjector.paging()` 和 `ExtraParamInjector.offset()`的使用方式.
 ```java
 ExtraParamInjector.selectColumns("int_f","varchar_f");
 Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
@@ -264,10 +264,10 @@ Dummy dummy = queryEntry.findObject(Dummy.class, new Cond("id", 1));
 select int_f, varchar_f from dummy where id = ?  -- values: [1]
 ```
 
-### custom result set handler
-To fully control the SQL constructing and result handling yourself, supply a predefined SQL, a `ResultSetHandler` implementation, and a list of values as positional parameters for the SQL(can be skipped if none is required), then call `QueryEntry.genericQry()`.
+### 自定义结果处理器
+要完全自主控制SQL语句的组装以及结果的处理, 指定一个预先组装好的SQL和一个`ResultSetHandler`的实现以及对应SQL语句的位置参数列表(如果没有参数则可以忽略), 然后调用`QueryEntry.genericQry()`.
 
-**`提示:`** See also `QueryEntry.genericUpdate` for custom update.
+**`提示:`** 要使用自定义更新请参考`QueryEntry.genericUpdate`.
 ```java
 List<Dummy> dummies = queryEntry.genericQry("select * from dummy where id > ?",new ResultSetHandler<List<Dummy>>(){
             @Override
@@ -288,12 +288,12 @@ List<Dummy> dummies = queryEntry.genericQry("select * from dummy where id > ?",n
 select * from dummy where id > ?  -- values: [0]
 ```
 
-### auto column detection
-If table column names and corresponding Java field names meet a [certain pattern](#match-pattern), they can be automatically paired by adding this configuration(`autoColumnDetection = true`) to `@Table` annotation, and no longer we have to add `@TblField` on each Java field.
+### 自动表字段匹配
+如果表字段和Java的实例变量符合[特定的规则](#匹配规则),那就可以在`@Table`标签里设置`autoColumnDetection = true`来实现自动匹配, 这样我们就不必在每个Java字段前用`@TblField`标签了.
 
-**`提示:`** `@TblField` can still take precedence over `autoColumnDetection`.
-#### match pattern:
-case-insensitive and underscore ignored
+**`提示:`** `@TblField` 的优先级仍旧高于 `autoColumnDetection`.
+#### 匹配规则
+不区分大小写, 忽略下划线.
 
 | table column   | Java field   | match    |
 | :------------- | :----------: | -------: |
@@ -321,12 +321,12 @@ public class Dummy implements Serializable {
   // getter setter omitted...
 ```
 
-## Other Functionalities
+## 其他功能
 
-### Java file generation
-Manually compose Java Bean files from database table definition can be both tedious and error prone, datazilla provides a small tool to take over this job.
+### Java文件生成
+根据表结构定义手工编写Java文件即麻烦又容易出错, datazilla提供了一个小工具来处理这部分工作.
 
-Place a file named "Table2JavaMeta.json" (see below) inside your project's root directory, execute the main method inside `Table2Java.java`, and the Java files will be generated at this location: \[your project root/\<srcRoot\>/\<domainPackage\>\]. Based on the example json below, a file named "Dummy.java" can be located at "your project root/src/test/java/com/github/haflife3/dataobject/Dummy.java" after a successful generation.
+将一个名为"Table2JavaMeta.json"的文件(参考下面)房子在工程主目录下面, 执行`Table2Java.java`里的main方法, Java文件就会在这个位置创建: \[your project root/\<srcRoot\>/\<domainPackage\>\]. 以下面的json为例, 生成成功后一个名为"Dummy.java"的文件会被放置在这里:"your project root/src/test/java/com/github/haflife3/dataobject/Dummy.java".
 
 `Table2JavaMeta.json`
 ```json
@@ -347,10 +347,10 @@ Place a file named "Table2JavaMeta.json" (see below) inside your project's root 
 }
 ```
 
-### transaction support
-By wrapping your dataSource in a `TransactionAwareDataSourceProxy`, datazilla can fully support Spring's Transaction Management.
+### 事务支持
+将数据源对象用`TransactionAwareDataSourceProxy`包装, datazilla 即可支持Spring的事务管理.
 
-Please refer to [this doc](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/data-access.html#transaction) for more information.
+关于事务管理参见[这篇文档](https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/data-access.html#transaction).
 ```java
 QueryEntry queryEntry = new QueryEntry(new TransactionAwareDataSourceProxy(dataSource));
 ```

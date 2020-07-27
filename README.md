@@ -27,7 +27,7 @@ Table of Contents
     * [batch insert](#batch-insert)
     * [persist](#persist)
     * [paging and offset](#paging-and-offset)
-    * [sql identify](#sql-identify)
+    * [SQL identify](#SQL-identify)
     * [column selection](#column-selection)
     * [custom result set handler](#custom-result-set-handler)
     * [auto column detection](#auto-column-detection)
@@ -164,7 +164,7 @@ Corresponding SQL:
 ```sql
 delete from dummy where id = ? -- values[1]
 ```
-**`TIP:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related Java class at all. Even further, you can directly execute sql queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
+**`TIP:`** Actually, there are more ways to implement those basic operations, such as you can specify the table name and a list of conditions to perform a deletion should you wish not to have a table related Java class at all. Even further, you can directly execute SQL queries and deal with result yourself. Those, of course, are not very ORM-ish. Feel free to explore `QueryEntry` and find more.
 
 ## Advanced Cases
 In this part, the examples are still based on the table and the Java Bean we created in the beginning.
@@ -240,7 +240,7 @@ select count(*) as count from dummy where id > ?  -- values: [0]
 select * from dummy where id > ? order by id desc limit ?,?   -- values: [0, 1, 2]
 ```
 
-### sql identify
+### SQL identify
 Due to datazilla's nature of constructing SQL at runtime, SQL query can be hard to trace back to, by adding a comment as its identity, tracing will no longer be as hard. 
 
 **`TIP:`** Place `ExtraParamInjector.sqlId()` right before your query action for the same reason as when you are using `ExtraParamInjector.paging()` and `ExtraParamInjector.offset()`.
