@@ -135,6 +135,23 @@ class CommonTest {
         logger.info ' -- test finish -- '
     }
 
+    void condBuild(){
+        logger.info ' -- condBuild -- '
+        CondBuildObj obj = new CondBuildObj(
+            val1: "v1",
+            val2: "v2",
+            val3: "v3",
+            val4: [1234L,4567L],
+            val5: []
+        )
+        def conds = qe.buildConds(obj)
+        assert conds.size() == 4
+        assert conds[0].columnName == "val1" && conds[0].compareOpr == "=" && conds[0].value == "v1"
+        assert conds[1].columnName == "val_2" && conds[1].compareOpr == "=" && conds[1].value == "v2"
+        assert conds[2].columnName == "val3" && conds[2].compareOpr == "like" && conds[2].value == "%v3%"
+        assert conds[3].columnName == "val_4" && conds[3].compareOpr == "in" && conds[3].value == [1234L,4567L]
+    }
+
     void dbType(){
         logger.info ' -- dbType -- '
         assert getDbType() == qe.getDbType()
@@ -587,23 +604,6 @@ class CommonTest {
             return queryEntry.searchObjects(getCurrentClass().newInstance()).size() == 0
         }
         assert TransactionTest.tx(getDbType(),clSetup,clException,validException)
-    }
-
-    void condBuild(){
-        logger.info ' -- condBuild -- '
-        CondBuildObj obj = new CondBuildObj(
-            val1: "v1",
-            val2: "v2",
-            val3: "v3",
-            val4: [1234L,4567L],
-            val5: []
-        )
-        def conds = qe.buildConds(obj)
-        assert conds.size() == 4
-        assert conds[0].columnName == "val1" && conds[0].compareOpr == "=" && conds[0].value == "v1"
-        assert conds[1].columnName == "val_2" && conds[1].compareOpr == "=" && conds[1].value == "v2"
-        assert conds[2].columnName == "val3" && conds[2].compareOpr == "like" && conds[2].value == "%v3%"
-        assert conds[3].columnName == "val_4" && conds[3].compareOpr == "in" && conds[3].value == [1234L,4567L]
     }
 
     static void compareValueEqual(Object origValue, Object resultValue){
