@@ -1,5 +1,6 @@
 package com.github.haflife3.test
 
+
 import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.datazilla.QueryEntry
 import com.github.haflife3.datazilla.annotation.Table
@@ -12,6 +13,7 @@ import com.github.haflife3.datazilla.misc.MiscUtil
 import com.github.haflife3.datazilla.pojo.Cond
 import com.github.haflife3.datazilla.pojo.Null
 import com.github.haflife3.datazilla.pojo.OrderCond
+import com.github.haflife3.test.transaction.TransactionTest
 import org.apache.commons.dbutils.ResultSetHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,7 +22,7 @@ import java.sql.ResultSet
 import java.sql.SQLException
 
 class CommonTest {
-    private static final Logger logger = LoggerFactory.getLogger(CommonTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommonTest.class)
 
     private QueryEntry qe
 
@@ -125,6 +127,7 @@ class CommonTest {
                 delOne()
                 extraCondDel()
                 delAll()
+                tx()
             } finally {
                 cleanup()
             }
@@ -547,6 +550,43 @@ class CommonTest {
         ExtraParamInjector.sqlId("delAll")
         def delNum = qe.delObjects(del)
         assert delNum > 0
+    }
+
+    void tx(){
+        logger.info ' -- tx -- '
+
+        String createTableTemplate = CommonInfo.createTableMap.get(getDbType())
+        String createTableSql = createTableTemplate.replace("TABLE_PLACEHOLDER",tableName())
+        Closure clSetup = { QueryEntry queryEntry ->
+            ExtraParamInjector.sqlId("tx 000")
+            queryEntry.genericUpdate(createTableSql)
+        }
+
+        Closure clNormal = { QueryEntry queryEntry ->
+            def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
+            ExtraParamInjector.sqlId("tx 001")
+            queryEntry.insert(record)
+        }
+        Closure<Boolean> validNormal = { QueryEntry queryEntry ->
+            ExtraParamInjector.sqlId("tx 002")
+            return queryEntry.searchObjects(getCurrentClass().newInstance()).size() == 1
+        }
+        assert TransactionTest.tx(getDbType(),clSetup,clNormal,validNormal)
+        ExtraParamInjector.sqlId("tx 003")
+        qe.delObjects(getCurrentClass().newInstance())
+
+        Closure clException = { QueryEntry queryEntry ->
+            def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
+            ExtraParamInjector.sqlId("tx 004")
+            queryEntry.insert(record)
+            ExtraParamInjector.sqlId("tx 005")
+            queryEntry.updateSelective(record,new Cond("field_no_exist","xxx"))
+        }
+        Closure<Boolean> validException = { QueryEntry queryEntry ->
+            ExtraParamInjector.sqlId("tx 006")
+            return queryEntry.searchObjects(getCurrentClass().newInstance()).size() == 0
+        }
+        assert TransactionTest.tx(getDbType(),clSetup,clException,validException)
     }
 
     void condBuild(){
