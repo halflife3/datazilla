@@ -48,6 +48,10 @@ public class QueryEntry {
         return coreRunner;
     }
 
+    public QueryRunner getQueryRunner(){
+        return coreRunner.getQueryRunner();
+    }
+
     public DataSource getDataSource(){
         return coreRunner.getDataSource();
     }
@@ -83,22 +87,6 @@ public class QueryEntry {
 
     public int genericUpdate(String sql, Object[] values){
         return coreRunner.genericUpdate(sql, values);
-    }
-
-    public String genericQry2Str(QueryConditionBundle qryCondition){
-        String result = "";
-        if(qryCondition.getResultClass()==null) {
-            List<Map<String, Object>> listMap = coreRunner.genericMapQry(qryCondition);
-            if (CollectionUtils.isNotEmpty(listMap)) {
-                result = new Gson().toJson(listMap);
-            }
-        }else{
-            List<Object> objects = coreRunner.genericQry(qryCondition);
-            if(CollectionUtils.isNotEmpty(objects)){
-                result = new Gson().toJson(objects);
-            }
-        }
-        return result;
     }
 
     private Map<String,Object> fromFieldValuePair(List<FieldValuePair> pairs){

@@ -55,6 +55,10 @@ public class CoreRunner {
         return queryRunner.getDataSource();
     }
 
+    public QueryRunner getQueryRunner(){
+        return queryRunner;
+    }
+
     
     public <T> List<T> genericQry(String sql, Class<T> clazz, Object[] values)  {
         TableObjectMetaCache.initTableObjectMeta(clazz,this);
@@ -247,7 +251,7 @@ public class CoreRunner {
     private void log(String sql,Object[] values,Object output,String outputDenote,long elapsed){
         try {
 //            StackTraceElement[] stack = new Throwable().getStackTrace();
-            Boolean ignoreLog = GeneralThreadLocal.get("ignoreDaoLog");
+            Boolean ignoreLog = GeneralThreadLocal.get("ignoreLog");
 //            String log = conciseStack(stack)+"\n";
 //            if(ignoreLog==null||!ignoreLog) {
 //                logger.debug(conciseStack(stack));
