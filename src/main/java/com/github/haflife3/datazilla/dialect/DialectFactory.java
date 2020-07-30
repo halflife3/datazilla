@@ -61,6 +61,11 @@ public class DialectFactory {
         batchInserterMap.put(HSQLDB,new HsqlDbBatchInserter());
 
         offlinePaginationMap.put(DEFAULT, new DefaultOfflinePagination());
+        offlinePaginationMap.put(MYSQL, new DummyOfflinePagination());
+        offlinePaginationMap.put(PG, new DummyOfflinePagination());
+        offlinePaginationMap.put(H2, new DummyOfflinePagination());
+        offlinePaginationMap.put(SQLITE, new DummyOfflinePagination());
+        offlinePaginationMap.put(HSQLDB, new DummyOfflinePagination());
     }
 
     public static EntityRegulator getEntityRegulator(String dbType){

@@ -178,6 +178,7 @@ CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER  (
         HikariConfig config = new HikariConfig()
         config.setDriverClassName(driverClassNameMap.get(dbType))
         config.setJdbcUrl(connInfo.url)
+        config.setMaximumPoolSize(5)
         config.setUsername(connInfo.username)
         config.setPassword(connInfo.password)
         HikariDataSource dataSource = new HikariDataSource(config)

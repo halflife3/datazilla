@@ -5,6 +5,7 @@ import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.datazilla.QueryEntry
 import com.github.haflife3.datazilla.annotation.Table
 import com.github.haflife3.datazilla.annotation.TblField
+import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.datazilla.logic.TableLoc
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache
 import com.github.haflife3.datazilla.misc.ExtraParamInjector
@@ -70,9 +71,9 @@ class CommonTest {
     }
 
 //    @Before
-    void setup(){
+    void setup(String dbType){
         logger.info('>>setup<<')
-        qe = new QueryEntry(CommonInfo.getDataSource(getDbType()))
+        qe = new QueryEntry(CommonInfo.getDataSource(getDbType()),dbType)
         String createTableTemplate = CommonInfo.createTableMap.get(getDbType())
         String createTableSql = createTableTemplate.replace("TABLE_PLACEHOLDER",tableName())
         ExtraParamInjector.sqlId("setup create table")
@@ -95,41 +96,43 @@ class CommonTest {
 
     protected void test(){
         logger.info ' -- test -- '
-        getRecordClass().each {
-            try {
-                setup()
-                condBuild()
-                setCurrentClass(it)
-                logger.info("************ ${getCurrentClass()} *************")
-                dbType()
-                tableMetas()
-                colNames()
-                batchInsert()
-                typeMapping()
-                queryAll()
-                count()
-                extraCondCount()
-                genericQry4Map()
-                querySingleAndExist()
-                selectColumns()
-                paging()
-                offset()
-                nameMismatch()
-                extraCondQuery()
-                insertOne()
-                nullCond()
-                updateSelective()
-                extraCondUpdateSelective()
-                updateFull()
-                extraCondUpdateFull()
-                persist()
-                insertAndReturnAutoGen()
-                delOne()
-                extraCondDel()
-                delAll()
-                tx()
-            } finally {
-                cleanup()
+        for(String testDbType in [null, DialectConst.DEFAULT]){
+            getRecordClass().each {
+                try {
+                    setup(testDbType)
+                    condBuild()
+                    setCurrentClass(it)
+                    logger.info("************ ${getCurrentClass()} *************")
+                    testDbType?:dbType()
+                    tableMetas()
+                    colNames()
+                    batchInsert()
+                    typeMapping()
+                    queryAll()
+                    count()
+                    extraCondCount()
+                    genericQry4Map()
+                    querySingleAndExist()
+                    selectColumns()
+                    paging()
+                    offset()
+                    nameMismatch()
+                    extraCondQuery()
+                    insertOne()
+                    nullCond()
+                    updateSelective()
+                    extraCondUpdateSelective()
+                    updateFull()
+                    extraCondUpdateFull()
+                    persist()
+                    insertAndReturnAutoGen()
+                    delOne()
+                    extraCondDel()
+                    delAll()
+                    tx()
+                } finally {
+                    cleanup()
+                }
             }
         }
         logger.info ' -- test finish -- '

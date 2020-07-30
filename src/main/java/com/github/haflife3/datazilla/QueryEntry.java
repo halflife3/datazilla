@@ -1,6 +1,7 @@
 package com.github.haflife3.datazilla;
 
 import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableLoc;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
@@ -156,6 +157,7 @@ public class QueryEntry {
                     .orderByConds(PagingInjector.getOrderConds())
                     .build();
             rtList = genericQry(qryCondition);
+            rtList = DialectFactory.getOfflinePagination(getDbType()).paginate(rtList,qryCondition.getOffset(),qryCondition.getLimit());
             if(PagingInjector.needCount()){
                 QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
                     .targetTable(qryCondition.getTargetTable())
