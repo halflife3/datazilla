@@ -5,13 +5,14 @@ import com.github.haflife3.datazilla.annotation.TblField;
 import lombok.Data;
 import uk.co.jemos.podam.common.*;
 
+import java.io.Serializable;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
 @Table(value = "dummy_table",autoColumnDetection = true)
 @Data
-public class DummyTablePGAlt extends DummyTable{
+public class DummyTablePGAlt extends DummyTable implements Serializable {
 
   @PodamExclude
   //@TblField("id")

@@ -5,6 +5,7 @@ import com.github.haflife3.datazilla.annotation.TblField;
 import lombok.Data;
 import uk.co.jemos.podam.common.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
@@ -12,7 +13,7 @@ import java.util.UUID;
 /**  */
 @Table(value = "DUMMY_TABLE", autoColumnDetection = true)
 @Data
-public class DummyTableH2Alt extends DummyTable{
+public class DummyTableH2Alt extends DummyTable implements Serializable {
 
   /**  */
   @PodamExclude

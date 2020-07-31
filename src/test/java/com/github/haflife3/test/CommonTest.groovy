@@ -43,6 +43,10 @@ class CommonTest {
         return configMap().get("cleanUpSql")
     }
 
+    private String dropTableSql(){
+        return configMap().get("dropTableSql")
+    }
+
     private boolean idInt(){
         return configMap().get("idInt")
     }
@@ -57,6 +61,7 @@ class CommonTest {
             "dbType":"",
             "tableName":"dummy_table",
             "cleanUpSql":"truncate table dummy_table",
+            "dropTableSql":"drop table dummy_table",
             "idInt":false,
             "nullField4Test":["varcharF","varchar_f"],
         ] as Map<String, Object>
@@ -87,7 +92,7 @@ class CommonTest {
 //    @After
     void cleanup(){
         logger.info '>>cleanup<<'
-        String sql = "drop table "+tableName()
+        String sql = dropTableSql().replace("TABLE_PLACEHOLDER",tableName())
         ExtraParamInjector.sqlId("cleanup drop table")
         qe.genericUpdate(sql)
         GeneralThreadLocal.unset()
@@ -130,6 +135,9 @@ class CommonTest {
                     extraCondDel()
                     delAll()
                     tx()
+                }catch(Exception e){
+                    logger.error(e.getMessage(),e)
+                    throw e
                 } finally {
                     cleanup()
                 }
@@ -512,7 +520,7 @@ class CommonTest {
         logger.info ' -- persist -- '
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         def id = idInt()?1:System.currentTimeMillis()
-        record.setId(id)
+        record.setId(null)
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id)
         ExtraParamInjector.sqlId("persist")
@@ -527,7 +535,7 @@ class CommonTest {
         ExtraParamInjector.sqlId("insertAndReturnAutoGen step1")
         def autoGenValue = qe.insertAndReturnAutoGen(record)
         assert autoGenValue!=null
-        if(autoGenValue instanceof BigInteger){
+        if(autoGenValue instanceof BigInteger || autoGenValue instanceof BigDecimal){
             autoGenValue = autoGenValue.longValue()
         }
         ExtraParamInjector.sqlId("insertAndReturnAutoGen step2")

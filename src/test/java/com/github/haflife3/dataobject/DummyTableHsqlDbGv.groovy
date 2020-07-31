@@ -13,7 +13,7 @@ import uk.co.jemos.podam.common.PodamStringValue
 
 @Table("dummy_table")
 @PropertyOptions
-class DummyTableHsqlDbGv extends DummyTable{
+class DummyTableHsqlDbGv extends DummyTable implements Serializable{
 
     @PodamExclude
     @TblField("ID")

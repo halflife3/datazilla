@@ -7,7 +7,7 @@ import uk.co.jemos.podam.common.PodamExclude
 import uk.co.jemos.podam.common.PodamStringValue
 
 @Table("dummy_table")
-class DummyTableSqliteGv extends DummyTable{
+class DummyTableSqliteGv extends DummyTable implements Serializable{
 
     /**  */
     @PodamExclude

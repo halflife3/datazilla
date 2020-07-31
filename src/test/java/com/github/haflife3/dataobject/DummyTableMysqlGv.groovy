@@ -10,7 +10,7 @@ import uk.co.jemos.podam.common.PodamLongValue
 import uk.co.jemos.podam.common.PodamStringValue
 
 @Table("dummy_table")
-class DummyTableMysqlGv  extends DummyTable{
+class DummyTableMysqlGv  extends DummyTable implements Serializable{
 
     /**  */
     @PodamExclude

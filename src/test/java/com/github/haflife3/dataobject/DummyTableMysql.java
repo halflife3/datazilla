@@ -5,12 +5,13 @@ import com.github.haflife3.datazilla.annotation.TblField;
 import lombok.Data;
 import uk.co.jemos.podam.common.*;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**  */
 @Table("dummy_table")
 @Data
-public class DummyTableMysql extends DummyTable{
+public class DummyTableMysql extends DummyTable implements Serializable {
 
   /**  */
   @PodamExclude

@@ -14,7 +14,7 @@ import java.sql.Time
 import java.sql.Timestamp
 
 @Table("dummy_table")
-class DummyTablePGGv extends DummyTable{
+class DummyTablePGGv extends DummyTable implements Serializable{
 
     @PodamExclude
     @TblField("id")

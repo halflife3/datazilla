@@ -5,12 +5,13 @@ import com.github.haflife3.datazilla.annotation.TblField;
 import lombok.Data;
 import uk.co.jemos.podam.common.*;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
 @Table(value = "dummy_table", autoColumnDetection = true)
 @Data
-public class DummyTableHsqlDbAlt extends DummyTable{
+public class DummyTableHsqlDbAlt extends DummyTable implements Serializable {
 
   @PodamExclude
   private Integer id;

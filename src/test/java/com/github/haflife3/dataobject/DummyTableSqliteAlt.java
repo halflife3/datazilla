@@ -7,10 +7,12 @@ import uk.co.jemos.podam.common.PodamDoubleValue;
 import uk.co.jemos.podam.common.PodamExclude;
 import uk.co.jemos.podam.common.PodamStringValue;
 
+import java.io.Serializable;
+
 /**  */
 @Table(value = "dummy_table",autoColumnDetection = true)
 @Data
-public class DummyTableSqliteAlt extends DummyTable{
+public class DummyTableSqliteAlt extends DummyTable implements Serializable {
 
   /**  */
   @PodamExclude

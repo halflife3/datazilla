@@ -5,7 +5,7 @@ import com.github.haflife3.datazilla.annotation.TblField
 import uk.co.jemos.podam.common.*
 
 @Table("DUMMY_TABLE")
-class DummyTableH2Gv extends DummyTable{
+class DummyTableH2Gv extends DummyTable implements Serializable{
 
     /**  */
     @PodamExclude

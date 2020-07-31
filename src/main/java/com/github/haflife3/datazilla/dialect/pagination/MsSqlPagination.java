@@ -6,7 +6,7 @@ public class MsSqlPagination implements Pagination{
     @Override
     public String paging(Integer offset, Integer limit, String sql, List<Object> values) {
         if(offset!=null&&limit!=null) {
-            sql+=" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            sql+=" offset ? rows fetch next ? rows only";
             values.add(offset);
             values.add(limit);
         }

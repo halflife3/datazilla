@@ -11,11 +11,12 @@
 
        See http://logback.qos.ch/manual/configuration.html
      -->
+    <property name="LOG_PATH" value="/logs/datazilla"/>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/app.log</file>
+        <file>${LOG_PATH}/app.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>logs/app.%i.log.gz</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/app-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>12</maxIndex>
         </rollingPolicy>

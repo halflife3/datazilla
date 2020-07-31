@@ -125,17 +125,47 @@ CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER  (
 )
 '''
 
+    static String createMsSqlTestTable =
+        '''
+IF OBJECT_ID(N'dbo.TABLE_PLACEHOLDER', N'U') IS  NULL
+BEGIN
+    CREATE TABLE TABLE_PLACEHOLDER  ( 
+        id                 bigint IDENTITY NOT NULL,
+        bit_f              bit NULL,
+        char_f             char(25) NULL,
+        date_f             date NULL,
+        datetime_f         datetime NULL,
+        decimal_f          decimal(15,5) NULL,
+        float_f            float NULL,
+        int_f              int NULL,
+        nchar_f            nchar(25) NULL,
+        ntext_f            ntext NULL,
+        numeric_f          numeric(15,5) NULL,
+        nvarchar_f         nvarchar(25) NULL,
+        real_f             real NULL,
+        smalldatetime_f    smalldatetime NULL,
+        smallint_f         smallint NULL,
+        text_f             text NULL,
+        tinyint_f          tinyint NULL,
+        varchar_f          varchar(25) NULL,
+        name_mismatch_f    varchar(25) NULL,
+        CONSTRAINT TABLE_PLACEHOLDER_pk PRIMARY KEY CLUSTERED(id)
+    )
+END
+'''
+
     static {
         createTableMap.put(DialectConst.MYSQL,createMysqlTestTable)
         createTableMap.put(DialectConst.H2,createH2TestTable)
         createTableMap.put(DialectConst.PG,createPgTestTable)
         createTableMap.put(DialectConst.SQLITE,createSqliteTestTable)
         createTableMap.put(DialectConst.HSQLDB,createHsqlDbTestTable)
+        createTableMap.put(DialectConst.MSSQL,createMsSqlTestTable)
         String mysqlConn = System.getenv("DATAZILLA_MYSQL_CONN")
         connInfoMap.put(DialectConst.MYSQL,
             mysqlConn?new Gson().fromJson(mysqlConn,ConnInfo):
             ConnInfo.builder()
-                .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8")
+                .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC")
                 .username("root")
                 .password("")
                 .build()
@@ -166,11 +196,21 @@ CREATE TABLE IF NOT EXISTS TABLE_PLACEHOLDER  (
                 .username("SA")
                 .build()
         )
+        String mssqlConn = System.getenv("DATAZILLA_MSSQL_CONN")
+        connInfoMap.put(DialectConst.MSSQL,
+            mssqlConn?new Gson().fromJson(mssqlConn,ConnInfo):
+            ConnInfo.builder()
+                .url("jdbc:sqlserver://127.0.0.1:2433;database=test")
+                .username("sa")
+                .password("")
+                .build()
+        )
         driverClassNameMap.put(DialectConst.MYSQL,"com.mysql.jdbc.Driver")
         driverClassNameMap.put(DialectConst.H2,"org.h2.Driver")
         driverClassNameMap.put(DialectConst.PG,"org.postgresql.Driver")
         driverClassNameMap.put(DialectConst.SQLITE,"org.sqlite.JDBC")
         driverClassNameMap.put(DialectConst.HSQLDB,"org.hsqldb.jdbc.JDBCDriver")
+        driverClassNameMap.put(DialectConst.MSSQL,"com.microsoft.sqlserver.jdbc.SQLServerDriver")
     }
 
     static DataSource getDataSource(String dbType){

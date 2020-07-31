@@ -19,7 +19,7 @@ public class MsSqlTypeMapper implements TypeMapper {
         typeMap.put("nchar","String");
         typeMap.put("ntext","String");
         typeMap.put("numeric","Double");
-        typeMap.put("nvarchar","java.util.Date");
+        typeMap.put("nvarchar","String");
         typeMap.put("real","Double");
         typeMap.put("smalldatetime","java.util.Date");
         typeMap.put("smallint","Short");
