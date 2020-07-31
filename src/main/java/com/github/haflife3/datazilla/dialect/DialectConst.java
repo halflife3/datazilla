@@ -7,4 +7,5 @@ public class DialectConst {
     public static final String H2 = "H2";
     public static final String SQLITE = "SQLite";
     public static final String HSQLDB = "HsqlDb";
+    public static final String MSSQL = "MsSql";
 }

@@ -16,7 +16,7 @@ import static com.github.haflife3.datazilla.dialect.DialectConst.*;
 
 
 public class DialectFactory {
-    public static List<String> SUPPORTED_DB = Arrays.asList(MYSQL,PG,H2,SQLITE,HSQLDB);
+    public static List<String> SUPPORTED_DB = Arrays.asList(MYSQL,PG,H2,SQLITE,HSQLDB,MSSQL);
 
     private static final Map<String, EntityRegulator> regulatorMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static final Map<String, OprStore> oprStoreMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -32,6 +32,7 @@ public class DialectFactory {
         regulatorMap.put(H2,new DefaultEntityRegulator());
         regulatorMap.put(SQLITE,new DefaultEntityRegulator());
         regulatorMap.put(HSQLDB,new HsqlDbEntityRegulator());
+        regulatorMap.put(MSSQL,new DefaultEntityRegulator());
 
         oprStoreMap.put(DEFAULT,new DefaultOprStore());
         oprStoreMap.put(MYSQL,new MysqlOprStore());
@@ -46,12 +47,14 @@ public class DialectFactory {
         paginationMap.put(H2,new H2Pagination());
         paginationMap.put(SQLITE,new SqlitePagination());
         paginationMap.put(HSQLDB,new HsqlDbPagination());
+        paginationMap.put(MSSQL,new MsSqlPagination());
 
         typeMapperMap.put(MYSQL,new MysqlTypeMapper());
         typeMapperMap.put(PG,new PgTypeMapper());
         typeMapperMap.put(H2,new H2TypeMapper());
         typeMapperMap.put(SQLITE,new SqliteTypeMapper());
         typeMapperMap.put(HSQLDB,new HsqlDbTypeMapper());
+        typeMapperMap.put(MSSQL,new MsSqlTypeMapper());
 
         batchInserterMap.put(DEFAULT,new DefaultBatchInserter());
         batchInserterMap.put(MYSQL,new MysqlBatchInserter());
@@ -59,6 +62,7 @@ public class DialectFactory {
         batchInserterMap.put(H2,new DefaultBatchInserter());
         batchInserterMap.put(SQLITE,new SqliteBatchInserter());
         batchInserterMap.put(HSQLDB,new HsqlDbBatchInserter());
+        batchInserterMap.put(MSSQL,new MsSqlBatchInserter());
 
         offlinePaginationMap.put(DEFAULT, new DefaultOfflinePagination());
         offlinePaginationMap.put(MYSQL, new DummyOfflinePagination());
@@ -66,6 +70,7 @@ public class DialectFactory {
         offlinePaginationMap.put(H2, new DummyOfflinePagination());
         offlinePaginationMap.put(SQLITE, new DummyOfflinePagination());
         offlinePaginationMap.put(HSQLDB, new DummyOfflinePagination());
+        offlinePaginationMap.put(MSSQL, new DummyOfflinePagination());
     }
 
     public static EntityRegulator getEntityRegulator(String dbType){
