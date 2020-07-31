@@ -8,6 +8,7 @@ public class MsSqlTypeMapper implements TypeMapper {
     public Map<String, String> getTypeMap() {
         Map<String,String> typeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         typeMap.put("bigint","Long");
+        typeMap.put("BIGINT IDENTITY","Long");
         typeMap.put("bit","Boolean");
         typeMap.put("char","String");
         typeMap.put("date","java.util.Date");
@@ -23,7 +24,7 @@ public class MsSqlTypeMapper implements TypeMapper {
         typeMap.put("smalldatetime","java.util.Date");
         typeMap.put("smallint","Short");
         typeMap.put("text","String");
-        typeMap.put("TEXT","String");
+        typeMap.put("tinyint","Short");
         typeMap.put("uniqueidentifier","String");
         typeMap.put("varchar","String");
         return typeMap;

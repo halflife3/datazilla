@@ -11,12 +11,12 @@ import java.sql.SQLException
 
 static DataSource getDataSource(String dbType){
     def connInfo = ConnInfo.builder()
-            .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8")
-            .username("root")
+            .url("jdbc:sqlserver://127.0.0.1:2433;database=test")
+            .username("sa")
             .password("")
             .build()
     HikariConfig config = new HikariConfig()
-    config.setDriverClassName("com.mysql.jdbc.Driver")
+    config.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
     config.setJdbcUrl(connInfo.url)
     config.setUsername(connInfo.username)
     config.setPassword(connInfo.password)
@@ -25,11 +25,14 @@ static DataSource getDataSource(String dbType){
 }
 
 QueryEntry queryEntry = new QueryEntry(getDataSource())
-queryEntry.genericQry("select * from dummy limit 1",new ResultSetHandler<List<Void>>() {
+queryEntry.genericQry("select * from dummy where 1=2",new ResultSetHandler<List<Void>>() {
     @Override
     List<Void> handle(ResultSet rs) throws SQLException {
         def metaData = rs.getMetaData()
         def count = metaData.getColumnCount()
+        for (i in 1 .. count){
+            println ("${metaData.getColumnTypeName(i)} # ${metaData.getColumnClassName(i)}")
+        }
         while (rs.next()){
             for (i in 1 .. count){
                 def object = rs.getObject(i)
@@ -37,6 +40,7 @@ queryEntry.genericQry("select * from dummy limit 1",new ResultSetHandler<List<Vo
                     println ("${object.getClass().name} # ${metaData.getColumnTypeName(i)} # ${object}")
                 }
             }
+            break
         }
         return null
     }
