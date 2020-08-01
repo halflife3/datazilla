@@ -1,15 +1,6 @@
 package com.github.haflife3.datazilla.dialect.regulate;
 
 public class HsqlDbEntityRegulator implements EntityRegulator{
-    @Override
-    public String regulateTable(String table) {
-        return table;
-    }
-
-    @Override
-    public String regulateField(String field) {
-        return field;
-    }
 
     @Override
     public String simpleTable(String table){

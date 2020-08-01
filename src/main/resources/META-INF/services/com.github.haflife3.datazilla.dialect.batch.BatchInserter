@@ -1,0 +1,6 @@
+com.github.haflife3.datazilla.dialect.batch.DefaultBatchInserter
+com.github.haflife3.datazilla.dialect.batch.HsqlDbBatchInserter
+com.github.haflife3.datazilla.dialect.batch.MsSqlBatchInserter
+com.github.haflife3.datazilla.dialect.batch.MysqlBatchInserter
+com.github.haflife3.datazilla.dialect.batch.PgBatchInserter
+com.github.haflife3.datazilla.dialect.batch.SqliteBatchInserter

@@ -113,7 +113,7 @@ public class QueryEntry {
                     .targetTable(table)
                     .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
                     .build();
-            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeDelete(delCond);
+            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeDelete(delCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(), sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
@@ -145,7 +145,7 @@ public class QueryEntry {
                     .orderByConds(PagingInjector.getOrderConds())
                     .build();
             rtList = genericQry(qryCondition);
-            rtList = DialectFactory.getOfflinePagination(getDbType()).paginate(rtList,qryCondition.getOffset(),qryCondition.getLimit());
+            rtList = coreRunner.getOfflinePagination().paginate(rtList,qryCondition.getOffset(),qryCondition.getLimit());
             if(PagingInjector.needCount()){
                 QueryConditionBundle qcCount = new QueryConditionBundle.Builder()
                     .targetTable(qryCondition.getTargetTable())
@@ -319,7 +319,7 @@ public class QueryEntry {
                 .values2Update(pairs)
                 .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
                 .build();
-            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeUpdate(upCond);
+            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
@@ -357,7 +357,7 @@ public class QueryEntry {
                     .values2Update(pairs)
                     .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
                     .build();
-            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner.getDbType()).composeUpdate(upCond);
+            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
@@ -500,6 +500,6 @@ public class QueryEntry {
         fieldMap.entrySet().removeIf(entry->!finalValidCols.contains(entry.getKey().toLowerCase()));
     }
     public List<Cond> buildConds(Object obj){
-        return new SqlBuilder(coreRunner.getDbType()).buildConds(obj);
+        return new SqlBuilder(coreRunner).buildConds(obj);
     }
 }

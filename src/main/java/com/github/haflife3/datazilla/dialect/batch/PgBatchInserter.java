@@ -1,6 +1,7 @@
 package com.github.haflife3.datazilla.dialect.batch;
 
 import com.github.haflife3.datazilla.CoreRunner;
+import com.github.haflife3.datazilla.dialect.DialectConst;
 import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import org.apache.commons.collections.CollectionUtils;
@@ -12,18 +13,20 @@ import java.util.Map;
 
 public class PgBatchInserter implements BatchInserter {
     @Override
+    public String getDatabaseType() {
+        return DialectConst.PG;
+    }
+    @Override
     public int batchInsert(CoreRunner coreRunner, String table, List<Map<String, Object>> listMap){
         int affectedNum = 0;
         if(CollectionUtils.isNotEmpty(listMap)){
             EntityRegulator entityRegulator = DialectFactory.getEntityRegulator(coreRunner.getDbType());
-            table = entityRegulator.regulateTable(table);
             List<String> fields = new ArrayList<>(listMap.get(0).keySet());
             int fieldNum = fields.size();
             String sql = "insert into "+table+" (";
             String valueSql = " values";
             List<Object> values = new ArrayList<>();
             for (String field : fields) {
-                field = entityRegulator.regulateField(field);
                 sql += field + ",";
             }
             sql = StringUtils.stripEnd(sql,",")+") ";

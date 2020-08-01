@@ -25,7 +25,7 @@ import java.sql.SQLException
 class CommonTest {
     private static final Logger logger = LoggerFactory.getLogger(CommonTest.class)
 
-    private QueryEntry qe
+    protected QueryEntry qe
 
     private List<Class<? extends DummyTable>> getRecordClass(){
         return configMap().get("recordClass") as List<Class<? extends DummyTable>>

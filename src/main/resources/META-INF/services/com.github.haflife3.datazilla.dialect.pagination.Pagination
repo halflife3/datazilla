@@ -1,0 +1,7 @@
+com.github.haflife3.datazilla.dialect.pagination.DefaultPagination
+com.github.haflife3.datazilla.dialect.pagination.H2Pagination
+com.github.haflife3.datazilla.dialect.pagination.HsqlDbPagination
+com.github.haflife3.datazilla.dialect.pagination.MsSqlPagination
+com.github.haflife3.datazilla.dialect.pagination.MysqlPagination
+com.github.haflife3.datazilla.dialect.pagination.PgPagination
+com.github.haflife3.datazilla.dialect.pagination.SqlitePagination

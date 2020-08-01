@@ -2,6 +2,9 @@ package com.github.haflife3.datazilla;
 
 import com.github.haflife3.datazilla.dialect.DialectConst;
 import com.github.haflife3.datazilla.dialect.DialectFactory;
+import com.github.haflife3.datazilla.dialect.batch.BatchInserter;
+import com.github.haflife3.datazilla.dialect.batch.DefaultBatchInserter;
+import com.github.haflife3.datazilla.dialect.pagination.*;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
@@ -9,6 +12,7 @@ import com.github.haflife3.datazilla.misc.*;
 import com.github.haflife3.datazilla.pojo.QueryConditionBundle;
 import com.github.haflife3.datazilla.pojo.SqlPreparedBundle;
 import org.apache.commons.dbutils.BasicRowProcessor;
+import org.apache.commons.dbutils.ColumnHandler;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -27,11 +31,9 @@ public class CoreRunner {
     private final QueryRunner queryRunner;
     private String dbType;
     private final SqlBuilder sqlBuilder;
-    private final EntityRegulator entityRegulator;
-
-    public String getDbType() {
-        return dbType;
-    }
+    private BatchInserter batchInserter;
+    private Pagination pagination;
+    private OfflinePagination offlinePagination;
 
     public CoreRunner(QueryRunner queryRunner) {
         this(queryRunner,null);
@@ -47,8 +49,58 @@ public class CoreRunner {
         if(DialectFactory.SUPPORTED_DB.stream().noneMatch(this.dbType::equalsIgnoreCase)){
             this.dbType = DialectConst.DEFAULT;
         }
-        sqlBuilder = new SqlBuilder(this.dbType);
-        entityRegulator = DialectFactory.getEntityRegulator(this.dbType);
+        initDialect();
+        sqlBuilder = new SqlBuilder(this);
+    }
+
+    private void initDialect(){
+        boolean batchInserterMatch = false;
+        ServiceLoader<BatchInserter> batchInserters = ServiceLoader.load(BatchInserter.class);
+        for (BatchInserter batchInserter : batchInserters) {
+            if(batchInserter.match(dbType)){
+                this.batchInserter = batchInserter;
+                batchInserterMatch = true;
+                break;
+            }
+        }
+        if(!batchInserterMatch){
+            this.batchInserter = new DefaultBatchInserter();
+        }
+
+        boolean paginationMatch = false;
+        ServiceLoader<Pagination> paginations = ServiceLoader.load(Pagination.class);
+        for (Pagination pagination : paginations) {
+            if(pagination.match(dbType)){
+                this.pagination = pagination;
+                paginationMatch = true;
+                break;
+            }
+        }
+        if(!paginationMatch){
+            this.pagination = new DefaultPagination();
+        }
+
+        boolean offlinePaginationMatch = false;
+        ServiceLoader<OfflinePagination> offlinePaginations = ServiceLoader.load(OfflinePagination.class);
+        for (OfflinePagination offlinePagination : offlinePaginations) {
+            if(offlinePagination.match(dbType)){
+                this.offlinePagination = offlinePagination;
+                offlinePaginationMatch = true;
+                break;
+            }
+        }
+        if(!offlinePaginationMatch){
+            if(!(this.pagination instanceof DefaultPagination)){
+                this.offlinePagination = new DummyOfflinePagination();
+            }else {
+                this.offlinePagination = new DefaultOfflinePagination();
+            }
+        }
+        logger.info("batchInserterMatch[{}],batchInserter[{}];paginationMatch[{}],pagination[{}];offlinePaginationMatch[{}],offlinePagination[{}]",batchInserterMatch,batchInserter,paginationMatch,pagination,offlinePaginationMatch,offlinePagination);
+    }
+
+    public String getDbType() {
+        return dbType;
     }
 
     public DataSource getDataSource(){
@@ -59,12 +111,22 @@ public class CoreRunner {
         return queryRunner;
     }
 
-    
+    public BatchInserter getBatchInserter() {
+        return batchInserter;
+    }
+
+    public Pagination getPagination() {
+        return pagination;
+    }
+
+    public OfflinePagination getOfflinePagination() {
+        return offlinePagination;
+    }
+
     public <T> List<T> genericQry(String sql, Class<T> clazz, Object[] values)  {
         TableObjectMetaCache.initTableObjectMeta(clazz,this);
         return genericQry(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(MoreGenerousBeanProcessorFactory.populateBeanProcessor(clazz))),values);
     }
-
 
     public <T> List<T> genericQry(String sql, ResultSetHandler<List<T>> resultSetHandler, Object[] values)  {
         List<T> list;
@@ -82,7 +144,6 @@ public class CoreRunner {
         return list;
     }
 
-    
     public List<Map<String, Object>> genericQry(String sql, Object[] values){
         List<Map<String, Object>> list = null;
         try {
@@ -99,7 +160,6 @@ public class CoreRunner {
         return list;
     }
 
-    
     public int genericUpdate(String sql, Object[] values) {
         int affected = 0;
         try {
@@ -115,7 +175,6 @@ public class CoreRunner {
         }
         return affected;
     }
-
     
     public <T> List<T> genericQry(QueryConditionBundle qryCondition) {
         Class<?> resultClass = qryCondition.getResultClass();
@@ -130,7 +189,6 @@ public class CoreRunner {
         }
         return list;
     }
-
     
     public List<Map<String, Object>> genericMapQry(QueryConditionBundle qryCondition){
         SqlPreparedBundle sqlPreparedBundle = sqlBuilder.composeSelect(qryCondition);
@@ -139,15 +197,13 @@ public class CoreRunner {
         return genericQry(sql,values);
     }
 
-    
     public int insert(String table, Map<String, Object> valueMap){
         int affectedNum = 0;
-        table = entityRegulator.regulateTable(table);
         String sql = "insert into "+table+" (";
         String valueSql = " values( ";
         List<Object> values = new ArrayList<>();
         for(Map.Entry<String, Object> entry:valueMap.entrySet()){
-            String field = entityRegulator.regulateField(entry.getKey());
+            String field = entry.getKey();
             Object value = entry.getValue();
             if(value!=null) {
                 sql += field + ",";
@@ -166,12 +222,11 @@ public class CoreRunner {
         long start = System.currentTimeMillis();
         T rt = null;
         try {
-            table = entityRegulator.regulateTable(table);
             String sql = "insert into "+table+" (";
             String valueSql = " values( ";
             List<Object> values = new ArrayList<>();
             for(Map.Entry<String, Object> entry:valueMap.entrySet()){
-                String field = entityRegulator.regulateField(entry.getKey());
+                String field = entry.getKey();
                 Object value = entry.getValue();
                 if(value!=null) {
                     sql += field + ",";
@@ -196,15 +251,13 @@ public class CoreRunner {
     }
     
     public int batchInsert(String table, List<Map<String, Object>> listMap){
-        return DialectFactory.getBatchInserter(dbType).batchInsert(this,table,listMap);
+        return batchInserter.batchInsert(this,table,listMap);
     }
-
     
     public List<String> getColNames(String table){
         List<String> cols = null;
         try {
             long start = System.currentTimeMillis();
-            table = entityRegulator.regulateTable(table);
             String sql = "select * from "+table+" where 1=2";
             sql = getIdSql(sql);
             cols = queryRunner.query(sql, resultSet -> {
@@ -229,7 +282,6 @@ public class CoreRunner {
         }
         return cols;
     }
-
     
     public Map<String, String> getTableMetas(){
         Map<String, String> map = new HashMap<>();

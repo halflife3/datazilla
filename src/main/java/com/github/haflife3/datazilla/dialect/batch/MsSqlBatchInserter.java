@@ -1,6 +1,7 @@
 package com.github.haflife3.datazilla.dialect.batch;
 
 import com.github.haflife3.datazilla.CoreRunner;
+import com.github.haflife3.datazilla.dialect.DialectConst;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -9,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 public class MsSqlBatchInserter implements BatchInserter{
+    @Override
+    public String getDatabaseType() {
+        return DialectConst.MSSQL;
+    }
     @Override
     public int batchInsert(CoreRunner coreRunner, String table, List<Map<String, Object>> listMap) {
         int affectedNum = 0;

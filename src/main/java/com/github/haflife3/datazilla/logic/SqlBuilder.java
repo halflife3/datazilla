@@ -1,10 +1,8 @@
 package com.github.haflife3.datazilla.logic;
 
+import com.github.haflife3.datazilla.CoreRunner;
 import com.github.haflife3.datazilla.annotation.CondOpr;
-import com.github.haflife3.datazilla.dialect.DialectFactory;
-import com.github.haflife3.datazilla.dialect.operator.OprStore;
 import com.github.haflife3.datazilla.dialect.pagination.Pagination;
-import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.MiscUtil;
 import com.github.haflife3.datazilla.pojo.*;
@@ -19,14 +17,10 @@ import java.util.List;
 
 public class SqlBuilder {
     private static final List<String> availableOrderByTypes = Arrays.asList("desc","asc");
-    private final EntityRegulator entityRegulator;
-    private final OprStore oprStore;
     private final Pagination pagination;
 
-    public SqlBuilder(String dbType) {
-        this.oprStore = DialectFactory.getOprStore(dbType);
-        this.pagination = DialectFactory.getPagination(dbType);
-        this.entityRegulator = DialectFactory.getEntityRegulator(dbType);
+    public SqlBuilder(CoreRunner coreRunner) {
+        this.pagination = coreRunner.getPagination();
     }
 
     private void fillWherePart(ConditionBundle cond, StringBuilder where, List<Object> values){
@@ -34,7 +28,7 @@ public class SqlBuilder {
             List<Cond> conditionAndList = cond.getConditionAndList();
             if(CollectionUtils.isNotEmpty(conditionAndList)) {
                 for(Cond unit:conditionAndList){
-                    String field = regulateField(unit.getColumnName());
+                    String field = unit.getColumnName();
                     String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
                     Object value = unit.getValue();
                     if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
@@ -62,26 +56,26 @@ public class SqlBuilder {
             if(CollectionUtils.isNotEmpty(conditionOrList)){
                 StringBuilder whereOr = new StringBuilder();
                 for(Cond unit:conditionOrList){
-                    String field = regulateField(unit.getColumnName());
+                    String field = unit.getColumnName();
                     String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
                     Object value = unit.getValue();
                     if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
                         Collection inValueList = (Collection) value;
                         if(CollectionUtils.isNotEmpty(inValueList)){
-                            where.append(" or "+field+" "+operator+" (");
+                            whereOr.append(" or "+field+" "+operator+" (");
                             for(Object valueTmp:inValueList){
-                                where.append("?,");
+                                whereOr.append("?,");
                                 values.add(valueTmp);
                             }
-                            where.deleteCharAt(where.length()-1);
-                            where.append(") ");
+                            whereOr.deleteCharAt(whereOr.length()-1);
+                            whereOr.append(") ");
                         }
                     }else if(value==null){
-                        where.append(" or "+field+" "+operator+" ");
+                        whereOr.append(" or "+field+" "+operator+" ");
                     }else if(value instanceof Null){
-                        where.append(" or "+field+" is null ");
+                        whereOr.append(" or "+field+" is null ");
                     }else{
-                        where.append(" or "+field+" "+operator+" ?");
+                        whereOr.append(" or "+field+" "+operator+" ?");
                         values.add(value);
                     }
                 }
@@ -96,7 +90,7 @@ public class SqlBuilder {
         if(CollectionUtils.isNotEmpty(orderConds)){
             where.append(" order by ");
             for(OrderCond orderCond : orderConds){
-                String orderByField = regulateField(orderCond.getOrderByField());
+                String orderByField = orderCond.getOrderByField();
                 String orderByType = orderCond.getOrderByType();
                 where.append(" "+orderByField+" "+orderByType+",");
             }
@@ -156,7 +150,7 @@ public class SqlBuilder {
         List<String> selectColumns = qc.getSelectColumns();
         if(selectColumns!=null&&!selectColumns.isEmpty()){
             for(String intendedField:selectColumns){
-                select.append(" "+ regulateField(intendedField)+",");
+                select.append(" "+ intendedField+",");
             }
             select.deleteCharAt(select.length()-1);
             select.append(" from ");
@@ -165,7 +159,7 @@ public class SqlBuilder {
         }else{
             select.append(" * from ");
         }
-        select.append(" ").append(regulateTable(qc.getTargetTable())).append(" ");
+        select.append(" ").append(qc.getTargetTable()).append(" ");
 
         fillWherePart(qc,where,values);
         fillOrderByPart(qc.getOrderConds(),where);
@@ -178,7 +172,7 @@ public class SqlBuilder {
     public SqlPreparedBundle composeDelete(ConditionBundle cb){
         SqlPreparedBundle sp = new SqlPreparedBundle();
         List<Object> values= new ArrayList<>();
-        StringBuilder delete = new StringBuilder("delete from ").append(regulateTable(cb.getTargetTable()));
+        StringBuilder delete = new StringBuilder("delete from ").append(cb.getTargetTable());
         StringBuilder where = new StringBuilder(" where 1=1 ");
         fillWherePart(cb,where,values);
         sp.setSql(cleanSqlCond(delete.append(where).toString()));
@@ -191,12 +185,12 @@ public class SqlBuilder {
         SqlPreparedBundle sp = new SqlPreparedBundle();
         StringBuilder where = new StringBuilder(" where 1=1 ");
         List<Object> values= new ArrayList<Object>();
-        StringBuilder update = new StringBuilder("update ").append(regulateTable(uc.getTargetTable())).append(" ");
+        StringBuilder update = new StringBuilder("update ").append(uc.getTargetTable()).append(" ");
         List<FieldValuePair> values2Update = uc.getValues2Update();
         if(CollectionUtils.isNotEmpty(values2Update)){
             update.append(" set ");
             for (FieldValuePair pair : values2Update) {
-                String field = regulateField(pair.getField());
+                String field = pair.getField();
                 Object value = pair.getValue();
                 update.append(field).append("=?,");
                 values.add(value);
@@ -251,13 +245,5 @@ public class SqlBuilder {
             throw new DBException(e);
         }
         return conds;
-    }
-
-    public String regulateTable(String table){
-        return entityRegulator.regulateTable(table);
-    }
-
-    public String regulateField(String field){
-        return entityRegulator.regulateField(field);
     }
 }
