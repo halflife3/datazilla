@@ -2,7 +2,7 @@
   "driver":"com.mysql.jdbc.Driver",
   "dbSchema":"",
   "connectParams":"",
-  "dbUrl":"jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8",
+  "dbUrl":"jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC",
   "dbUser":"root",
   "dbPass":"",
   "srcRoot":"/src/test/java",
@@ -13,6 +13,6 @@
 
   },
   "table2ClassMap":{
-    "dummy_table":"DummyTableMMM"
+    "dummy":"DummyTmp"
   }
 }

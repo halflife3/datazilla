@@ -14,10 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -153,6 +150,9 @@ public class Table2Java {
             String comment = columnMeta.getComment();
             String javaType = TYPE_MAP.get(StringUtils.strip(type.toUpperCase().replaceAll("\\s+UNSIGNED","")));
             if(StringUtils.isBlank(javaType)){
+                javaType = columnMeta.getClassName();
+            }
+            if(StringUtils.isBlank(javaType)){
                 throw new DBException("type:"+type+" has no corresponding java type!");
             }
             String simpleJavaType = getSimpleJavaType(javaType);
@@ -192,13 +192,8 @@ public class Table2Java {
             importPart += "import "+importType+";\n";
         }
 
-//        String tableNamePart ="  public String fetchTableName(){\n";
-//        tableNamePart+="    return \""+tableName+"\";\n";
-//        tableNamePart+="  }\n";
-
         beanContent += packagePart+"\n";
         beanContent += importPart+"\n";
-//        beanContent += "// << ALERT >> : DO NOT MODIFY THIS FILE !!! \n";
         if(StringUtils.isNotBlank(tableComment)){
             beanContent += "/** "+tableComment+" */\n";
         }
@@ -263,6 +258,25 @@ public class Table2Java {
         if(CollectionUtils.isEmpty(metas)){
             throw new DBException("Table "+table+" doesn't exist!");
         }
+        Connection conn = md.getConnection();
+        try(PreparedStatement ps = conn.prepareStatement("select  * from "+table+" where 1=2")) {
+            ResultSet rs = ps.executeQuery();
+            ResultSetMetaData metaData = rs.getMetaData();
+            int count = metaData.getColumnCount();
+            Map<String,String> columnName2classNameMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            for (int i=1;i<=count;i++){
+                String columnName = metaData.getColumnName(i);
+                String columnClassName = metaData.getColumnClassName(i);
+                columnName2classNameMap.put(columnName,columnClassName.replace("java.lang.",""));
+            }
+            if(MapUtils.isNotEmpty(columnName2classNameMap)){
+                metas.forEach(meta -> {
+                    if(columnName2classNameMap.containsKey(meta.getName())){
+                        meta.setClassName(columnName2classNameMap.get(meta.getName()));
+                    }
+                });
+            }
+        }
         return metas;
     }
 
@@ -271,13 +285,9 @@ public class Table2Java {
         private String name;
         private String type;
         private String comment;
+        private String className;
 
         public ColumnMeta() {
-        }
-
-        public ColumnMeta(String name, String type) {
-            this.name = name;
-            this.type = type;
         }
 
         public ColumnMeta(String name, String type, String comment) {
@@ -308,6 +318,14 @@ public class Table2Java {
 
         public void setType(String type) {
             this.type = type;
+        }
+
+        public String getClassName() {
+            return className;
+        }
+
+        public void setClassName(String className) {
+            this.className = className;
         }
     }
 }
