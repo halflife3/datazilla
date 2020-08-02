@@ -123,6 +123,7 @@ class CommonTest {
                     offset()
                     nameMismatch()
                     extraCondQuery()
+                    moreQuery()
                     insertOne()
                     nullCond()
                     updateSelective()
@@ -241,6 +242,7 @@ class CommonTest {
     void queryAll(){
         logger.info ' -- queryAll -- '
         ExtraParamInjector.sqlId("queryAll")
+        ExtraParamInjector.offset(null,null,false,new OrderCond("id"))
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         assert list.size() == 200
         GeneralThreadLocal.set("allRecords",list)
@@ -409,6 +411,67 @@ class CommonTest {
         ExtraParamInjector.sqlId("extraCondQuery")
         def result = qe.searchObject(search)
         assert result.getId() == id
+    }
+
+    void moreQuery(){
+        logger.info ' -- moreQuery -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        List<? extends DummyTable> list10 = list.subList(0,10)
+        List idList10 = new ArrayList()
+        list10.each {
+            idList10 << it.getId()
+        }
+        // test in and not in
+        List inCondList = new ArrayList()
+        Object[] inCondArr = new Object[10]
+        list10.eachWithIndex { DummyTable entry, int i ->
+            inCondList << entry.getId()
+            inCondArr[i] = entry.getId()
+        }
+        ExtraParamInjector.sqlId("moreQuery inCondList")
+        List<? extends DummyTable> inListRt = qe.findObjects(getCurrentClass(),new Cond("id","in",inCondList))
+        ExtraParamInjector.sqlId("moreQuery inCondArr")
+        List<? extends DummyTable> inArrRt = qe.findObjects(getCurrentClass(),new Cond("id","in",inCondArr))
+        ExtraParamInjector.sqlId("moreQuery not inCondList")
+        List<? extends DummyTable> notInListRt = qe.findObjects(getCurrentClass(),new Cond("id","not in",inCondList))
+        ExtraParamInjector.sqlId("moreQuery not inCondArr")
+        List<? extends DummyTable> notInArrRt = qe.findObjects(getCurrentClass(),new Cond("id","not in",inCondArr))
+        assert inListRt.size()==10
+        assert inArrRt.size()==10
+        list10.eachWithIndex { DummyTable entry, int i ->
+            assert entry.getId() == inListRt[i].getId()
+            assert entry.getId() == inArrRt[i].getId()
+        }
+        notInListRt.every {
+            !idList10.contains(it)
+        }
+        notInArrRt.every {
+            !idList10.contains(it)
+        }
+
+        //test between and not between
+        List btCondList = [idList10[0],idList10[9]]
+        Object[] btCondArr = new Object[]{idList10[0],idList10[9]}
+        ExtraParamInjector.sqlId("moreQuery btCondList")
+        List<? extends DummyTable> btListRt = qe.findObjects(getCurrentClass(),new Cond("id","between",btCondList))
+        ExtraParamInjector.sqlId("moreQuery btCondArr")
+        List<? extends DummyTable> btArrRt = qe.findObjects(getCurrentClass(),new Cond("id","between",btCondList))
+        ExtraParamInjector.sqlId("moreQuery not btCondList")
+        List<? extends DummyTable> notBtListRt = qe.findObjects(getCurrentClass(),new Cond("id","not between",btCondArr))
+        ExtraParamInjector.sqlId("moreQuery not btCondArr")
+        List<? extends DummyTable> notBtArrRt = qe.findObjects(getCurrentClass(),new Cond("id","not between",btCondArr))
+        assert btListRt.size()==10
+        assert btArrRt.size()==10
+        list10.eachWithIndex { DummyTable entry, int i ->
+            assert entry.getId() == btListRt[i].getId()
+            assert entry.getId() == btArrRt[i].getId()
+        }
+        notBtListRt.every {
+            !idList10.contains(it)
+        }
+        notBtArrRt.every {
+            !idList10.contains(it)
+        }
     }
 
     void insertOne(){

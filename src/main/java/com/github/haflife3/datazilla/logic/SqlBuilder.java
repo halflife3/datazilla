@@ -34,7 +34,12 @@ public class SqlBuilder {
                 String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
                 Object value = unit.getValue();
                 if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
-                    Collection inValueList = (Collection) value;
+                    Collection inValueList = null;
+                    if(value.getClass().isArray()){
+                        inValueList = MiscUtil.fromArray(value);
+                    }else if(value instanceof Collection){
+                        inValueList = (Collection) value;
+                    }
                     if(CollectionUtils.isNotEmpty(inValueList)){
                         where.append(" and ").append(field).append(" ").append(operator).append(" (");
                         for(Object valueTmp:inValueList){
@@ -47,18 +52,15 @@ public class SqlBuilder {
                 }else if((operator.equalsIgnoreCase("between") || operator.equalsIgnoreCase("not between"))&&value!=null){
                     Object v1 = null;
                     Object v2 = null;
+                    List listValue = null;
                     if(value.getClass().isArray()){
-                        Object[] arrayValue = (Object[]) value;
-                        if(arrayValue.length==2){
-                            v1 = arrayValue[0];
-                            v2 = arrayValue[1];
-                        }
+                        listValue = MiscUtil.fromArray(value);
                     }else if(value instanceof List){
-                        List listValue = (List) value;
-                        if(listValue.size()==2){
-                            v1 = listValue.get(0);
-                            v2 = listValue.get(1);
-                        }
+                        listValue = (List) value;
+                    }
+                    if(CollectionUtils.isNotEmpty(listValue)&&listValue.size()==2){
+                        v1 = listValue.get(0);
+                        v2 = listValue.get(1);
                     }
                     if(v1!=null && v2!=null){
                         where.append(" and ").append(field).append(" ").append(operator).append(" ? and ? ");
@@ -82,8 +84,13 @@ public class SqlBuilder {
                 String field = unit.getColumnName();
                 String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
                 Object value = unit.getValue();
-                if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
-                    Collection inValueList = (Collection) value;
+                if((operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in"))&&value!=null){
+                    Collection inValueList = null;
+                    if(value.getClass().isArray()){
+                        inValueList = MiscUtil.fromArray(value);
+                    }else if(value instanceof Collection){
+                        inValueList = (Collection) value;
+                    }
                     if(CollectionUtils.isNotEmpty(inValueList)){
                         whereOr.append(" or ").append(field).append(" ").append(operator).append(" (");
                         for(Object valueTmp:inValueList){
@@ -96,18 +103,15 @@ public class SqlBuilder {
                 }else if((operator.equalsIgnoreCase("between") || operator.equalsIgnoreCase("not between"))&&value!=null){
                     Object v1 = null;
                     Object v2 = null;
+                    List listValue = null;
                     if(value.getClass().isArray()){
-                        Object[] arrayValue = (Object[]) value;
-                        if(arrayValue.length==2){
-                            v1 = arrayValue[0];
-                            v2 = arrayValue[1];
-                        }
+                        listValue = MiscUtil.fromArray(value);
                     }else if(value instanceof List){
-                        List listValue = (List) value;
-                        if(listValue.size()==2){
-                            v1 = listValue.get(0);
-                            v2 = listValue.get(1);
-                        }
+                        listValue = (List) value;
+                    }
+                    if(CollectionUtils.isNotEmpty(listValue)&&listValue.size()==2){
+                        v1 = listValue.get(0);
+                        v2 = listValue.get(1);
                     }
                     if(v1!=null && v2!=null){
                         whereOr.append(" and ").append(field).append(" ").append(operator).append(" ? and ? ");

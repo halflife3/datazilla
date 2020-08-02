@@ -24,10 +24,10 @@ public class PagingInjector {
             GeneralThreadLocal.set("offset",offset);
             GeneralThreadLocal.set("limit",limit);
             GeneralThreadLocal.set("needCount",needCount);
-            if(orderConds!=null){
-                List<OrderCond> conds = Arrays.asList(orderConds);
-                GeneralThreadLocal.set("orderConds",conds);
-            }
+        }
+        if(orderConds!=null){
+            List<OrderCond> conds = Arrays.asList(orderConds);
+            GeneralThreadLocal.set("orderConds",conds);
         }
     }
 
