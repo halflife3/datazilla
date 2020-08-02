@@ -442,10 +442,10 @@ class CommonTest {
             assert entry.getId() == inListRt[i].getId()
             assert entry.getId() == inArrRt[i].getId()
         }
-        notInListRt.every {
+        assert notInListRt.every {
             !idList10.contains(it)
         }
-        notInArrRt.every {
+        assert notInArrRt.every {
             !idList10.contains(it)
         }
 
@@ -466,10 +466,10 @@ class CommonTest {
             assert entry.getId() == btListRt[i].getId()
             assert entry.getId() == btArrRt[i].getId()
         }
-        notBtListRt.every {
+        assert notBtListRt.every {
             !idList10.contains(it)
         }
-        notBtArrRt.every {
+        assert notBtArrRt.every {
             !idList10.contains(it)
         }
     }
