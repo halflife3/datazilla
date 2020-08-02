@@ -24,64 +24,107 @@ public class SqlBuilder {
     }
 
     private void fillWherePart(ConditionBundle cond, StringBuilder where, List<Object> values){
-        if(cond!=null){
-            List<Cond> conditionAndList = cond.getConditionAndList();
-            if(CollectionUtils.isNotEmpty(conditionAndList)) {
-                for(Cond unit:conditionAndList){
-                    String field = unit.getColumnName();
-                    String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
-                    Object value = unit.getValue();
-                    if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
-                        Collection inValueList = (Collection) value;
-                        if(CollectionUtils.isNotEmpty(inValueList)){
-                            where.append(" and "+field+" "+operator+" (");
-                            for(Object valueTmp:inValueList){
-                                where.append("?,");
-                                values.add(valueTmp);
-                            }
-                            where.deleteCharAt(where.length()-1);
-                            where.append(") ");
+        if(cond==null){
+            return;
+        }
+        List<Cond> conditionAndList = cond.getConditionAndList();
+        if(CollectionUtils.isNotEmpty(conditionAndList)) {
+            for(Cond unit:conditionAndList){
+                String field = unit.getColumnName();
+                String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
+                Object value = unit.getValue();
+                if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
+                    Collection inValueList = (Collection) value;
+                    if(CollectionUtils.isNotEmpty(inValueList)){
+                        where.append(" and ").append(field).append(" ").append(operator).append(" (");
+                        for(Object valueTmp:inValueList){
+                            where.append("?,");
+                            values.add(valueTmp);
                         }
-                    }else if(value==null){
-                        where.append(" and "+field+" "+operator+" ");
-                    }else if(value instanceof Null){
-                        where.append(" and "+field+" is null ");
-                    }else{
-                        where.append(" and "+field+" "+operator+" ?");
-                        values.add(value);
+                        where.deleteCharAt(where.length()-1);
+                        where.append(") ");
                     }
+                }else if((operator.equalsIgnoreCase("between") || operator.equalsIgnoreCase("not between"))&&value!=null){
+                    Object v1 = null;
+                    Object v2 = null;
+                    if(value.getClass().isArray()){
+                        Object[] arrayValue = (Object[]) value;
+                        if(arrayValue.length==2){
+                            v1 = arrayValue[0];
+                            v2 = arrayValue[1];
+                        }
+                    }else if(value instanceof List){
+                        List listValue = (List) value;
+                        if(listValue.size()==2){
+                            v1 = listValue.get(0);
+                            v2 = listValue.get(1);
+                        }
+                    }
+                    if(v1!=null && v2!=null){
+                        where.append(" and ").append(field).append(" ").append(operator).append(" ? and ? ");
+                        values.add(v1);
+                        values.add(v2);
+                    }
+                }else if(value==null){
+                    where.append(" and ").append(field).append(" ").append(operator).append(" ");
+                }else if(value instanceof Null){
+                    where.append(" and ").append(field).append(" is null ");
+                }else{
+                    where.append(" and ").append(field).append(" ").append(operator).append(" ?");
+                    values.add(value);
                 }
             }
-            List<Cond> conditionOrList = cond.getConditionOrList();
-            if(CollectionUtils.isNotEmpty(conditionOrList)){
-                StringBuilder whereOr = new StringBuilder();
-                for(Cond unit:conditionOrList){
-                    String field = unit.getColumnName();
-                    String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
-                    Object value = unit.getValue();
-                    if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
-                        Collection inValueList = (Collection) value;
-                        if(CollectionUtils.isNotEmpty(inValueList)){
-                            whereOr.append(" or "+field+" "+operator+" (");
-                            for(Object valueTmp:inValueList){
-                                whereOr.append("?,");
-                                values.add(valueTmp);
-                            }
-                            whereOr.deleteCharAt(whereOr.length()-1);
-                            whereOr.append(") ");
+        }
+        List<Cond> conditionOrList = cond.getConditionOrList();
+        if(CollectionUtils.isNotEmpty(conditionOrList)){
+            StringBuilder whereOr = new StringBuilder();
+            for(Cond unit:conditionOrList){
+                String field = unit.getColumnName();
+                String operator = StringUtils.trimToEmpty(unit.getCompareOpr()).toLowerCase().replaceAll("\\s+", " ");
+                Object value = unit.getValue();
+                if(operator.equalsIgnoreCase("in") || operator.equalsIgnoreCase("not in")){
+                    Collection inValueList = (Collection) value;
+                    if(CollectionUtils.isNotEmpty(inValueList)){
+                        whereOr.append(" or ").append(field).append(" ").append(operator).append(" (");
+                        for(Object valueTmp:inValueList){
+                            whereOr.append("?,");
+                            values.add(valueTmp);
                         }
-                    }else if(value==null){
-                        whereOr.append(" or "+field+" "+operator+" ");
-                    }else if(value instanceof Null){
-                        whereOr.append(" or "+field+" is null ");
-                    }else{
-                        whereOr.append(" or "+field+" "+operator+" ?");
-                        values.add(value);
+                        whereOr.deleteCharAt(whereOr.length()-1);
+                        whereOr.append(") ");
                     }
+                }else if((operator.equalsIgnoreCase("between") || operator.equalsIgnoreCase("not between"))&&value!=null){
+                    Object v1 = null;
+                    Object v2 = null;
+                    if(value.getClass().isArray()){
+                        Object[] arrayValue = (Object[]) value;
+                        if(arrayValue.length==2){
+                            v1 = arrayValue[0];
+                            v2 = arrayValue[1];
+                        }
+                    }else if(value instanceof List){
+                        List listValue = (List) value;
+                        if(listValue.size()==2){
+                            v1 = listValue.get(0);
+                            v2 = listValue.get(1);
+                        }
+                    }
+                    if(v1!=null && v2!=null){
+                        whereOr.append(" and ").append(field).append(" ").append(operator).append(" ? and ? ");
+                        values.add(v1);
+                        values.add(v2);
+                    }
+                }else if(value==null){
+                    whereOr.append(" or ").append(field).append(" ").append(operator).append(" ");
+                }else if(value instanceof Null){
+                    whereOr.append(" or ").append(field).append(" is null ");
+                }else{
+                    whereOr.append(" or ").append(field).append(" ").append(operator).append(" ?");
+                    values.add(value);
                 }
-                if(whereOr.length()>0) {
-                    where.append(" and ("+whereOr.substring(3)+")");
-                }
+            }
+            if(whereOr.length()>0) {
+                where.append(" and (").append(whereOr.substring(3)).append(")");
             }
         }
     }
@@ -92,7 +135,7 @@ public class SqlBuilder {
             for(OrderCond orderCond : orderConds){
                 String orderByField = orderCond.getOrderByField();
                 String orderByType = orderCond.getOrderByType();
-                where.append(" "+orderByField+" "+orderByType+",");
+                where.append(" ").append(orderByField).append(" ").append(orderByType).append(",");
             }
             where.deleteCharAt(where.length()-1);
         }
@@ -150,7 +193,7 @@ public class SqlBuilder {
         List<String> selectColumns = qc.getSelectColumns();
         if(selectColumns!=null&&!selectColumns.isEmpty()){
             for(String intendedField:selectColumns){
-                select.append(" "+ intendedField+",");
+                select.append(" ").append(intendedField).append(",");
             }
             select.deleteCharAt(select.length()-1);
             select.append(" from ");
