@@ -1,6 +1,12 @@
 package com.github.haflife3.datazilla.dialect.regulate;
 
+import com.github.haflife3.datazilla.dialect.DialectConst;
+
 public class PgEntityRegulator implements EntityRegulator{
+    @Override
+    public String getDatabaseType() {
+        return DialectConst.PG;
+    }
 
     @Override
     public String simpleTable(String table){

@@ -2,7 +2,10 @@ package com.github.haflife3.datazilla.logic;
 
 import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.annotation.TblField;
-import com.github.haflife3.datazilla.dialect.DialectFactory;
+import com.github.haflife3.datazilla.dialect.regulate.DefaultEntityRegulator;
+import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
+import com.github.haflife3.datazilla.dialect.typemapping.DefaultTypeMapper;
+import com.github.haflife3.datazilla.dialect.typemapping.TypeMapper;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.PlatformUtils;
 import com.github.haflife3.datazilla.pojo.Table2JavaMeta;
@@ -12,6 +15,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.sql.*;
@@ -20,45 +25,87 @@ import java.util.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Table2Java {
-    public static void main(String[] args) {
-        try {
-            initMeta((args!=null&&args.length>0)?args[0]:null);
-            init();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    private static String dbType;
+    private static final Logger logger = LoggerFactory.getLogger(Table2Java.class);
+    private static TypeMapper typeMapper;
+    private static EntityRegulator entityRegulator;
     private static Table2JavaMeta meta;
 
     private static final Map<String,String> TYPE_MAP = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    private static void initMeta(String metaFilePath)throws Exception{
-        if(StringUtils.isBlank(metaFilePath)){
-            metaFilePath = "Table2JavaMeta.json";
+    private static void initDialect(){
+        String dbType = StringUtils.trimToEmpty(new PlatformUtils().determineDatabaseType(meta.getDriver(), meta.getDbUrl()));
+        boolean typeMapperMatch = false;
+        ServiceLoader<TypeMapper> typeMappers = ServiceLoader.load(TypeMapper.class);
+        for (TypeMapper typeMapperInner : typeMappers) {
+            if(typeMapperInner.match(dbType)){
+                typeMapper = typeMapperInner;
+                typeMapperMatch = true;
+                break;
+            }
         }
-        File metaFile = new File(metaFilePath);
-        if(metaFile.exists()){
-            meta = new Gson().fromJson(FileUtils.readFileToString(metaFile,"utf-8"), Table2JavaMeta.class);
-            dbType = new PlatformUtils().determineDatabaseType(meta.getDriver(), meta.getDbUrl());
-            TYPE_MAP.putAll(DialectFactory.getTypeMapper(dbType).getTypeMap());
-            Map<String, String> table2ClassMap = meta.getTable2ClassMap();
-            for(String key:table2ClassMap.keySet()){
-                String value = table2ClassMap.get(key);
-                if(StringUtils.isBlank(value)){
-                    throw new DBException("Java bean name for "+key+" is empty!");
-                }
+        if(!typeMapperMatch){
+            typeMapper = new DefaultTypeMapper();
+        }
+
+        boolean entityRegulatorMatch = false;
+        ServiceLoader<EntityRegulator> entityRegulators = ServiceLoader.load(EntityRegulator.class);
+        for (EntityRegulator entityRegulatorInner : entityRegulators) {
+            if(entityRegulatorInner.match(dbType)){
+                entityRegulator = entityRegulatorInner;
+                entityRegulatorMatch = true;
+                break;
             }
-            Map<String, String> extraTypeMap = meta.getExtraTypeMap();
-            if(MapUtils.isNotEmpty(extraTypeMap)){
-                TYPE_MAP.putAll(extraTypeMap);
+        }
+        if(!entityRegulatorMatch){
+            entityRegulator = new DefaultEntityRegulator();
+        }
+
+    }
+    
+    public static void generateByMeta(Table2JavaMeta table2JavaMeta){
+        initMeta(table2JavaMeta);
+        generate();
+    }
+    
+    public static void generateByMetaFile(String metaFilePath){
+        initMeta(metaFilePath);
+        generate();
+    }
+    
+    public static void initMeta(Table2JavaMeta table2JavaMeta){
+        meta = table2JavaMeta;
+        initDialect();
+        TYPE_MAP.putAll(typeMapper.getTypeMap());
+        Map<String, String> table2ClassMap = meta.getTable2ClassMap();
+        for(String key:table2ClassMap.keySet()){
+            String value = table2ClassMap.get(key);
+            if(StringUtils.isBlank(value)){
+                throw new DBException("Java bean name for "+key+" is empty!");
             }
-        }else {
-            throw new Exception("metaFilePath:"+metaFilePath+" dosen't exist!");
+        }
+        Map<String, String> extraTypeMap = meta.getExtraTypeMap();
+        if(MapUtils.isNotEmpty(extraTypeMap)){
+            TYPE_MAP.putAll(extraTypeMap);
         }
     }
 
-    private static void init(){
+    private static void initMeta(String metaFilePath){
+        try {
+            if(StringUtils.isBlank(metaFilePath)){
+                metaFilePath = "Table2JavaMeta.json";
+            }
+            File metaFile = new File(metaFilePath);
+            if(metaFile.exists()){
+                initMeta(new Gson().fromJson(FileUtils.readFileToString(metaFile,"utf-8"), Table2JavaMeta.class));
+            }else {
+                throw new DBException("metaFilePath:"+metaFilePath+" dosen't exist!");
+            }
+        } catch (Exception e) {
+            throw new DBException(e);
+        }
+    }
+
+    private static void generate(){
         String url = meta.getDbUrl();
         if(meta.getDbSchema()!=null&& !"".equals(meta.getDbSchema())){
             url += "/"+meta.getDbSchema();
@@ -69,7 +116,6 @@ public class Table2Java {
         try (Connection conn = DriverManager.getConnection(url, meta.getDbUser(), meta.getDbPass())) {
             Class.forName(meta.getDriver());
             initDir();
-//            initDomainParent();
             initDomains(conn);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -83,7 +129,7 @@ public class Table2Java {
 
     private static void initDir() throws Exception {
         String fullDir = getFullDir();
-        System.out.println("making dir:"+fullDir);
+        logger.info("making dir:"+fullDir);
         FileUtils.forceMkdir(new File(fullDir));
     }
 
@@ -113,7 +159,7 @@ public class Table2Java {
 
                 if(needGen) {
                     FileUtils.writeStringToFile(javaFile, beanContent, "utf-8", false);
-                    System.out.println(" (" + (fileExist ? "updated" : "*created") + ") " + tableName + " --> " + className);
+                    logger.info(" (" + (fileExist ? "updated" : "*created") + ") " + tableName + " --> " + className);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -232,7 +278,7 @@ public class Table2Java {
 
     private static String getTableComment(DatabaseMetaData md , String table) throws Exception {
         String comment = "";
-        table = DialectFactory.getEntityRegulator(dbType).simpleTable(table);
+        table = entityRegulator.simpleTable(table);
         ResultSet resultSet = md.getTables(null, null, table, null);
         while (resultSet.next()) {
             String tableName = resultSet.getString("TABLE_NAME");
@@ -247,7 +293,7 @@ public class Table2Java {
 
     private static List<ColumnMeta> getColumnMeta(DatabaseMetaData md , String table) throws Exception {
         List<ColumnMeta> metas = new ArrayList<>();
-        table = DialectFactory.getEntityRegulator(dbType).simpleTable(table);
+        table = entityRegulator.simpleTable(table);
         ResultSet resultSet = md.getColumns(null, null, table, null);
         while (resultSet.next()) {
             String name = resultSet.getString("COLUMN_NAME");
@@ -326,6 +372,14 @@ public class Table2Java {
 
         public void setClassName(String className) {
             this.className = className;
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            generateByMetaFile((args!=null&&args.length>0)?args[0]:null);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -41,11 +41,11 @@ public class CoreRunner {
         this.queryRunner = queryRunner;
         if(dbType==null){
             this.dbType = new PlatformUtils().determineDatabaseType(queryRunner.getDataSource());
+            if(DialectFactory.SUPPORTED_DB.stream().noneMatch(this.dbType::equalsIgnoreCase)){
+                this.dbType = DialectConst.DEFAULT;
+            }
         }else {
             this.dbType = dbType;
-        }
-        if(DialectFactory.SUPPORTED_DB.stream().noneMatch(this.dbType::equalsIgnoreCase)){
-            this.dbType = DialectConst.DEFAULT;
         }
         initDialect();
         sqlBuilder = new SqlBuilder(this);

@@ -2,8 +2,6 @@ package com.github.haflife3.datazilla.dialect.batch;
 
 import com.github.haflife3.datazilla.CoreRunner;
 import com.github.haflife3.datazilla.dialect.DialectConst;
-import com.github.haflife3.datazilla.dialect.DialectFactory;
-import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,7 +18,6 @@ public class PgBatchInserter implements BatchInserter {
     public int batchInsert(CoreRunner coreRunner, String table, List<Map<String, Object>> listMap){
         int affectedNum = 0;
         if(CollectionUtils.isNotEmpty(listMap)){
-            EntityRegulator entityRegulator = DialectFactory.getEntityRegulator(coreRunner.getDbType());
             List<String> fields = new ArrayList<>(listMap.get(0).keySet());
             int fieldNum = fields.size();
             String sql = "insert into "+table+" (";

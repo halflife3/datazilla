@@ -514,7 +514,7 @@ class CommonTest {
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
         ExtraParamInjector.sqlId("updateSelective step2")
-        def updateNum = qe.updateSelectiveAutoCon(record, condObj)
+        def updateNum = qe.updateSelectiveAutoCond(record, condObj)
         assert updateNum == 1
         ExtraParamInjector.sqlId("updateSelective step3")
         def updatedRecord = qe.searchObject(condObj)
@@ -587,7 +587,7 @@ class CommonTest {
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id)
         ExtraParamInjector.sqlId("persist")
-        def persistNum = qe.persistAutoCon(record, condObj)
+        def persistNum = qe.persistAutoCond(record, condObj)
         assert persistNum == 1
     }
 

@@ -1,6 +1,12 @@
 package com.github.haflife3.datazilla.dialect.regulate;
 
+import com.github.haflife3.datazilla.dialect.DialectConst;
+
 public class HsqlDbEntityRegulator implements EntityRegulator{
+    @Override
+    public String getDatabaseType() {
+        return DialectConst.HSQLDB;
+    }
 
     @Override
     public String simpleTable(String table){

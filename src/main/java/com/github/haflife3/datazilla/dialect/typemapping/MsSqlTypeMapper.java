@@ -1,9 +1,15 @@
 package com.github.haflife3.datazilla.dialect.typemapping;
 
+import com.github.haflife3.datazilla.dialect.DialectConst;
+
 import java.util.Map;
 import java.util.TreeMap;
 
 public class MsSqlTypeMapper implements TypeMapper {
+    @Override
+    public String getDatabaseType() {
+        return DialectConst.MSSQL;
+    }
     @Override
     public Map<String, String> getTypeMap() {
         Map<String,String> typeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
