@@ -429,11 +429,11 @@ class CommonTest {
             inCondArr[i] = entry.getId()
         }
         ExtraParamInjector.sqlId("moreQuery inCondList")
-        List<? extends DummyTable> inListRt = qe.findObjects(getCurrentClass(),new Cond("id","in",inCondList))
+        List<? extends DummyTable> inListRt = qe.findObjects(getCurrentClass(),new Cond.Builder().columnName("id").compareOpr("in").value(inCondList).build())
         ExtraParamInjector.sqlId("moreQuery inCondArr")
         List<? extends DummyTable> inArrRt = qe.findObjects(getCurrentClass(),new Cond("id","in",inCondArr))
         ExtraParamInjector.sqlId("moreQuery not inCondList")
-        List<? extends DummyTable> notInListRt = qe.findObjects(getCurrentClass(),new Cond("id","not in",inCondList))
+        List<? extends DummyTable> notInListRt = qe.findObjects(getCurrentClass(),new Cond.Builder().columnName("id").compareOpr("not in").value(inCondList).build())
         ExtraParamInjector.sqlId("moreQuery not inCondArr")
         List<? extends DummyTable> notInArrRt = qe.findObjects(getCurrentClass(),new Cond("id","not in",inCondArr))
         assert inListRt.size()==10

@@ -1,14 +1,12 @@
 package com.github.haflife3.datazilla;
 
 import com.github.haflife3.datazilla.annotation.TblField;
-import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableLoc;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
 import com.github.haflife3.datazilla.misc.*;
 import com.github.haflife3.datazilla.pojo.*;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.dbutils.QueryRunner;
@@ -87,16 +85,6 @@ public class QueryEntry {
 
     public int genericUpdate(String sql, Object[] values){
         return coreRunner.genericUpdate(sql, values);
-    }
-
-    private Map<String,Object> fromFieldValuePair(List<FieldValuePair> pairs){
-        Map<String,Object> map = new LinkedHashMap<>();
-        if(CollectionUtils.isNotEmpty(pairs)){
-            for(FieldValuePair pair:pairs){
-                map.put(pair.getField(),pair.getValue());
-            }
-        }
-        return map;
     }
 
     public int delObjects(Object obj){
@@ -185,12 +173,7 @@ public class QueryEntry {
         return MiscUtil.getFirst(findObjects(table, conds, clazz));
     }
 
-    public int insert(String table,List<FieldValuePair> pairs){
-        return insert(table, fromFieldValuePair(pairs));
-    }
-
     public int insert(String table,Map<String,Object> valueMap){
-        stripUnknownFields(table,valueMap);
         return coreRunner.insert(table, valueMap);
     }
 
@@ -244,7 +227,6 @@ public class QueryEntry {
             for(Object record:records) {
                 if (record != null) {
                     Map<String, Object> valueMap = toFieldValueMap(record);
-                    stripUnknownFields(table,valueMap);
                     List<String> keys = valueMap.keySet().stream().sorted().collect(Collectors.toList());
                     String keysStr = keys.toString();
                     if(dataMap.containsKey(keysStr)){
@@ -312,7 +294,6 @@ public class QueryEntry {
 
     public int updateSelective(String table, Map<String, Object> updateValueMap, List<Cond> conds){
         try {
-            stripUnknownFields(table,updateValueMap);
             List<FieldValuePair> pairs = toFieldValuePair(updateValueMap);
             UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
                 .targetTable(table)
@@ -350,7 +331,6 @@ public class QueryEntry {
     }
     public int updateFull(String table, Map<String, Object> valueMap, List<Cond> conds){
         try {
-            stripUnknownFields(table,valueMap);
             List<FieldValuePair> pairs = toFullFieldValuePair(valueMap);
             UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
                     .targetTable(table)
@@ -478,26 +458,6 @@ public class QueryEntry {
             throw new DBException(e);
         }
         return condMap;
-    }
-
-    private void stripUnknownFields(String table, Map<String, Object> fieldMap){
-        Boolean needStrip = GeneralThreadLocal.get("stripUnknownFields");
-        if(needStrip==null||!needStrip){
-            return;
-        }
-        String key = this.toString()+"_"+table;
-        List<String> validCols = new ArrayList<>();
-        if(GeneralThreadLocal.containsKey(key)){
-            validCols = GeneralThreadLocal.get(key);
-        }else {
-            List<String> origValidCols = getColNames(table);
-            for (String origValidCol : origValidCols) {
-                validCols.add(origValidCol.toLowerCase());
-            }
-            GeneralThreadLocal.set(key,validCols);
-        }
-        List<String> finalValidCols = validCols;
-        fieldMap.entrySet().removeIf(entry->!finalValidCols.contains(entry.getKey().toLowerCase()));
     }
     public List<Cond> buildConds(Object obj){
         return new SqlBuilder(coreRunner).buildConds(obj);

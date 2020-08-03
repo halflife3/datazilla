@@ -5,14 +5,12 @@ import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.batch.BatchInserter;
 import com.github.haflife3.datazilla.dialect.batch.DefaultBatchInserter;
 import com.github.haflife3.datazilla.dialect.pagination.*;
-import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
 import com.github.haflife3.datazilla.misc.*;
 import com.github.haflife3.datazilla.pojo.QueryConditionBundle;
 import com.github.haflife3.datazilla.pojo.SqlPreparedBundle;
 import org.apache.commons.dbutils.BasicRowProcessor;
-import org.apache.commons.dbutils.ColumnHandler;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -291,7 +289,8 @@ public class CoreRunner {
             ResultSet tablesRs = md.getTables(null, null, "%", null);
             while (tablesRs.next()) {
                 String tableName = tablesRs.getString("TABLE_NAME");
-                String comment = tablesRs.getString("REMARKS");//make sure jdbc url contains parameter: useInformationSchema=true
+                //make sure jdbc url contains parameter: useInformationSchema=true (MySQL)
+                String comment = tablesRs.getString("REMARKS");
                 map.put(tableName,comment);
             }
         }catch (Exception e){
@@ -302,12 +301,7 @@ public class CoreRunner {
 
     private void log(String sql,Object[] values,Object output,String outputDenote,long elapsed){
         try {
-//            StackTraceElement[] stack = new Throwable().getStackTrace();
             Boolean ignoreLog = GeneralThreadLocal.get("ignoreLog");
-//            String log = conciseStack(stack)+"\n";
-//            if(ignoreLog==null||!ignoreLog) {
-//                logger.debug(conciseStack(stack));
-//            }
             String log ="===> SQL: "+sql;
             if(values!=null){
                 log += "  VALUES: "+new ArrayList<>(Arrays.asList(values));
@@ -335,27 +329,5 @@ public class CoreRunner {
             idSql = "/* "+sqlId+" */ "+sql;
         }
         return idSql;
-    }
-
-    private String conciseStack(StackTraceElement[] stack){
-        StringBuilder conciseInfo = new StringBuilder();
-        if(stack!=null){
-            List<String> ignoredNames = Arrays.asList("CoreRunner.java","QueryEntry.java","<generated>");
-            List<StackTraceElement> elements = new ArrayList<>(Arrays.asList(stack));
-            for(StackTraceElement element:elements){
-                String className = element.getClassName();
-                String fileName = element.getFileName();
-                int lineNumber = element.getLineNumber();
-                if(!ignoredNames.contains(fileName)){
-                    String infoPart =  (fileName != null && lineNumber >= 0 ?
-                            "(" + fileName + ":" + lineNumber + ")" :
-                            (fileName != null ?  "("+fileName+")" : "(Unknown Source)"));
-                    conciseInfo.append(infoPart).append(" <--");
-                }
-            }
-        }
-        String info = conciseInfo.toString();
-        info = StringUtils.stripEnd(info," <--");
-        return info;
     }
 }

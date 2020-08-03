@@ -114,7 +114,7 @@ public class SqlBuilder {
                         v2 = listValue.get(1);
                     }
                     if(v1!=null && v2!=null){
-                        whereOr.append(" and ").append(field).append(" ").append(operator).append(" ? and ? ");
+                        whereOr.append(" or ").append(field).append(" ").append(operator).append(" ? and ? ");
                         values.add(v1);
                         values.add(v2);
                     }

@@ -7,7 +7,9 @@ import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,19 +40,18 @@ public class TableLoc {
                 .collect(Collectors.toSet());
     }
 
-    public static Class<?> findClass(String table,String packageName) throws Exception {
-        return findClass(table,tableClasses(packageName));
+    public static List<Class<?>> findClasses(String table,String packageName) throws Exception {
+        return findClasses(table,tableClasses(packageName));
     }
 
-    public static Class<?> findClass(String table,Collection<Class<?>> tableClasses) throws Exception {
-        Class<?> clazz = null;
+    public static List<Class<?>> findClasses(String table, Collection<Class<?>> tableClasses) throws Exception {
+        List<Class<?>> clazzList = new ArrayList<>();
         for (Class<?> aClass : tableClasses) {
             String tableName = findTableName(aClass);
             if(table.equalsIgnoreCase(tableName)){
-                clazz = aClass;
-                break;
+                clazzList.add(aClass);
             }
         }
-        return clazz;
+        return clazzList;
     }
 }

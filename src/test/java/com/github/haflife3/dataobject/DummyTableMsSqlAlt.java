@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Table(value = "dummy_table", autoColumnDetection = true)
 @Data
-public class DummyTableMsSqlAlt implements Serializable {
+public class DummyTableMsSqlAlt extends DummyTable implements Serializable {
 
   @PodamExclude
   private Long id;
