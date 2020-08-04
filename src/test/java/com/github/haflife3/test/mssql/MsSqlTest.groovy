@@ -17,7 +17,7 @@ class MsSqlTest extends CommonTest{
             "dropTableSql":"""
 IF OBJECT_ID(N'dbo.TABLE_PLACEHOLDER', N'U') IS NOT NULL
 BEGIN
-    drop table dummy_table
+    drop table TABLE_PLACEHOLDER
 END
 """,
             "dbType":DialectConst.MSSQL,

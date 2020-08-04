@@ -1,0 +1,4 @@
+com.github.haflife3.datazilla.dialect.regulate.DefaultEntityRegulator
+com.github.haflife3.datazilla.dialect.regulate.H2DbEntityRegulator
+com.github.haflife3.datazilla.dialect.regulate.HsqlDbEntityRegulator
+com.github.haflife3.datazilla.dialect.regulate.PgEntityRegulator

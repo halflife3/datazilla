@@ -1,5 +1,6 @@
 package com.github.haflife3.test
 
+import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.test.h2.H2Test
 import com.github.haflife3.test.hsqldb.HsqlDbTest
 import com.github.haflife3.test.mssql.MsSqlTest
@@ -7,6 +8,7 @@ import com.github.haflife3.test.mysql.MysqlTest
 import com.github.haflife3.test.pg.PgTest
 import com.github.haflife3.test.spi.SPITest
 import com.github.haflife3.test.sqlite.SqliteTest
+import com.github.haflife3.test.table2java.Table2JavaTest
 import org.junit.Test
 
 class BundledTest {
@@ -21,6 +23,16 @@ class BundledTest {
             new SqliteTest()
         ]){
             ct.test()
+        }
+        for (String dialect in [
+            DialectConst.MYSQL,
+            DialectConst.PG,
+            DialectConst.MSSQL,
+            DialectConst.H2,
+            DialectConst.HSQLDB,
+            DialectConst.SQLITE,
+        ]){
+            new Table2JavaTest().testDialect(dialect)
         }
         new SPITest().test()
     }

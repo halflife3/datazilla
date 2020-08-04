@@ -83,7 +83,7 @@ public class QueryEntry {
         return coreRunner.genericQry(sql,resultSetHandler,values);
     }
 
-    public int genericUpdate(String sql, Object[] values){
+    public int genericUpdate(String sql, Object ... values){
         return coreRunner.genericUpdate(sql, values);
     }
 

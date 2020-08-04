@@ -1,11 +1,10 @@
 package com.github.haflife3.datazilla.pojo;
 
+import java.util.List;
 import java.util.Map;
 
 public class Table2JavaMeta {
     private String driver;
-    private String dbSchema;
-    private String connectParams;
     private String dbUrl;
     private String dbUser;
     private String dbPass;
@@ -13,6 +12,7 @@ public class Table2JavaMeta {
     private String domainPackage;
     private boolean lombokMode;
     private boolean autoColumnDetection;
+    private List<String> tableCreateSqls;
     private Map<String,String> table2ClassMap;
     private Map<String,String> extraTypeMap;
 
@@ -22,22 +22,6 @@ public class Table2JavaMeta {
 
     public void setDriver(String driver) {
         this.driver = driver;
-    }
-
-    public String getDbSchema() {
-        return dbSchema;
-    }
-
-    public void setDbSchema(String dbSchema) {
-        this.dbSchema = dbSchema;
-    }
-
-    public String getConnectParams() {
-        return connectParams;
-    }
-
-    public void setConnectParams(String connectParams) {
-        this.connectParams = connectParams;
     }
 
     public String getDbUrl() {
@@ -80,10 +64,6 @@ public class Table2JavaMeta {
         this.domainPackage = domainPackage;
     }
 
-    public Map<String, String> getTable2ClassMap() {
-        return table2ClassMap;
-    }
-
     public boolean isLombokMode() {
         return lombokMode;
     }
@@ -98,6 +78,18 @@ public class Table2JavaMeta {
 
     public void setAutoColumnDetection(boolean autoColumnDetection) {
         this.autoColumnDetection = autoColumnDetection;
+    }
+
+    public List<String> getTableCreateSqls() {
+        return tableCreateSqls;
+    }
+
+    public void setTableCreateSqls(List<String> tableCreateSqls) {
+        this.tableCreateSqls = tableCreateSqls;
+    }
+
+    public Map<String, String> getTable2ClassMap() {
+        return table2ClassMap;
     }
 
     public void setTable2ClassMap(Map<String, String> table2ClassMap) {

@@ -60,8 +60,8 @@ class CommonTest {
             "recordClass":[],
             "dbType":"",
             "tableName":"dummy_table",
-            "cleanUpSql":"truncate table dummy_table",
-            "dropTableSql":"drop table dummy_table",
+            "cleanUpSql":"truncate table TABLE_PLACEHOLDER",
+            "dropTableSql":"drop table TABLE_PLACEHOLDER",
             "idInt":false,
             "nullField4Test":["varcharF","varchar_f"],
         ] as Map<String, Object>
@@ -83,7 +83,7 @@ class CommonTest {
         String createTableSql = createTableTemplate.replace("TABLE_PLACEHOLDER",tableName())
         ExtraParamInjector.sqlId("setup create table")
         qe.genericUpdate(createTableSql)
-        String cleanUpSql = cleanUpSql()
+        String cleanUpSql = cleanUpSql().replace("TABLE_PLACEHOLDER",tableName())
         ExtraParamInjector.sqlId("cleanUpSql")
         qe.genericUpdate(cleanUpSql)
         logger.info '>>setup finish<<'

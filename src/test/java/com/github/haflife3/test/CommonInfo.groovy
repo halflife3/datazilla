@@ -15,8 +15,8 @@ class CommonInfo {
     static String createMysqlTestTable =
         '''
 CREATE TABLE IF NOT EXISTS `TABLE_PLACEHOLDER`  ( 
-   `id`                 bigint(20) AUTO_INCREMENT NOT NULL,
-   `tinyint_f`          tinyint(4) NULL,
+   `id`                 bigint(20) AUTO_INCREMENT NOT NULL COMMENT 'id comment',
+   `tinyint_f`          tinyint(4) NULL COMMENT 'tinyint comment',
    `smallint_f`         smallint(6) NULL,
    `year_f`             year(4) NULL,
    `int_f`              int(11) NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `TABLE_PLACEHOLDER`  (
    `text_f`             text NULL,
    `longtext_f`         longtext NULL,
     PRIMARY KEY(id)
-   )
+   )DEFAULT CHARSET=utf8mb4 COMMENT='table comment'
         '''
     static String createH2TestTable =
         '''
@@ -84,7 +84,11 @@ CREATE TABLE IF NOT EXISTS "TABLE_PLACEHOLDER"  (
    "time_f"               time NULL,
    "boolean_f"            boolean NULL ,
    PRIMARY KEY("id") 
-   )
+   );
+   
+   comment on table TABLE_PLACEHOLDER is 'table comment';
+   comment on column TABLE_PLACEHOLDER.id is 'id comment';
+   comment on column TABLE_PLACEHOLDER.bigint_f is 'bigint_f comment';
 '''
 
     static String createSqliteTestTable =
@@ -165,7 +169,7 @@ END
         connInfoMap.put(DialectConst.MYSQL,
             mysqlConn?new Gson().fromJson(mysqlConn,ConnInfo):
             ConnInfo.builder()
-                .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC")
+                .url("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useInformationSchema=true")
                 .username("root")
                 .password("")
                 .build()

@@ -62,12 +62,12 @@ public class Table2Java {
 
     }
     
-    public static void generateByMeta(Table2JavaMeta table2JavaMeta){
+    public static void generateByMeta(Table2JavaMeta table2JavaMeta) throws Exception {
         initMeta(table2JavaMeta);
         generate();
     }
     
-    public static void generateByMetaFile(String metaFilePath){
+    public static void generateByMetaFile(String metaFilePath) throws Exception {
         initMeta(metaFilePath);
         generate();
     }
@@ -105,20 +105,15 @@ public class Table2Java {
         }
     }
 
-    private static void generate(){
+    private static void generate() throws Exception {
         String url = meta.getDbUrl();
-        if(meta.getDbSchema()!=null&& !"".equals(meta.getDbSchema())){
-            url += "/"+meta.getDbSchema();
-        }
-        if(meta.getConnectParams()!=null&& !"".equals(meta.getConnectParams())){
-            url += "?"+meta.getConnectParams();
-        }
         try (Connection conn = DriverManager.getConnection(url, meta.getDbUser(), meta.getDbPass())) {
-            Class.forName(meta.getDriver());
+            if(StringUtils.isNotBlank(meta.getDriver())){
+                Class.forName(meta.getDriver());
+            }
             initDir();
+            initTables(conn);
             initDomains(conn);
-        } catch (Throwable e) {
-            e.printStackTrace();
         }
     }
 
@@ -133,6 +128,17 @@ public class Table2Java {
         FileUtils.forceMkdir(new File(fullDir));
     }
 
+    private static void initTables(Connection conn) throws Exception {
+        List<String> tableCreateSqls = meta.getTableCreateSqls();
+        if(CollectionUtils.isEmpty(tableCreateSqls)){
+            return;
+        }
+        for (String sql : tableCreateSqls) {
+            try(PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.execute();
+            }
+        }
+    }
     private static void initDomains(Connection conn)throws Exception{
         String fullDir = getFullDir();
         DatabaseMetaData md = conn.getMetaData();
@@ -380,6 +386,7 @@ public class Table2Java {
             generateByMetaFile((args!=null&&args.length>0)?args[0]:null);
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error(e.getMessage(),e);
         }
     }
 }

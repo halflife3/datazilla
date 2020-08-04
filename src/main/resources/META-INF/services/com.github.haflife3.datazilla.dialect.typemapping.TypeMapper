@@ -1,0 +1,7 @@
+com.github.haflife3.datazilla.dialect.typemapping.DefaultTypeMapper
+com.github.haflife3.datazilla.dialect.typemapping.H2TypeMapper
+com.github.haflife3.datazilla.dialect.typemapping.HsqlDbTypeMapper
+com.github.haflife3.datazilla.dialect.typemapping.MsSqlTypeMapper
+com.github.haflife3.datazilla.dialect.typemapping.MysqlTypeMapper
+com.github.haflife3.datazilla.dialect.typemapping.PgTypeMapper
+com.github.haflife3.datazilla.dialect.typemapping.SqliteTypeMapper
