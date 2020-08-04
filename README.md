@@ -9,7 +9,7 @@ It comes with a minimum configuration requirement, and a set of user-friendly ou
 Requirement: JDK1.8+ .
 
 
-Specially optimized for MySQL, PostgreSql, H2, SQLite, HsqlDb.
+Specially optimized for MySQL, PostgreSql, SQL Server(2012+), H2, SQLite, HsqlDb.
 (paging, batch insert, Java file generation from table definition)
 
 Table of Contents
