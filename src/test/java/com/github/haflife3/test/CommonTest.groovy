@@ -35,6 +35,10 @@ class CommonTest {
         return configMap().get("dbType")
     }
 
+    private String getSetupDbType(){
+        return configMap().get("setupDbType")
+    }
+
     private String tableName(){
         return configMap().get("tableName")
     }
@@ -59,6 +63,7 @@ class CommonTest {
         return [
             "recordClass":[],
             "dbType":"",
+            "setupDbType":null,
             "tableName":"dummy_table",
             "cleanUpSql":"truncate table TABLE_PLACEHOLDER",
             "dropTableSql":"drop table TABLE_PLACEHOLDER",
@@ -101,7 +106,7 @@ class CommonTest {
 
     protected void test(){
         logger.info ' -- test -- '
-        for(String testDbType in [null, DialectConst.DEFAULT]){
+        for(String testDbType in [getSetupDbType(), DialectConst.DEFAULT]){
             getRecordClass().each {
                 try {
                     setup(testDbType)

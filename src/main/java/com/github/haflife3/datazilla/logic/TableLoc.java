@@ -32,7 +32,7 @@ public class TableLoc {
         return tableName;
     }
 
-    public static Set<Class<?>> tableClasses(String packageName)throws Exception{
+    public static Set<Class<?>> tableClasses(String packageName){
         return new Reflections(packageName, new SubTypesScanner(false))
                 .getSubTypesOf(Object.class)
                 .stream()
@@ -40,11 +40,11 @@ public class TableLoc {
                 .collect(Collectors.toSet());
     }
 
-    public static List<Class<?>> findClasses(String table,String packageName) throws Exception {
+    public static List<Class<?>> findClasses(String table,String packageName){
         return findClasses(table,tableClasses(packageName));
     }
 
-    public static List<Class<?>> findClasses(String table, Collection<Class<?>> tableClasses) throws Exception {
+    public static List<Class<?>> findClasses(String table, Collection<Class<?>> tableClasses){
         List<Class<?>> clazzList = new ArrayList<>();
         for (Class<?> aClass : tableClasses) {
             String tableName = findTableName(aClass);

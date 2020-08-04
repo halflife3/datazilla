@@ -1,6 +1,7 @@
 package com.github.haflife3.test
 
 import com.github.haflife3.datazilla.dialect.DialectConst
+import com.github.haflife3.test.fakedb.FakeDBConst
 import com.google.gson.Gson
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -165,6 +166,7 @@ END
         createTableMap.put(DialectConst.SQLITE,createSqliteTestTable)
         createTableMap.put(DialectConst.HSQLDB,createHsqlDbTestTable)
         createTableMap.put(DialectConst.MSSQL,createMsSqlTestTable)
+        createTableMap.put(FakeDBConst.DB_TYPE,createHsqlDbTestTable)
         String mysqlConn = System.getenv("DATAZILLA_MYSQL_CONN")
         connInfoMap.put(DialectConst.MYSQL,
             mysqlConn?new Gson().fromJson(mysqlConn,ConnInfo):
@@ -200,6 +202,12 @@ END
                 .username("SA")
                 .build()
         )
+        connInfoMap.put(FakeDBConst.DB_TYPE,
+            ConnInfo.builder()
+                .url("jdbc:hsqldb:mem:test2")
+                .username("SA")
+                .build()
+        )
         String mssqlConn = System.getenv("DATAZILLA_MSSQL_CONN")
         connInfoMap.put(DialectConst.MSSQL,
             mssqlConn?new Gson().fromJson(mssqlConn,ConnInfo):
@@ -214,6 +222,7 @@ END
         driverClassNameMap.put(DialectConst.PG,"org.postgresql.Driver")
         driverClassNameMap.put(DialectConst.SQLITE,"org.sqlite.JDBC")
         driverClassNameMap.put(DialectConst.HSQLDB,"org.hsqldb.jdbc.JDBCDriver")
+        driverClassNameMap.put(FakeDBConst.DB_TYPE,"org.hsqldb.jdbc.JDBCDriver")
         driverClassNameMap.put(DialectConst.MSSQL,"com.microsoft.sqlserver.jdbc.SQLServerDriver")
     }
 
