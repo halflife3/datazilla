@@ -1,6 +1,6 @@
 package com.github.haflife3.test.transaction
 
-
+import com.github.haflife3.datazilla.QueryEntry
 import com.github.haflife3.datazilla.misc.GeneralThreadLocal
 import com.github.haflife3.test.CommonInfo
 import org.springframework.context.annotation.Bean
@@ -19,6 +19,11 @@ class DBConfig {
     @Bean
     DataSource dataSource(){
         return new TransactionAwareDataSourceProxy(CommonInfo.getDataSource(GeneralThreadLocal.get("db_type")))
+    }
+
+    @Bean
+    QueryEntry queryEntry(DataSource dataSource){
+        return new QueryEntry(dataSource)
     }
 
     @Bean
