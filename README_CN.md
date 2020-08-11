@@ -328,6 +328,8 @@ public class Dummy implements Serializable {
 
 将一个名为"Table2JavaMeta.json"的文件(参考下面)房子在工程主目录下面, 执行`Table2Java.java`里的main方法, Java文件就会在这个位置创建: \[your project root/\<srcRoot\>/\<domainPackage\>\]. 以下面的json为例, 生成成功后一个名为"Dummy.java"的文件会被放置在这里:"your project root/src/test/java/com/github/haflife3/dataobject/Dummy.java".
 
+**`TIP:`** 可以配合IntelliJ IDEA的插件使用: [table2java](https://plugins.jetbrains.com/plugin/14850-table2java/)
+
 `Table2JavaMeta.json`
 ```json
 {
