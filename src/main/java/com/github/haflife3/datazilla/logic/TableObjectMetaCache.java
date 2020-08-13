@@ -4,6 +4,7 @@ import com.github.haflife3.datazilla.CoreRunner;
 import com.github.haflife3.datazilla.QueryEntry;
 import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.MiscUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +24,10 @@ public class TableObjectMetaCache {
     }
     public static void initTableObjectMeta(Class<?> tableClass, CoreRunner coreRunner){
         Table table = tableClass.getAnnotation(Table.class);
-        if(table==null || metaInitComplete(tableClass)){
+        if(table==null){
+            throw new DBException("Init Table Meta failed: tableClass:"+tableClass.getName()+" has no @Table annotation!");
+        }
+        if(metaInitComplete(tableClass)){
             return;
         }
         boolean autoColumnDetection = table.autoColumnDetection();
