@@ -1,10 +1,7 @@
 package com.github.haflife3.test
 
-
 import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.datazilla.QueryEntry
-import com.github.haflife3.datazilla.annotation.Table
-import com.github.haflife3.datazilla.annotation.TblField
 import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.datazilla.logic.TableLoc
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache
@@ -191,23 +188,10 @@ class CommonTest {
         colNames.each {lowerColNames << it.toLowerCase()}
         Collections.sort(lowerColNames)
         List<String> compareColNames = new ArrayList<>()
-        Table table = clazz.getAnnotation(Table)
-        boolean autoColumnDetection = table.autoColumnDetection()
-        if(autoColumnDetection){
-            TableObjectMetaCache.initTableObjectMeta(clazz,qe)
-            def columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(clazz)
-            columnToFieldMap.each {
-                compareColNames << it.key
-            }
-        }else {
-            def fields = MiscUtil.getAllFields(clazz)
-            fields.each {
-                if(!it.isSynthetic()){
-                    def tblField = it.getAnnotation(TblField)
-                    String colName = (tblField.value()?:it.name).toLowerCase()
-                    compareColNames << colName
-                }
-            }
+        TableObjectMetaCache.initTableObjectMeta(clazz,qe)
+        def columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(clazz)
+        columnToFieldMap.each {
+            compareColNames << it.key
         }
         Collections.sort(compareColNames)
         lowerColNames.eachWithIndex { String entry, int i ->
@@ -290,30 +274,14 @@ class CommonTest {
         def mapRecord = result.get(0)
         def fields = MiscUtil.getAllFields(clazz)
 
-        Table table = clazz.getAnnotation(Table)
-        boolean autoColumnDetection = table.autoColumnDetection()
-        if(autoColumnDetection){
-            TableObjectMetaCache.initTableObjectMeta(clazz,qe)
-            def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(clazz)
-            fields.each {
-                String colName = fieldToColumnMap.get(it.getName())
-                it.setAccessible(true)
-                def value = it.get(objRecord)
-                if(value!=null){
-                    assert mapRecord.get(colName)!=null
-                }
-            }
-        }else {
-            fields.each {
-                if(!it.isSynthetic()){
-                    def tblField = it.getAnnotation(TblField)
-                    String colName = (tblField.value()?:it.name).toLowerCase()
-                    it.setAccessible(true)
-                    def value = it.get(objRecord)
-                    if(value!=null){
-                        assert mapRecord.get(colName)!=null
-                    }
-                }
+        TableObjectMetaCache.initTableObjectMeta(clazz,qe)
+        def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(clazz)
+        fields.each {
+            String colName = fieldToColumnMap.get(it.getName())
+            it.setAccessible(true)
+            def value = it.get(objRecord)
+            if(value!=null){
+                assert mapRecord.get(colName)!=null
             }
         }
     }

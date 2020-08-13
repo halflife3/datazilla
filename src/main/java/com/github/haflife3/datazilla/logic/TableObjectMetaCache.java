@@ -23,7 +23,7 @@ public class TableObjectMetaCache {
     }
     public static void initTableObjectMeta(Class<?> tableClass, CoreRunner coreRunner){
         Table table = tableClass.getAnnotation(Table.class);
-        if(table==null ||metaInitComplete(tableClass)){
+        if(table==null || metaInitComplete(tableClass)){
             return;
         }
         boolean autoColumnDetection = table.autoColumnDetection();

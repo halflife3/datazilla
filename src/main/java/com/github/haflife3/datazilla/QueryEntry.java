@@ -179,10 +179,13 @@ public class QueryEntry {
     }
 
     public int insert(Object ... records){
+        int num = 0;
         if(records!=null&&records.length>0){
-            return insert(TableLoc.findTableName(records[0].getClass()), records);
+            for (Object record : records) {
+                num += insert(TableLoc.findTableName(record.getClass()), record);
+            }
         }
-        return 0;
+        return num;
     }
     public <T> T insertAndReturnAutoGen(Object record){
         return coreRunner.insertWithReturn(TableLoc.findTableName(record.getClass()),toFieldValueMap(record));
@@ -405,8 +408,10 @@ public class QueryEntry {
             if(fieldOrColumnArr==null||fieldOrColumnArr.length==0){
                 return conds;
             }
-            Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(obj.getClass());
-            Map<String, String> columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(obj.getClass());
+            Class<?> tableClass = obj.getClass();
+            TableObjectMetaCache.initTableObjectMeta(tableClass,this);
+            Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(tableClass);
+            Map<String, String> columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(tableClass);
             Map<String, Field> fieldMap = MiscUtil.mapFieldFromObj(obj);
             for (String fieldOrColumn : fieldOrColumnArr) {
                 boolean match = false;
