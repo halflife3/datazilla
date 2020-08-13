@@ -9,6 +9,7 @@ public class Table2JavaMeta {
     private String dbUser;
     private String dbPass;
     private String srcRoot;
+    private String projectRoot;
     private String domainPackage;
     private boolean lombokMode;
     private boolean autoColumnDetection;
@@ -54,6 +55,14 @@ public class Table2JavaMeta {
 
     public void setSrcRoot(String srcRoot) {
         this.srcRoot = srcRoot;
+    }
+
+    public String getProjectRoot() {
+        return projectRoot;
+    }
+
+    public void setProjectRoot(String projectRoot) {
+        this.projectRoot = projectRoot;
     }
 
     public String getDomainPackage() {
