@@ -1,9 +1,6 @@
 package com.github.haflife3.datazilla.dialect.pagination;
 
 
-
-import com.github.haflife3.datazilla.dialect.DialectConst;
-
 import java.util.List;
 
 public class DummyOfflinePagination implements OfflinePagination {

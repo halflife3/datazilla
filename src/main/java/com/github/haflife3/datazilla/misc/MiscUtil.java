@@ -109,6 +109,7 @@ public class MiscUtil {
         for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
             Field[] declaredFields = c.getDeclaredFields();
             fields.addAll(Arrays.asList(declaredFields));
+            fields.removeIf(Field::isSynthetic);
         }
         return fields;
     }
@@ -129,7 +130,7 @@ public class MiscUtil {
         for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
             Field[] declaredFields = c.getDeclaredFields();
             for (Field declaredField : declaredFields) {
-                if(fieldName.equals(declaredField.getName())){
+                if(!declaredField.isSynthetic()&&fieldName.equals(declaredField.getName())){
                     return declaredField;
                 }
             }

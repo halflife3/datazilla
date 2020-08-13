@@ -187,13 +187,6 @@ public class CoreRunner {
         }
         return list;
     }
-    
-    public List<Map<String, Object>> genericMapQry(QueryConditionBundle qryCondition){
-        SqlPreparedBundle sqlPreparedBundle = sqlBuilder.composeSelect(qryCondition);
-        String sql = sqlPreparedBundle.getSql();
-        Object[] values = sqlPreparedBundle.getValues();
-        return genericQry(sql,values);
-    }
 
     public int insert(String table, Map<String, Object> valueMap){
         int affectedNum = 0;

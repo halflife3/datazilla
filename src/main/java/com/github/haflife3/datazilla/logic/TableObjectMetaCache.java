@@ -23,9 +23,10 @@ public class TableObjectMetaCache {
     }
     public static void initTableObjectMeta(Class<?> tableClass, CoreRunner coreRunner){
         Table table = tableClass.getAnnotation(Table.class);
-        if(table==null||!table.autoColumnDetection()||metaInitComplete(tableClass)){
+        if(table==null ||metaInitComplete(tableClass)){
             return;
         }
+        boolean autoColumnDetection = table.autoColumnDetection();
         Map<String,String> fieldToColumnMap = new HashMap<>();
         Map<String,String> columnToFieldMap = new HashMap<>();
         List<String> colNames = coreRunner.getColNames(table.value());
@@ -41,13 +42,15 @@ public class TableObjectMetaCache {
                 fieldToColumnMap.put(fieldName,colName4SqlCompose);
                 columnToFieldMap.put(colName4FieldMapping.toLowerCase(),fieldName);
             }else {
-                colNames.forEach(colName -> {
-                    String regulatedColName = colName.replace("_","").toLowerCase();
-                    if(regulatedFieldName.equals(regulatedColName)){
-                        fieldToColumnMap.put(fieldName,colName);
-                        columnToFieldMap.put(colName.toLowerCase(),fieldName);
-                    }
-                });
+                if(autoColumnDetection){
+                    colNames.forEach(colName -> {
+                        String regulatedColName = colName.replace("_","").toLowerCase();
+                        if(regulatedFieldName.equals(regulatedColName)){
+                            fieldToColumnMap.put(fieldName,colName);
+                            columnToFieldMap.put(colName.toLowerCase(),fieldName);
+                        }
+                    });
+                }
             }
         }
         if(MapUtils.isNotEmpty(fieldToColumnMap)){

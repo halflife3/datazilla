@@ -133,6 +133,7 @@ class CommonTest {
                     nullCond()
                     updateSelective()
                     extraCondUpdateSelective()
+                    updateSelectiveByFieldOrColumn()
                     updateFull()
                     extraCondUpdateFull()
                     persist()
@@ -543,6 +544,33 @@ class CommonTest {
         ExtraParamInjector.sqlId("updateSelective step3")
         def updatedRecord = qe.searchObject(condObj)
         assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
+    }
+
+    void updateSelectiveByFieldOrColumn(){
+        logger.info ' -- updateSelectiveByFieldOrColumn -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step1")
+        def dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
+        def condValue = MiscUtil.extractFieldValueFromObj(dbRecord,"mismatchedName")
+        def record2Update = getCurrentClass().newInstance()
+        MiscUtil.setValue(record2Update,"mismatchedName",condValue)
+        MiscUtil.setValue(record2Update,nullField4Test()[0],"valueByField")
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step2")
+        def updateNum = qe.updateSelectiveConcise(record2Update,"mismatchedName")
+        assert updateNum == 1
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step3")
+        dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
+        assert MiscUtil.extractFieldValueFromObj(dbRecord,nullField4Test()[0]) == "valueByField"
+
+        MiscUtil.setValue(record2Update,nullField4Test()[0],"valueByColumn")
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step4")
+        updateNum = qe.updateSelectiveConcise(record2Update,"name_mismatch_f")
+        assert updateNum == 1
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step5")
+        dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
+        assert MiscUtil.extractFieldValueFromObj(dbRecord,nullField4Test()[0]) == "valueByColumn"
+
     }
 
     void updateFull(){
