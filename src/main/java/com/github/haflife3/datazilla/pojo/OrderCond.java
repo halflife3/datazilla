@@ -4,8 +4,7 @@ public class OrderCond {
     private String orderByField;
     private String orderByType = "asc";
 
-    public OrderCond() {
-    }
+    public OrderCond() {}
 
     public OrderCond(String orderByField) {
         this.orderByField = orderByField;

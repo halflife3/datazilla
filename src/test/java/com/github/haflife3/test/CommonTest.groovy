@@ -125,6 +125,7 @@ class CommonTest {
                     offset()
                     nameMismatch()
                     extraCondQuery()
+                    orCondQuery()
                     moreQuery()
                     insertOne()
                     nullCond()
@@ -385,6 +386,23 @@ class CommonTest {
         ExtraParamInjector.sqlId("extraCondQuery")
         def result = qe.searchObject(search)
         assert result.getId() == id
+    }
+
+    void orCondQuery(){
+        logger.info ' -- orCondQuery -- '
+        def search = getCurrentClass().newInstance()
+        ExtraParamInjector.addOrCond([
+            new Cond("id", 100),
+            new Cond("id","between", [80,120]),
+            new Cond("id","in", [121,122]),
+            new Cond("id",new Null())
+        ])
+        ExtraParamInjector.sqlId("orCondQuery")
+        def result = qe.searchObjects(search)
+        result.each {
+            def id = it.getId()
+            assert id>=80&&id<=122
+        }
     }
 
     void moreQuery(){

@@ -1,5 +1,6 @@
 package com.github.haflife3.datazilla;
 
+import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.dialect.DialectConst;
 import com.github.haflife3.datazilla.dialect.DialectFactory;
 import com.github.haflife3.datazilla.dialect.batch.BatchInserter;
@@ -122,7 +123,9 @@ public class CoreRunner {
     }
 
     public <T> List<T> genericQry(String sql, Class<T> clazz, Object[] values)  {
-        TableObjectMetaCache.initTableObjectMeta(clazz,this);
+        if(clazz.isAnnotationPresent(Table.class)){
+            TableObjectMetaCache.initTableObjectMeta(clazz,this);
+        }
         return genericQry(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(MoreGenerousBeanProcessorFactory.populateBeanProcessor(clazz))),values);
     }
 
@@ -190,22 +193,22 @@ public class CoreRunner {
 
     public int insert(String table, Map<String, Object> valueMap){
         int affectedNum = 0;
-        String sql = "insert into "+table+" (";
-        String valueSql = " values( ";
+        StringBuilder sql = new StringBuilder("insert into " + table + " (");
+        StringBuilder valueSql = new StringBuilder(" values( ");
         List<Object> values = new ArrayList<>();
         for(Map.Entry<String, Object> entry:valueMap.entrySet()){
             String field = entry.getKey();
             Object value = entry.getValue();
             if(value!=null) {
-                sql += field + ",";
-                valueSql += "?,";
+                sql.append(field).append(",");
+                valueSql.append("?,");
                 values.add(value);
             }
         }
-        sql = StringUtils.stripEnd(sql,",")+") ";
-        valueSql = StringUtils.stripEnd(valueSql,",")+") ";
-        sql = sql+valueSql;
-        affectedNum = genericUpdate(sql,values.toArray());
+        sql = new StringBuilder(StringUtils.stripEnd(sql.toString(), ",") + ") ");
+        valueSql = new StringBuilder(StringUtils.stripEnd(valueSql.toString(), ",") + ") ");
+        sql.append(valueSql);
+        affectedNum = genericUpdate(sql.toString(),values.toArray());
         return affectedNum;
     }
 
@@ -213,26 +216,26 @@ public class CoreRunner {
         long start = System.currentTimeMillis();
         T rt = null;
         try {
-            String sql = "insert into "+table+" (";
+            StringBuilder sql = new StringBuilder("insert into " + table + " (");
             String valueSql = " values( ";
             List<Object> values = new ArrayList<>();
             for(Map.Entry<String, Object> entry:valueMap.entrySet()){
                 String field = entry.getKey();
                 Object value = entry.getValue();
                 if(value!=null) {
-                    sql += field + ",";
+                    sql.append(field).append(",");
                     valueSql += "?,";
                     values.add(value);
                 }
             }
-            sql = StringUtils.stripEnd(sql,",")+") ";
+            sql = new StringBuilder(StringUtils.stripEnd(sql.toString(), ",") + ") ");
             valueSql = StringUtils.stripEnd(valueSql,",")+") ";
-            sql = sql+valueSql;
-            sql = getIdSql(sql);
+            sql.append(valueSql);
+            sql = new StringBuilder(getIdSql(sql.toString()));
             Object[] valueArr = values.toArray();
-            rt = queryRunner.insert(sql, new ScalarHandler<>(), valueArr);
+            rt = queryRunner.insert(sql.toString(), new ScalarHandler<>(), valueArr);
             long end = System.currentTimeMillis();
-            log(sql,valueArr,rt,"OUTPUT",(end-start));
+            log(sql.toString(),valueArr,rt,"OUTPUT",(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
         }finally {

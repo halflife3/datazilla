@@ -125,14 +125,15 @@ public class QueryEntry {
             String sqlId = ExtraParamInjector.getSqlId();
             PagingInjector.dropResult();
             QueryConditionBundle qryCondition = new QueryConditionBundle.Builder()
-                    .resultClass(clazz)
-                    .targetTable(table)
-                    .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
-                    .selectColumns(ExtraParamInjector.getSelectColumns())
-                    .offset(PagingInjector.getOffset())
-                    .limit(PagingInjector.getLimit())
-                    .orderByConds(PagingInjector.getOrderConds())
-                    .build();
+                .resultClass(clazz)
+                .targetTable(table)
+                .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
+                .selectColumns(ExtraParamInjector.getSelectColumns())
+                .offset(PagingInjector.getOffset())
+                .limit(PagingInjector.getLimit())
+                .orderByConds(PagingInjector.getOrderConds())
+                .build();
             rtList = genericQry(qryCondition);
             rtList = coreRunner.getOfflinePagination().paginate(rtList,qryCondition.getOffset(),qryCondition.getLimit());
             if(PagingInjector.needCount()){
@@ -307,11 +308,13 @@ public class QueryEntry {
                 .targetTable(table)
                 .values2Update(pairs)
                 .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
                 .build();
             SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
+            ExtraParamInjector.unsetExtraOrConds();
         }
     }
 
@@ -341,14 +344,16 @@ public class QueryEntry {
         try {
             List<FieldValuePair> pairs = toFullFieldValuePair(valueMap);
             UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
-                    .targetTable(table)
-                    .values2Update(pairs)
-                    .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
-                    .build();
+                .targetTable(table)
+                .values2Update(pairs)
+                .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
+                .build();
             SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
+            ExtraParamInjector.unsetExtraOrConds();
         }
     }
 
@@ -374,11 +379,13 @@ public class QueryEntry {
                 .onlyCount(true)
                 .resultClass(CountInfo.class)
                 .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
                 .build();
             List<CountInfo> counts = genericQry(qcCount);
             count = counts.get(0).getCount();
         } finally {
             ExtraParamInjector.unsetExtraConds();
+            ExtraParamInjector.unsetExtraOrConds();
         }
         return count;
     }
