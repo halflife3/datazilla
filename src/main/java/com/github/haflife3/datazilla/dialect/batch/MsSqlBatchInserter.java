@@ -20,26 +20,26 @@ public class MsSqlBatchInserter implements BatchInserter{
         if(CollectionUtils.isNotEmpty(listMap)){
             List<String> fields = new ArrayList<>(listMap.get(0).keySet());
             int fieldNum = fields.size();
-            String sql = "insert into "+table+" (";
-            String valueSql = " values";
+            StringBuilder sql = new StringBuilder("insert into " + table + " (");
+            StringBuilder valueSql = new StringBuilder(" values");
             List<Object> values = new ArrayList<>();
             for (String field : fields) {
-                sql += field + ",";
+                sql.append(field).append(",");
             }
-            sql = StringUtils.stripEnd(sql,",")+") ";
+            sql = new StringBuilder(StringUtils.stripEnd(sql.toString(), ",") + ") ");
             for (Map<String, Object> map : listMap) {
-                valueSql+=" ( ";
+                valueSql.append(" ( ");
                 for(int i=0;i<fieldNum;i++){
                     String field = fields.get(i);
                     Object value = map.get(field);
-                    valueSql += "?,";
+                    valueSql.append("?,");
                     values.add(value);
                 }
-                valueSql = StringUtils.stripEnd(valueSql,",")+") ,";
+                valueSql = new StringBuilder(StringUtils.stripEnd(valueSql.toString(), ",") + ") ,");
             }
-            valueSql = StringUtils.stripEnd(valueSql,",");
-            sql = sql+valueSql;
-            affectedNum = coreRunner.genericUpdate(sql,values.toArray());
+            valueSql = new StringBuilder(StringUtils.stripEnd(valueSql.toString(), ","));
+            sql.append(valueSql);
+            affectedNum = coreRunner.genericUpdate(sql.toString(),values.toArray());
         }
         return affectedNum;
     }

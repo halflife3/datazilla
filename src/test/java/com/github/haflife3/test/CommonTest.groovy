@@ -1,10 +1,7 @@
 package com.github.haflife3.test
 
-
 import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.datazilla.QueryEntry
-import com.github.haflife3.datazilla.annotation.Table
-import com.github.haflife3.datazilla.annotation.TblField
 import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.datazilla.logic.TableLoc
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache
@@ -128,11 +125,13 @@ class CommonTest {
                     offset()
                     nameMismatch()
                     extraCondQuery()
+                    orCondQuery()
                     moreQuery()
                     insertOne()
                     nullCond()
                     updateSelective()
                     extraCondUpdateSelective()
+                    updateSelectiveByFieldOrColumn()
                     updateFull()
                     extraCondUpdateFull()
                     persist()
@@ -190,23 +189,10 @@ class CommonTest {
         colNames.each {lowerColNames << it.toLowerCase()}
         Collections.sort(lowerColNames)
         List<String> compareColNames = new ArrayList<>()
-        Table table = clazz.getAnnotation(Table)
-        boolean autoColumnDetection = table.autoColumnDetection()
-        if(autoColumnDetection){
-            TableObjectMetaCache.initTableObjectMeta(clazz,qe)
-            def columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(clazz)
-            columnToFieldMap.each {
-                compareColNames << it.key
-            }
-        }else {
-            def fields = MiscUtil.getAllFields(clazz)
-            fields.each {
-                if(!it.isSynthetic()){
-                    def tblField = it.getAnnotation(TblField)
-                    String colName = (tblField.value()?:it.name).toLowerCase()
-                    compareColNames << colName
-                }
-            }
+        TableObjectMetaCache.initTableObjectMeta(clazz,qe)
+        def columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(clazz)
+        columnToFieldMap.each {
+            compareColNames << it.key
         }
         Collections.sort(compareColNames)
         lowerColNames.eachWithIndex { String entry, int i ->
@@ -289,30 +275,14 @@ class CommonTest {
         def mapRecord = result.get(0)
         def fields = MiscUtil.getAllFields(clazz)
 
-        Table table = clazz.getAnnotation(Table)
-        boolean autoColumnDetection = table.autoColumnDetection()
-        if(autoColumnDetection){
-            TableObjectMetaCache.initTableObjectMeta(clazz,qe)
-            def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(clazz)
-            fields.each {
-                String colName = fieldToColumnMap.get(it.getName())
-                it.setAccessible(true)
-                def value = it.get(objRecord)
-                if(value!=null){
-                    assert mapRecord.get(colName)!=null
-                }
-            }
-        }else {
-            fields.each {
-                if(!it.isSynthetic()){
-                    def tblField = it.getAnnotation(TblField)
-                    String colName = (tblField.value()?:it.name).toLowerCase()
-                    it.setAccessible(true)
-                    def value = it.get(objRecord)
-                    if(value!=null){
-                        assert mapRecord.get(colName)!=null
-                    }
-                }
+        TableObjectMetaCache.initTableObjectMeta(clazz,qe)
+        def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(clazz)
+        fields.each {
+            String colName = fieldToColumnMap.get(it.getName())
+            it.setAccessible(true)
+            def value = it.get(objRecord)
+            if(value!=null){
+                assert mapRecord.get(colName)!=null
             }
         }
     }
@@ -416,6 +386,23 @@ class CommonTest {
         ExtraParamInjector.sqlId("extraCondQuery")
         def result = qe.searchObject(search)
         assert result.getId() == id
+    }
+
+    void orCondQuery(){
+        logger.info ' -- orCondQuery -- '
+        def search = getCurrentClass().newInstance()
+        ExtraParamInjector.addOrCond([
+            new Cond("id", 100),
+            new Cond("id","between", [80,120]),
+            new Cond("id","in", [121,122]),
+            new Cond("id",new Null())
+        ])
+        ExtraParamInjector.sqlId("orCondQuery")
+        def result = qe.searchObjects(search)
+        result.each {
+            def id = it.getId()
+            assert id>=80&&id<=122
+        }
     }
 
     void moreQuery(){
@@ -543,6 +530,33 @@ class CommonTest {
         ExtraParamInjector.sqlId("updateSelective step3")
         def updatedRecord = qe.searchObject(condObj)
         assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
+    }
+
+    void updateSelectiveByFieldOrColumn(){
+        logger.info ' -- updateSelectiveByFieldOrColumn -- '
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step1")
+        def dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
+        def condValue = MiscUtil.extractFieldValueFromObj(dbRecord,"mismatchedName")
+        def record2Update = getCurrentClass().newInstance()
+        MiscUtil.setValue(record2Update,"mismatchedName",condValue)
+        MiscUtil.setValue(record2Update,nullField4Test()[0],"valueByField")
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step2")
+        def updateNum = qe.updateSelectiveConcise(record2Update,"mismatchedName")
+        assert updateNum == 1
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step3")
+        dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
+        assert MiscUtil.extractFieldValueFromObj(dbRecord,nullField4Test()[0]) == "valueByField"
+
+        MiscUtil.setValue(record2Update,nullField4Test()[0],"valueByColumn")
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step4")
+        updateNum = qe.updateSelectiveConcise(record2Update,"name_mismatch_f")
+        assert updateNum == 1
+        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step5")
+        dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
+        assert MiscUtil.extractFieldValueFromObj(dbRecord,nullField4Test()[0]) == "valueByColumn"
+
     }
 
     void updateFull(){

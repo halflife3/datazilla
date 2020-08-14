@@ -4,6 +4,7 @@ import com.github.haflife3.datazilla.CoreRunner;
 import com.github.haflife3.datazilla.QueryEntry;
 import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.MiscUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,9 +24,13 @@ public class TableObjectMetaCache {
     }
     public static void initTableObjectMeta(Class<?> tableClass, CoreRunner coreRunner){
         Table table = tableClass.getAnnotation(Table.class);
-        if(table==null||!table.autoColumnDetection()||metaInitComplete(tableClass)){
+        if(table==null){
+            throw new DBException("Init Table Meta failed: tableClass:"+tableClass.getName()+" has no @Table annotation!");
+        }
+        if(metaInitComplete(tableClass)){
             return;
         }
+        boolean autoColumnDetection = table.autoColumnDetection();
         Map<String,String> fieldToColumnMap = new HashMap<>();
         Map<String,String> columnToFieldMap = new HashMap<>();
         List<String> colNames = coreRunner.getColNames(table.value());
@@ -41,13 +46,15 @@ public class TableObjectMetaCache {
                 fieldToColumnMap.put(fieldName,colName4SqlCompose);
                 columnToFieldMap.put(colName4FieldMapping.toLowerCase(),fieldName);
             }else {
-                colNames.forEach(colName -> {
-                    String regulatedColName = colName.replace("_","").toLowerCase();
-                    if(regulatedFieldName.equals(regulatedColName)){
-                        fieldToColumnMap.put(fieldName,colName);
-                        columnToFieldMap.put(colName.toLowerCase(),fieldName);
-                    }
-                });
+                if(autoColumnDetection){
+                    colNames.forEach(colName -> {
+                        String regulatedColName = colName.replace("_","").toLowerCase();
+                        if(regulatedFieldName.equals(regulatedColName)){
+                            fieldToColumnMap.put(fieldName,colName);
+                            columnToFieldMap.put(colName.toLowerCase(),fieldName);
+                        }
+                    });
+                }
             }
         }
         if(MapUtils.isNotEmpty(fieldToColumnMap)){

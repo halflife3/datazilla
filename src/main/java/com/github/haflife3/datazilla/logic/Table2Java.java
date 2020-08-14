@@ -107,10 +107,10 @@ public class Table2Java {
 
     private static void generate() throws Exception {
         String url = meta.getDbUrl();
+        if(StringUtils.isNotBlank(meta.getDriver())){
+            Class.forName(meta.getDriver());
+        }
         try (Connection conn = DriverManager.getConnection(url, meta.getDbUser(), meta.getDbPass())) {
-            if(StringUtils.isNotBlank(meta.getDriver())){
-                Class.forName(meta.getDriver());
-            }
             initDir();
             initTables(conn);
             initDomains(conn);
@@ -119,7 +119,11 @@ public class Table2Java {
 
     private static String getFullDir(){
         String domainPackageDir = meta.getDomainPackage().replaceAll("\\.","/");
-        return new File("./").getAbsolutePath()+meta.getSrcRoot() +"/"+domainPackageDir;
+        String projectRootPath = meta.getProjectRoot();
+        if(StringUtils.isBlank(projectRootPath)){
+            projectRootPath = new File("./").getAbsolutePath();
+        }
+        return projectRootPath+"/"+meta.getSrcRoot() +"/"+domainPackageDir;
     }
 
     private static void initDir() throws Exception {

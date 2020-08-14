@@ -40,6 +40,12 @@ public class ExtraParamInjector {
         }
     }
 
+    public static void addOrCond(List<Cond> conds){
+        if(CollectionUtils.isNotEmpty(conds)){
+            GeneralThreadLocal.set("extraOrConds", conds);
+        }
+    }
+
     public static Integer getTotalCount(){
         return PagingInjector.getCount();
     }
@@ -56,10 +62,15 @@ public class ExtraParamInjector {
         return GeneralThreadLocal.get("extraConds");
     }
 
+    public static List<Cond> getExtraOrConds(){
+        return GeneralThreadLocal.get("extraOrConds");
+    }
+
     public static void unSet(){
         PagingInjector.unSet();
         GeneralThreadLocal.unset("selectColumns");
         unsetExtraConds();
+        unsetExtraOrConds();
     }
 
     public static void unsetSqlId(){
@@ -68,5 +79,9 @@ public class ExtraParamInjector {
 
     public static void unsetExtraConds(){
         GeneralThreadLocal.unset("extraConds");
+    }
+
+    public static void unsetExtraOrConds(){
+        GeneralThreadLocal.unset("extraOrConds");
     }
 }

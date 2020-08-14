@@ -330,6 +330,8 @@ Manually compose Java Bean files from database table definition can be both tedi
 
 Place a file named "Table2JavaMeta.json" (see below) inside your project's root directory, execute the main method inside `Table2Java.java`, and the Java files will be generated at this location: \[your project root/\<srcRoot\>/\<domainPackage\>\]. Based on the example json below, a file named "Dummy.java" can be located at "your project root/src/test/java/com/github/haflife3/dataobject/Dummy.java" after a successful generation.
 
+**`TIP:`** An IntelliJ IDEA plugin is also available: [table2java](https://plugins.jetbrains.com/plugin/14850-table2java/)
+
 `Table2JavaMeta.json`
 ```json
 {

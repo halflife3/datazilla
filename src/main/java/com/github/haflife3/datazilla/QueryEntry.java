@@ -1,17 +1,18 @@
 package com.github.haflife3.datazilla;
 
-import com.github.haflife3.datazilla.annotation.TblField;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableLoc;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
-import com.github.haflife3.datazilla.misc.*;
+import com.github.haflife3.datazilla.misc.DBException;
+import com.github.haflife3.datazilla.misc.ExtraParamInjector;
+import com.github.haflife3.datazilla.misc.MiscUtil;
+import com.github.haflife3.datazilla.misc.PagingInjector;
 import com.github.haflife3.datazilla.pojo.*;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
@@ -124,14 +125,15 @@ public class QueryEntry {
             String sqlId = ExtraParamInjector.getSqlId();
             PagingInjector.dropResult();
             QueryConditionBundle qryCondition = new QueryConditionBundle.Builder()
-                    .resultClass(clazz)
-                    .targetTable(table)
-                    .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
-                    .selectColumns(ExtraParamInjector.getSelectColumns())
-                    .offset(PagingInjector.getOffset())
-                    .limit(PagingInjector.getLimit())
-                    .orderByConds(PagingInjector.getOrderConds())
-                    .build();
+                .resultClass(clazz)
+                .targetTable(table)
+                .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
+                .selectColumns(ExtraParamInjector.getSelectColumns())
+                .offset(PagingInjector.getOffset())
+                .limit(PagingInjector.getLimit())
+                .orderByConds(PagingInjector.getOrderConds())
+                .build();
             rtList = genericQry(qryCondition);
             rtList = coreRunner.getOfflinePagination().paginate(rtList,qryCondition.getOffset(),qryCondition.getLimit());
             if(PagingInjector.needCount()){
@@ -178,10 +180,13 @@ public class QueryEntry {
     }
 
     public int insert(Object ... records){
+        int num = 0;
         if(records!=null&&records.length>0){
-            return insert(TableLoc.findTableName(records[0].getClass()), records);
+            for (Object record : records) {
+                num += insert(TableLoc.findTableName(record.getClass()), record);
+            }
         }
-        return 0;
+        return num;
     }
     public <T> T insertAndReturnAutoGen(Object record){
         return coreRunner.insertWithReturn(TableLoc.findTableName(record.getClass()),toFieldValueMap(record));
@@ -276,6 +281,10 @@ public class QueryEntry {
         return updateSelective(record,fromTableDomain(condObj));
     }
 
+    public int updateSelectiveConcise(Object record, String ... fieldsOrColumns){
+        return updateSelective(record,initCondsByFields(record,fieldsOrColumns));
+    }
+
     public int updateSelective(Object record, List<Cond> conds){
         return updateSelective(TableLoc.findTableName(record.getClass()), record, conds);
     }
@@ -299,11 +308,13 @@ public class QueryEntry {
                 .targetTable(table)
                 .values2Update(pairs)
                 .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
                 .build();
             SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
+            ExtraParamInjector.unsetExtraOrConds();
         }
     }
 
@@ -333,14 +344,16 @@ public class QueryEntry {
         try {
             List<FieldValuePair> pairs = toFullFieldValuePair(valueMap);
             UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
-                    .targetTable(table)
-                    .values2Update(pairs)
-                    .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
-                    .build();
+                .targetTable(table)
+                .values2Update(pairs)
+                .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
+                .build();
             SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(),sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
+            ExtraParamInjector.unsetExtraOrConds();
         }
     }
 
@@ -366,19 +379,71 @@ public class QueryEntry {
                 .onlyCount(true)
                 .resultClass(CountInfo.class)
                 .conditionAndList(combineConds(conds,ExtraParamInjector.getExtraConds()))
+                .conditionOrList(ExtraParamInjector.getExtraOrConds())
                 .build();
             List<CountInfo> counts = genericQry(qcCount);
             count = counts.get(0).getCount();
         } finally {
             ExtraParamInjector.unsetExtraConds();
+            ExtraParamInjector.unsetExtraOrConds();
         }
         return count;
     }
+
     public int count(Class<?> clazz, Cond... conds){
         return count(clazz,Arrays.asList(conds));
     }
+
     public <T> int count(T obj){
         return count(obj.getClass(),fromTableDomain(obj));
+    }
+
+    public List<Cond> fromTableDomain(Object obj){
+        List<Cond> conds = new ArrayList<>();
+        Map<String,Object> condMap = toFieldValueMap(obj);
+        condMap.forEach((fieldName,value)-> conds.add(new Cond(fieldName,value)));
+        return conds;
+    }
+
+    public List<Cond> buildConds(Object obj){
+        return new SqlBuilder(coreRunner).buildConds(obj);
+    }
+
+    private List<Cond> initCondsByFields(Object obj, String[] fieldOrColumnArr){
+        List<Cond> conds = new ArrayList<>();
+        try {
+            if(fieldOrColumnArr==null||fieldOrColumnArr.length==0){
+                return conds;
+            }
+            Class<?> tableClass = obj.getClass();
+            TableObjectMetaCache.initTableObjectMeta(tableClass,this);
+            Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(tableClass);
+            Map<String, String> columnToFieldMap = TableObjectMetaCache.getColumnToFieldMap(tableClass);
+            Map<String, Field> fieldMap = MiscUtil.mapFieldFromObj(obj);
+            for (String fieldOrColumn : fieldOrColumnArr) {
+                boolean match = false;
+                String colName = null;
+                Field field = null;
+                if(fieldToColumnMap.containsKey(fieldOrColumn)){
+                    field = fieldMap.get(fieldOrColumn);
+                    colName = fieldToColumnMap.get(fieldOrColumn);
+                    match = true;
+                }else if(columnToFieldMap.containsKey(fieldOrColumn.toLowerCase())) {
+                    String fieldName = columnToFieldMap.get(fieldOrColumn);
+                    field = fieldMap.get(fieldName);
+                    colName = fieldOrColumn;
+                    match = true;
+                }
+                if(!match){
+                    throw new DBException("fieldOrColumn:"+fieldOrColumn+" can't be recognized!");
+                }
+                field.setAccessible(true);
+                conds.add(new Cond(colName,field.get(obj)));
+            }
+        } catch (IllegalAccessException e) {
+            throw new DBException(e);
+        }
+        return conds;
     }
 
     private static List<Cond> combineConds(List<Cond> conds1,List<Cond> conds2){
@@ -404,13 +469,6 @@ public class QueryEntry {
         return pairs;
     }
 
-    public List<Cond> fromTableDomain(Object obj){
-        List<Cond> conds = new ArrayList<>();
-        Map<String,Object> condMap = toFieldValueMap(obj);
-        condMap.forEach((fieldName,value)-> conds.add(new Cond(fieldName,value)));
-        return conds;
-    }
-
     private Map<String,Object> toFieldValueMap(Object obj) {
         Map<String, Object> fieldValueMap = toFullFieldValueMap(obj);
         fieldValueMap.entrySet().removeIf(entry->entry.getValue()==null);
@@ -422,44 +480,22 @@ public class QueryEntry {
         try {
             Class<?> tableClass = obj.getClass();
             TableObjectMetaCache.initTableObjectMeta(tableClass,this);
-            boolean metaInitComplete = TableObjectMetaCache.metaInitComplete(tableClass);
             List<Field> fields = MiscUtil.getAllFields(tableClass);
-            if(!metaInitComplete) {
-                for (Field field : fields) {
-                    if (field.isSynthetic()) {
+            Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(tableClass);
+            for (Field field : fields) {
+                if (!field.isSynthetic()) {
+                    String fieldName = field.getName();
+                    if(!fieldToColumnMap.containsKey(fieldName)){
                         continue;
                     }
-                    if (field.isAnnotationPresent(TblField.class)) {
-                        field.setAccessible(true);
-                        TblField tblField = field.getAnnotation(TblField.class);
-                        String fieldName = StringUtils.isNotBlank(tblField.customField()) ? tblField.customField() : tblField.value();
-                        if (StringUtils.isBlank(fieldName)) {
-                            fieldName = field.getName();
-                        }
-                        Object value = field.get(obj);
-                        condMap.put(fieldName, value);
-                    }
-                }
-            }else {
-                Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(tableClass);
-                for (Field field : fields) {
-                    if (!field.isSynthetic()) {
-                        String fieldName = field.getName();
-                        if(!fieldToColumnMap.containsKey(fieldName)){
-                            continue;
-                        }
-                        field.setAccessible(true);
-                        Object value = field.get(obj);
-                        condMap.put(fieldToColumnMap.get(fieldName), value);
-                    }
+                    field.setAccessible(true);
+                    Object value = field.get(obj);
+                    condMap.put(fieldToColumnMap.get(fieldName), value);
                 }
             }
         } catch (IllegalAccessException e) {
             throw new DBException(e);
         }
         return condMap;
-    }
-    public List<Cond> buildConds(Object obj){
-        return new SqlBuilder(coreRunner).buildConds(obj);
     }
 }
