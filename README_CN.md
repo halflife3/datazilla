@@ -39,7 +39,7 @@ datazilla 是一个可以用来操作关系型数据库的Java工具库.
 <dependency>
     <groupId>com.github.haflife3</groupId>
     <artifactId>datazilla</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
