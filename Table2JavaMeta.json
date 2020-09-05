@@ -1,16 +1,18 @@
 {
   "driver":"com.mysql.jdbc.Driver",
-  "dbUrl":"jdbc:postgresql://10.0.10.38:5432/test",
-  "dbUser":"caocao",
-  "dbPass":"caocao_1818",
+  "dbSchema":"",
+  "connectParams":"",
+  "dbUrl":"jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useInformationSchema=true",
+  "dbUser":"root",
+  "dbPass":"",
   "srcRoot":"/src/test/java",
   "domainPackage":"com.github.haflife3.dataobject",
-  "lombokMode":false,
-  "autoColumnDetection": false,
+  "lombokMode":true,
+  "autoColumnDetection": true,
   "extraTypeMap":{
 
   },
   "table2ClassMap":{
-    "ttt":"TTT"
+    "dummy":"DummyTmp"
   }
 }
