@@ -41,7 +41,7 @@ datazilla is available in maven central repo.
 <dependency>
     <groupId>com.github.haflife3</groupId>
     <artifactId>datazilla</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
