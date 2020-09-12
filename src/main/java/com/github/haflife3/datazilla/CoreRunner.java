@@ -184,7 +184,11 @@ public class CoreRunner {
             SqlPreparedBundle sqlPreparedBundle = sqlBuilder.composeSelect(qryCondition);
             String sql = sqlPreparedBundle.getSql();
             Object[] values = sqlPreparedBundle.getValues();
-            list = genericQry(sql,(Class<T>)resultClass,values);
+            if(resultClass.equals(Map.class)){
+                list = (List<T>)genericQry(sql,values);
+            }else {
+                list = genericQry(sql, (Class<T>) resultClass, values);
+            }
         } catch (Exception e) {
             throw new DBException(e);
         }

@@ -122,6 +122,7 @@ class CommonTest {
                     querySingleAndExist()
                     selectColumns()
                     paging()
+                    paging4Map()
                     offset()
                     nameMismatch()
                     extraCondQuery()
@@ -339,6 +340,22 @@ class CommonTest {
         def lastId = Integer.MAX_VALUE
         list.each {
             def id = MiscUtil.extractFieldValueFromObj(it,"id")
+            assert id < lastId
+            lastId = id
+        }
+    }
+
+    void paging4Map(){
+        logger.info ' -- paging4Map -- '
+        ExtraParamInjector.paging(1,10,true,new OrderCond("id","desc"))
+        ExtraParamInjector.sqlId("paging4Map")
+        List<Map<String,Object>> list = qe.findObjects(tableName(),[],Map.class)
+        def count = ExtraParamInjector.totalCount
+        assert list.size() == 10
+        assert count == 200
+        def lastId = Integer.MAX_VALUE
+        list.each {
+            def id = it.get('id')
             assert id < lastId
             lastId = id
         }
