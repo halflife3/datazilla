@@ -8,6 +8,7 @@ public class Table2JavaMeta {
     private String dbUrl;
     private String dbUser;
     private String dbPass;
+    private String database;
     private String srcRoot;
     private String projectRoot;
     private String domainPackage;
@@ -47,6 +48,14 @@ public class Table2JavaMeta {
 
     public void setDbPass(String dbPass) {
         this.dbPass = dbPass;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
     }
 
     public String getSrcRoot() {

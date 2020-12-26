@@ -289,7 +289,8 @@ public class Table2Java {
     private static String getTableComment(DatabaseMetaData md , String table) throws Exception {
         String comment = "";
         table = entityRegulator.simpleTable(table);
-        ResultSet resultSet = md.getTables(null, null, table, null);
+        String catalog = StringUtils.isNotBlank(meta.getDatabase())? meta.getDatabase():md.getConnection().getCatalog();
+        ResultSet resultSet = md.getTables(catalog, null, table, null);
         while (resultSet.next()) {
             String tableName = resultSet.getString("TABLE_NAME");
             comment = resultSet.getString("REMARKS");
@@ -304,7 +305,8 @@ public class Table2Java {
     private static List<ColumnMeta> getColumnMeta(DatabaseMetaData md , String table) throws Exception {
         List<ColumnMeta> metas = new ArrayList<>();
         table = entityRegulator.simpleTable(table);
-        ResultSet resultSet = md.getColumns(null, null, table, null);
+        String catalog = StringUtils.isNotBlank(meta.getDatabase())? meta.getDatabase():md.getConnection().getCatalog();
+        ResultSet resultSet = md.getColumns(catalog, null, table, null);
         while (resultSet.next()) {
             String name = resultSet.getString("COLUMN_NAME");
             String type = resultSet.getString("TYPE_NAME").toUpperCase();
@@ -315,7 +317,7 @@ public class Table2Java {
             throw new DBException("Table "+table+" doesn't exist!");
         }
         Connection conn = md.getConnection();
-        try(PreparedStatement ps = conn.prepareStatement("select  * from "+table+" where 1=2")) {
+        try(PreparedStatement ps = conn.prepareStatement("select * from "+table+" where 1=2")) {
             ResultSet rs = ps.executeQuery();
             ResultSetMetaData metaData = rs.getMetaData();
             int count = metaData.getColumnCount();
