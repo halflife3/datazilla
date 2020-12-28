@@ -1,6 +1,6 @@
 package com.github.haflife3.datazilla.misc;
 
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,9 +46,9 @@ public class MoreGenerousBeanProcessor extends CustomBeanProcessor {
                 final String generousColumnName = columnName.replace("_", "");
                 for (String fieldName:fieldNames){
                     Field field = fieldMap.get(fieldName);
-                    TblField tblField = field.getAnnotation(TblField.class);
-                    if(tblField!=null){
-                        String tblColName = tblField.value();
+                    Column column = field.getAnnotation(Column.class);
+                    if(column!=null){
+                        String tblColName = column.value();
                         if(StringUtils.isBlank(tblColName)){
                             tblColName = field.getName();
                         }

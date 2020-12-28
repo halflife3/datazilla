@@ -1,7 +1,7 @@
 package com.github.haflife3.dataobject
 
 import com.github.haflife3.datazilla.annotation.Table
-import com.github.haflife3.datazilla.annotation.TblField
+import com.github.haflife3.datazilla.annotation.Column
 import uk.co.jemos.podam.common.PodamDoubleValue
 import uk.co.jemos.podam.common.PodamExclude
 import uk.co.jemos.podam.common.PodamStringValue
@@ -11,26 +11,26 @@ class DummyTableSqliteGv extends DummyTable implements Serializable{
 
     /**  */
     @PodamExclude
-    @TblField("ID")
+    @Column("ID")
     private Long id
 
     /**  */
     @PodamDoubleValue(maxValue = 999.0D)
-    @TblField("real_f")
+    @Column("real_f")
     private Double realF
 
     /**  */
     @PodamDoubleValue(maxValue = 999.0D)
-    @TblField("numeric_f")
+    @Column("numeric_f")
     private Double numericF
 
     /**  */
     @PodamStringValue(length = 5)
-    @TblField("text_f")
+    @Column("text_f")
     private String textF
 
     @PodamStringValue(length = 5)
-    @TblField("name_mismatch_f")
+    @Column("name_mismatch_f")
     private String mismatchedName
 
     Long getId() {

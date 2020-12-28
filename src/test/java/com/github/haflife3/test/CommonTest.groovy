@@ -2,6 +2,7 @@ package com.github.haflife3.test
 
 import com.github.haflife3.dataobject.DummyTable
 import com.github.haflife3.datazilla.QueryEntry
+import com.github.haflife3.datazilla.annotation.Column
 import com.github.haflife3.datazilla.dialect.DialectConst
 import com.github.haflife3.datazilla.logic.TableLoc
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache
@@ -121,6 +122,7 @@ class CommonTest {
                     genericQry4Map()
                     querySingleAndExist()
                     selectColumns()
+                    order()
                     paging()
                     paging4Map()
                     offset()
@@ -280,6 +282,11 @@ class CommonTest {
         def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(clazz)
         fields.each {
             String colName = fieldToColumnMap.get(it.getName())
+            def column = it.getAnnotation(Column)
+            //if customValue presents, the real column should be column.value() or field name
+            if(column&&column.customValue()){
+                colName = (column?.value())?:it.name
+            }
             it.setAccessible(true)
             def value = it.get(objRecord)
             if(value!=null){
@@ -326,6 +333,20 @@ class CommonTest {
             }else {
                 assert it.value==null
             }
+        }
+    }
+
+    void order(){
+        logger.info ' -- order -- '
+        ExtraParamInjector.order(new OrderCond("id","desc"))
+        ExtraParamInjector.sqlId("order")
+        List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
+        assert list.size() == 200
+        def lastId = Integer.MAX_VALUE
+        list.each {
+            def id = MiscUtil.extractFieldValueFromObj(it,"id")
+            assert id < lastId
+            lastId = id
         }
     }
 
@@ -586,8 +607,10 @@ class CommonTest {
         def origRecord = qe.searchObject(condObj)
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
+        def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(getCurrentClass())
+        String idCol = fieldToColumnMap.get('id')
         ExtraParamInjector.sqlId("updateFull step2")
-        def updateNum = qe.updateFull(record, condObj,["id"])
+        def updateNum = qe.updateFull(record, condObj,[idCol])
         assert updateNum == 1
         ExtraParamInjector.sqlId("updateFull step3")
         def updatedRecord = qe.searchObject(condObj)
@@ -605,9 +628,11 @@ class CommonTest {
         def origRecord = qe.searchObject(condObj)
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
+        def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(getCurrentClass())
+        String idCol = fieldToColumnMap.get('id')
         ExtraParamInjector.sqlId("updateFull step2")
         ExtraParamInjector.addCond([new Cond("id",id2Update)])
-        def updateNum = qe.updateFull(record, [],["id"])
+        def updateNum = qe.updateFull(record, [],[idCol])
         assert updateNum == 1
         ExtraParamInjector.sqlId("updateFull step3")
         def updatedRecord = qe.searchObject(condObj)

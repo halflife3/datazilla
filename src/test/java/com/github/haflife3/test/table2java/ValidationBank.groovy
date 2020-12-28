@@ -10,7 +10,7 @@ class ValidationBank {
 
 import java.io.Serializable;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 import java.util.Date;
 
 /** table comment */
@@ -18,65 +18,65 @@ import java.util.Date;
 public class TestGenMySQL implements Serializable {
 
   /** id comment */
-  @TblField("id")
+  @Column("id")
   private Long id;
 
   /** tinyint comment */
-  @TblField("tinyint_f")
+  @Column("tinyint_f")
   private Integer tinyintF;
 
-  @TblField("smallint_f")
+  @Column("smallint_f")
   private Integer smallintF;
 
-  @TblField("year_f")
+  @Column("year_f")
   private Integer yearF;
 
-  @TblField("int_f")
+  @Column("int_f")
   private Integer intF;
 
-  @TblField("bit_f")
+  @Column("bit_f")
   private Boolean bitF;
 
-  @TblField("bigint_f")
+  @Column("bigint_f")
   private Long bigintF;
 
-  @TblField("float_f")
+  @Column("float_f")
   private Double floatF;
 
-  @TblField("double_f")
+  @Column("double_f")
   private Double doubleF;
 
-  @TblField("decimal_f")
+  @Column("decimal_f")
   private Double decimalF;
 
-  @TblField("numeric_f")
+  @Column("numeric_f")
   private Double numericF;
 
-  @TblField("dateTime_f")
+  @Column("dateTime_f")
   private Date datetimeF;
 
-  @TblField("timestamp_f")
+  @Column("timestamp_f")
   private Date timestampF;
 
-  @TblField("date_f")
+  @Column("date_f")
   private Date dateF;
 
-  @TblField("time_f")
+  @Column("time_f")
   private Date timeF;
 
-  @TblField("char_f")
+  @Column("char_f")
   private String charF;
 
-  @TblField("varchar_f")
+  @Column("varchar_f")
   private String varcharF;
 
-  @TblField("name_mismatch_f")
+  @Column("name_mismatch_f")
   private String nameMismatchF;
 
-  @TblField("text_f")
+  @Column("text_f")
   private String textF;
 
-  @TblField("longtext_f")
+  @Column("longtext_f")
   private String longtextF;
 
   public TestGenMySQL(){
@@ -266,6 +266,10 @@ public class TestGenMySQL implements Serializable {
     this.longtextF = longtextF;
   }
 
+  public static Builder builder(){
+    return new Builder();
+  }
+
   public static final class Builder {
     private Long id;
     private Integer tinyintF;
@@ -400,7 +404,7 @@ public class TestGenMySQL implements Serializable {
 
 import java.io.Serializable;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 import java.sql.Timestamp;
 import java.sql.Date;
 import java.sql.Time;
@@ -410,59 +414,59 @@ import java.sql.Time;
 public class TestGenPostgreSql implements Serializable {
 
   /** id comment */
-  @TblField("id")
+  @Column("id")
   private Long id;
 
   /** bigint_f comment */
-  @TblField("bigint_f")
+  @Column("bigint_f")
   private Long bigintF;
 
-  @TblField("smallint_f")
+  @Column("smallint_f")
   private Integer smallintF;
 
-  @TblField("integer_f")
+  @Column("integer_f")
   private Integer integerF;
 
-  @TblField("decimal_f")
+  @Column("decimal_f")
   private Double decimalF;
 
-  @TblField("numeric_f")
+  @Column("numeric_f")
   private Double numericF;
 
-  @TblField("real_f")
+  @Column("real_f")
   private Double realF;
 
-  @TblField("double_precision_f")
+  @Column("double_precision_f")
   private Double doublePrecisionF;
 
-  @TblField("float8_f")
+  @Column("float8_f")
   private Double float8F;
 
-  @TblField("varchar_f")
+  @Column("varchar_f")
   private String varcharF;
 
-  @TblField("name_mismatch_f")
+  @Column("name_mismatch_f")
   private String nameMismatchF;
 
-  @TblField("character_f")
+  @Column("character_f")
   private String characterF;
 
-  @TblField("char_f")
+  @Column("char_f")
   private String charF;
 
-  @TblField("text_f")
+  @Column("text_f")
   private String textF;
 
-  @TblField("timestamp_f")
+  @Column("timestamp_f")
   private Timestamp timestampF;
 
-  @TblField("date_f")
+  @Column("date_f")
   private Date dateF;
 
-  @TblField("time_f")
+  @Column("time_f")
   private Time timeF;
 
-  @TblField("boolean_f")
+  @Column("boolean_f")
   private Boolean booleanF;
 
   public TestGenPostgreSql(){
@@ -634,6 +638,10 @@ public class TestGenPostgreSql implements Serializable {
     this.booleanF = booleanF;
   }
 
+  public static Builder builder(){
+    return new Builder();
+  }
+
   public static final class Builder {
     private Long id;
     private Long bigintF;
@@ -756,67 +764,67 @@ public class TestGenPostgreSql implements Serializable {
 
 import java.io.Serializable;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 import java.util.Date;
 
 @Table("test_gen_mssql")
 public class TestGenMsSql implements Serializable {
 
-  @TblField("id")
+  @Column("id")
   private Long id;
 
-  @TblField("bit_f")
+  @Column("bit_f")
   private Boolean bitF;
 
-  @TblField("char_f")
+  @Column("char_f")
   private String charF;
 
-  @TblField("date_f")
+  @Column("date_f")
   private Date dateF;
 
-  @TblField("datetime_f")
+  @Column("datetime_f")
   private Date datetimeF;
 
-  @TblField("decimal_f")
+  @Column("decimal_f")
   private Double decimalF;
 
-  @TblField("float_f")
+  @Column("float_f")
   private Double floatF;
 
-  @TblField("int_f")
+  @Column("int_f")
   private Integer intF;
 
-  @TblField("nchar_f")
+  @Column("nchar_f")
   private String ncharF;
 
-  @TblField("ntext_f")
+  @Column("ntext_f")
   private String ntextF;
 
-  @TblField("numeric_f")
+  @Column("numeric_f")
   private Double numericF;
 
-  @TblField("nvarchar_f")
+  @Column("nvarchar_f")
   private String nvarcharF;
 
-  @TblField("real_f")
+  @Column("real_f")
   private Double realF;
 
-  @TblField("smalldatetime_f")
+  @Column("smalldatetime_f")
   private Date smalldatetimeF;
 
-  @TblField("smallint_f")
+  @Column("smallint_f")
   private Short smallintF;
 
-  @TblField("text_f")
+  @Column("text_f")
   private String textF;
 
-  @TblField("tinyint_f")
+  @Column("tinyint_f")
   private Short tinyintF;
 
-  @TblField("varchar_f")
+  @Column("varchar_f")
   private String varcharF;
 
-  @TblField("name_mismatch_f")
+  @Column("name_mismatch_f")
   private String nameMismatchF;
 
   public TestGenMsSql(){
@@ -997,6 +1005,10 @@ public class TestGenMsSql implements Serializable {
     this.nameMismatchF = nameMismatchF;
   }
 
+  public static Builder builder(){
+    return new Builder();
+  }
+
   public static final class Builder {
     private Long id;
     private Boolean bitF;
@@ -1125,7 +1137,7 @@ public class TestGenMsSql implements Serializable {
 
 import java.io.Serializable;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
@@ -1133,58 +1145,58 @@ import java.util.UUID;
 @Table("test_gen_h2")
 public class TestGenH2 implements Serializable {
 
-  @TblField("ID")
+  @Column("ID")
   private Long id;
 
-  @TblField("INT_F")
+  @Column("INT_F")
   private Integer intF;
 
-  @TblField("INTEGER_F")
+  @Column("INTEGER_F")
   private Integer integerF;
 
-  @TblField("BOOLEAN_F")
+  @Column("BOOLEAN_F")
   private Boolean booleanF;
 
-  @TblField("BIT_F")
+  @Column("BIT_F")
   private Boolean bitF;
 
-  @TblField("TINYINT_F")
+  @Column("TINYINT_F")
   private Byte tinyintF;
 
-  @TblField("SMALLINT_F")
+  @Column("SMALLINT_F")
   private Short smallintF;
 
-  @TblField("YEAR_F")
+  @Column("YEAR_F")
   private Short yearF;
 
-  @TblField("DECIMAL_F")
+  @Column("DECIMAL_F")
   private BigDecimal decimalF;
 
-  @TblField("DOUBLE_F")
+  @Column("DOUBLE_F")
   private Double doubleF;
 
-  @TblField("TIME_F")
+  @Column("TIME_F")
   private Date timeF;
 
-  @TblField("DATE_F")
+  @Column("DATE_F")
   private Date dateF;
 
-  @TblField("TIMESTAMP_F")
+  @Column("TIMESTAMP_F")
   private Date timestampF;
 
-  @TblField("DATETIME_F")
+  @Column("DATETIME_F")
   private Date datetimeF;
 
-  @TblField("VARCHAR_F")
+  @Column("VARCHAR_F")
   private String varcharF;
 
-  @TblField("NAME_MISMATCH_F")
+  @Column("NAME_MISMATCH_F")
   private String nameMismatchF;
 
-  @TblField("CHAR_F")
+  @Column("CHAR_F")
   private String charF;
 
-  @TblField("UUID_F")
+  @Column("UUID_F")
   private UUID uuidF;
 
   public TestGenH2(){
@@ -1356,6 +1368,10 @@ public class TestGenH2 implements Serializable {
     this.uuidF = uuidF;
   }
 
+  public static Builder builder(){
+    return new Builder();
+  }
+
   public static final class Builder {
     private Long id;
     private Integer intF;
@@ -1478,71 +1494,71 @@ public class TestGenH2 implements Serializable {
 
 import java.io.Serializable;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 import java.util.Date;
 import java.util.UUID;
 
 @Table("test_gen_hsqldb")
 public class TestGenHsqlDb implements Serializable {
 
-  @TblField("ID")
+  @Column("ID")
   private Integer id;
 
-  @TblField("TINYINT_F")
+  @Column("TINYINT_F")
   private Integer tinyintF;
 
-  @TblField("SMALLINT_F")
+  @Column("SMALLINT_F")
   private Integer smallintF;
 
-  @TblField("INTEGER_F")
+  @Column("INTEGER_F")
   private Integer integerF;
 
-  @TblField("BIGINT_F")
+  @Column("BIGINT_F")
   private Long bigintF;
 
-  @TblField("REAL_F")
+  @Column("REAL_F")
   private Double realF;
 
-  @TblField("FLOAT_F")
+  @Column("FLOAT_F")
   private Double floatF;
 
-  @TblField("DOUBLE_F")
+  @Column("DOUBLE_F")
   private Double doubleF;
 
-  @TblField("DECIMAL_F")
+  @Column("DECIMAL_F")
   private Double decimalF;
 
-  @TblField("NUMERIC_F")
+  @Column("NUMERIC_F")
   private Double numericF;
 
-  @TblField("BOOLEAN_F")
+  @Column("BOOLEAN_F")
   private Boolean booleanF;
 
-  @TblField("DATETIME_F")
+  @Column("DATETIME_F")
   private Date datetimeF;
 
-  @TblField("TIMESTAMP_F")
+  @Column("TIMESTAMP_F")
   private Date timestampF;
 
-  @TblField("DATE_F")
+  @Column("DATE_F")
   private Date dateF;
 
-  @TblField("TIME_F")
+  @Column("TIME_F")
   private Date timeF;
 
-  @TblField("CHAR_F")
+  @Column("CHAR_F")
   private String charF;
 
-  @TblField("VARCHAR_F")
+  @Column("VARCHAR_F")
   private String varcharF;
 
-  @TblField("NAME_MISMATCH_F")
+  @Column("NAME_MISMATCH_F")
   private String nameMismatchF;
 
-  @TblField("LONGVARCHAR_F")
+  @Column("LONGVARCHAR_F")
   private String longvarcharF;
 
-  @TblField("UUID_F")
+  @Column("UUID_F")
   private UUID uuidF;
 
   public TestGenHsqlDb(){
@@ -1732,6 +1748,10 @@ public class TestGenHsqlDb implements Serializable {
     this.uuidF = uuidF;
   }
 
+  public static Builder builder(){
+    return new Builder();
+  }
+
   public static final class Builder {
     private Integer id;
     private Integer tinyintF;
@@ -1866,24 +1886,24 @@ public class TestGenHsqlDb implements Serializable {
 
 import java.io.Serializable;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 
 @Table("test_gen_sqlite")
 public class TestGenSQLite implements Serializable {
 
-  @TblField("id")
+  @Column("id")
   private Long id;
 
-  @TblField("text_f")
+  @Column("text_f")
   private String textF;
 
-  @TblField("name_mismatch_f")
+  @Column("name_mismatch_f")
   private String nameMismatchF;
 
-  @TblField("real_f")
+  @Column("real_f")
   private Double realF;
 
-  @TblField("numeric_f")
+  @Column("numeric_f")
   private Double numericF;
 
   public TestGenSQLite(){
@@ -1936,6 +1956,10 @@ public class TestGenSQLite implements Serializable {
 
   public void setNumericF( Double numericF ) {
     this.numericF = numericF;
+  }
+
+  public static Builder builder(){
+    return new Builder();
   }
 
   public static final class Builder {

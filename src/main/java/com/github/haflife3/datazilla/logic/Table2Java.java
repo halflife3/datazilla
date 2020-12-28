@@ -1,7 +1,7 @@
 package com.github.haflife3.datazilla.logic;
 
+import com.github.haflife3.datazilla.annotation.Column;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
 import com.github.haflife3.datazilla.dialect.regulate.DefaultEntityRegulator;
 import com.github.haflife3.datazilla.dialect.regulate.EntityRegulator;
 import com.github.haflife3.datazilla.dialect.typemapping.DefaultTypeMapper;
@@ -186,18 +186,21 @@ public class Table2Java {
         if(meta.isLombokMode()){
             importPartSet.add("lombok.Data");
         }
-        String importPart = "import java.io.Serializable;\nimport "+ Table.class.getCanonicalName()+";\n";
+        StringBuilder importPart = new StringBuilder("import java.io.Serializable;\nimport " + Table.class.getCanonicalName() + ";\n");
         if(!meta.isAutoColumnDetection()) {
-            importPart += "import " + TblField.class.getCanonicalName() + ";\n";
+            importPart.append("import ").append(Column.class.getCanonicalName()).append(";\n");
         }
-        String fieldsPart = "";
-        String getSetPart = "";
+        StringBuilder fieldsPart = new StringBuilder();
+        StringBuilder getSetPart = new StringBuilder();
 
         String noArgConstructor = "  public "+className+"(){\n  }\n";
-        String builderConstructor = "  private "+className+"(Builder builder) {\n";
+        StringBuilder builderConstructor = new StringBuilder("  private " + className + "(Builder builder) {\n");
+        String staticBuilderMethod = "  public static Builder builder(){\n" +
+            "    return new Builder();\n" +
+            "  }\n\n";
         String builderClass = "  public static final class Builder {\n";
-        String builderFieldsPart = "";
-        String builderGetSetPart = "";
+        StringBuilder builderFieldsPart = new StringBuilder();
+        StringBuilder builderGetSetPart = new StringBuilder();
 
         for (ColumnMeta columnMeta : metas) {
             String name = columnMeta.getName();
@@ -215,26 +218,26 @@ public class Table2Java {
             if(javaType.contains(".")){
                 importPartSet.add(javaType);
             }
-            fieldsPart += "\n";
+            fieldsPart.append("\n");
             if(StringUtils.isNotBlank(comment)) {
-                fieldsPart += "  /** " + comment + " */\n";
+                fieldsPart.append("  /** ").append(comment).append(" */\n");
             }
             if(!meta.isAutoColumnDetection()) {
-                fieldsPart += "  @TblField(\"" + name + "\")\n";
+                fieldsPart.append("  @Column(\"").append(name).append("\")\n");
             }
-            fieldsPart += "  private "+simpleJavaType+" "+javaVarName+";\n";
-            builderFieldsPart += "    private "+simpleJavaType+" "+javaVarName+";\n";
-            getSetPart += "  public "+simpleJavaType+" get"+ StringUtils.capitalize(javaVarName)+"() {\n    return "+javaVarName+";\n  }\n\n";
-            getSetPart += "  public void set"+ StringUtils.capitalize(javaVarName)+"( "+simpleJavaType+" "+javaVarName+" ) {\n    this."+javaVarName+" = "+javaVarName+";\n  }\n\n";
+            fieldsPart.append("  private ").append(simpleJavaType).append(" ").append(javaVarName).append(";\n");
+            builderFieldsPart.append("    private ").append(simpleJavaType).append(" ").append(javaVarName).append(";\n");
+            getSetPart.append("  public ").append(simpleJavaType).append(" get").append(StringUtils.capitalize(javaVarName)).append("() {\n    return ").append(javaVarName).append(";\n  }\n\n");
+            getSetPart.append("  public void set").append(StringUtils.capitalize(javaVarName)).append("( ").append(simpleJavaType).append(" ").append(javaVarName).append(" ) {\n    this.").append(javaVarName).append(" = ").append(javaVarName).append(";\n  }\n\n");
 
-            builderGetSetPart+="    public Builder "+javaVarName+"("+simpleJavaType+" "+javaVarName+") {\n";
-            builderGetSetPart+="      this."+javaVarName+" = "+javaVarName+";\n";
-            builderGetSetPart+="      return this;\n";
-            builderGetSetPart+="    }\n\n";
+            builderGetSetPart.append("    public Builder ").append(javaVarName).append("(").append(simpleJavaType).append(" ").append(javaVarName).append(") {\n");
+            builderGetSetPart.append("      this.").append(javaVarName).append(" = ").append(javaVarName).append(";\n");
+            builderGetSetPart.append("      return this;\n");
+            builderGetSetPart.append("    }\n\n");
 
-            builderConstructor+="    set"+ StringUtils.capitalize(javaVarName)+"(builder."+javaVarName+");\n";
+            builderConstructor.append("    set").append(StringUtils.capitalize(javaVarName)).append("(builder.").append(javaVarName).append(");\n");
         }
-        builderConstructor +="  }\n\n";
+        builderConstructor.append("  }\n\n");
 
         builderClass += builderFieldsPart+"\n";
         builderClass += "    public Builder() {}\n\n";
@@ -245,7 +248,7 @@ public class Table2Java {
         builderClass += "  }\n";
 
         for (String importType : importPartSet) {
-            importPart += "import "+importType+";\n";
+            importPart.append("import ").append(importType).append(";\n");
         }
 
         beanContent += packagePart+"\n";
@@ -267,6 +270,7 @@ public class Table2Java {
             beanContent += noArgConstructor + "\n";
             beanContent += builderConstructor + "\n";
             beanContent += getSetPart;
+            beanContent += staticBuilderMethod;
             beanContent += builderClass;
         }
 //        beanContent += tableNamePart;
@@ -289,7 +293,7 @@ public class Table2Java {
     private static String getTableComment(DatabaseMetaData md , String table) throws Exception {
         String comment = "";
         table = entityRegulator.simpleTable(table);
-        String catalog = StringUtils.isNotBlank(meta.getDatabase())? meta.getDatabase():md.getConnection().getCatalog();
+        String catalog = StringUtils.isNotBlank(meta.getCatalog())? meta.getCatalog():md.getConnection().getCatalog();
         ResultSet resultSet = md.getTables(catalog, null, table, null);
         while (resultSet.next()) {
             String tableName = resultSet.getString("TABLE_NAME");
@@ -305,7 +309,7 @@ public class Table2Java {
     private static List<ColumnMeta> getColumnMeta(DatabaseMetaData md , String table) throws Exception {
         List<ColumnMeta> metas = new ArrayList<>();
         table = entityRegulator.simpleTable(table);
-        String catalog = StringUtils.isNotBlank(meta.getDatabase())? meta.getDatabase():md.getConnection().getCatalog();
+        String catalog = StringUtils.isNotBlank(meta.getCatalog())? meta.getCatalog():md.getConnection().getCatalog();
         ResultSet resultSet = md.getColumns(catalog, null, table, null);
         while (resultSet.next()) {
             String name = resultSet.getString("COLUMN_NAME");

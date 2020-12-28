@@ -1,6 +1,6 @@
 {
   "driver":"com.mysql.jdbc.Driver",
-  "database":"",
+  "catalog":"",
   "dbUrl":"jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useInformationSchema=true",
   "dbUser":"root",
   "dbPass":"",

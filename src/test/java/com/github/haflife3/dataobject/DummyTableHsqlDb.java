@@ -1,7 +1,7 @@
 package com.github.haflife3.dataobject;
 
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
+import com.github.haflife3.datazilla.annotation.Column;
 import lombok.Data;
 import uk.co.jemos.podam.common.*;
 
@@ -14,78 +14,78 @@ import java.util.UUID;
 public class DummyTableHsqlDb extends DummyTable implements Serializable {
 
   @PodamExclude
-  @TblField("ID")
+  @Column("ID")
   private Integer id;
 
   @PodamIntValue(maxValue = 5)
-  @TblField("TINYINT_F")
+  @Column("TINYINT_F")
   private Integer tinyintF;
 
   @PodamIntValue(maxValue = 10)
-  @TblField("SMALLINT_F")
+  @Column("SMALLINT_F")
   private Integer smallintF;
 
   @PodamIntValue(minValue = 1,maxValue = 10000)
-  @TblField("INTEGER_F")
+  @Column("INTEGER_F")
   private Integer integerF;
 
   @PodamLongValue(maxValue = 999999)
-  @TblField("BIGINT_F")
+  @Column("BIGINT_F")
   private Long bigintF;
 
   @PodamDoubleValue(maxValue = 9999.0)
-  @TblField("REAL_F")
+  @Column("REAL_F")
   private Double realF;
 
   @PodamDoubleValue(maxValue = 9999.0)
-  @TblField("FLOAT_F")
+  @Column("FLOAT_F")
   private Double floatF;
 
   @PodamDoubleValue(maxValue = 99999.0)
-  @TblField("DOUBLE_F")
+  @Column("DOUBLE_F")
   private Double doubleF;
 
   @PodamDoubleValue(maxValue = 99999.0)
-  @TblField("DECIMAL_F")
+  @Column("DECIMAL_F")
   private Double decimalF;
 
   @PodamDoubleValue(maxValue = 99999.0)
-  @TblField("NUMERIC_F")
+  @Column("NUMERIC_F")
   private Double numericF;
 
   @PodamBooleanValue
-  @TblField("BOOLEAN_F")
+  @Column("BOOLEAN_F")
   private Boolean booleanF;
 
-  @TblField("DATETIME_F")
+  @Column("DATETIME_F")
   private Date datetimeF;
 
-  @TblField("TIMESTAMP_F")
+  @Column("TIMESTAMP_F")
   private Date timestampF;
 
-  @TblField("DATE_F")
+  @Column("DATE_F")
   private Date dateF;
 
-  @TblField("TIME_F")
+  @Column("TIME_F")
   private Date timeF;
 
   @PodamCharValue(maxValue = 'Z')
-  @TblField("CHAR_F")
+  @Column("CHAR_F")
   private String charF;
 
   @PodamStringValue(length = 5)
-  @TblField("VARCHAR_F")
+  @Column("VARCHAR_F")
   private String varcharF;
 
   @PodamStringValue(length = 5)
-  @TblField("name_mismatch_f")
+  @Column("name_mismatch_f")
   private String mismatchedName;
 
   @PodamStringValue(length = 100)
-  @TblField("LONGVARCHAR_F")
+  @Column("LONGVARCHAR_F")
   private String longvarcharF;
 
-  @TblField("UUID_F")
+  @Column("UUID_F")
   private UUID uuidF;
 
 }

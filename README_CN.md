@@ -72,19 +72,19 @@ CREATE TABLE IF NOT EXISTS `dummy`  (
 @Table("dummy")
 public class Dummy implements Serializable {
 
-  @TblField("id")
+  @Column("id")
   private Long id;
 
-  @TblField("int_f")
+  @Column("int_f")
   private Integer intF;
 
-  @TblField("decimal_f")
+  @Column("decimal_f")
   private Double decimalF;
 
-  @TblField("dateTime_f")
+  @Column("dateTime_f")
   private Date datetimeF;
 
-  @TblField("varchar_f")
+  @Column("varchar_f")
   private String varcharF;
 
   // getter setter omitted...
@@ -289,9 +289,9 @@ select * from dummy where id > ?  -- values: [0]
 ```
 
 ### 自动表字段匹配
-如果表字段和Java的实例变量符合[特定的规则](#匹配规则),那就可以在`@Table`标签里设置`autoColumnDetection = true`来实现自动匹配, 这样我们就不必在每个Java字段前用`@TblField`标签了.
+如果表字段和Java的实例变量符合[特定的规则](#匹配规则),那就可以在`@Table`标签里设置`autoColumnDetection = true`来实现自动匹配, 这样我们就不必在每个Java字段前用`@Column`标签了.
 
-**`提示:`** `@TblField` 的优先级仍旧高于 `autoColumnDetection`.
+**`提示:`** `@Column` 的优先级仍旧高于 `autoColumnDetection`.
 #### 匹配规则
 不区分大小写, 忽略下划线.
 

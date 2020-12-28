@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface TblField {
+public @interface Column {
     /**
      * As the canonical table field name, the bean field name will apply should this value be empty.
      */
@@ -17,5 +17,5 @@ public @interface TblField {
     /**
      * Used to compose sql, the above value(or bean field name if value itself is empty) will be used if empty.
      */
-    String customField() default "";
+    String customValue() default "";
 }

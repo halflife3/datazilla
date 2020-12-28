@@ -74,19 +74,19 @@ CREATE TABLE IF NOT EXISTS `dummy`  (
 @Table("dummy")
 public class Dummy implements Serializable {
 
-  @TblField("id")
+  @Column("id")
   private Long id;
 
-  @TblField("int_f")
+  @Column("int_f")
   private Integer intF;
 
-  @TblField("decimal_f")
+  @Column("decimal_f")
   private Double decimalF;
 
-  @TblField("dateTime_f")
+  @Column("dateTime_f")
   private Date datetimeF;
 
-  @TblField("varchar_f")
+  @Column("varchar_f")
   private String varcharF;
 
   // getter setter omitted...
@@ -291,9 +291,9 @@ select * from dummy where id > ?  -- values: [0]
 ```
 
 ### auto column detection
-If table column names and corresponding Java field names meet a [certain pattern](#match-pattern), they can be automatically paired by adding this configuration(`autoColumnDetection = true`) to `@Table` annotation, and no longer we have to add `@TblField` on each Java field.
+If table column names and corresponding Java field names meet a [certain pattern](#match-pattern), they can be automatically paired by adding this configuration(`autoColumnDetection = true`) to `@Table` annotation, and no longer we have to add `@Column` on each Java field.
 
-**`TIP:`** `@TblField` can still take precedence over `autoColumnDetection`.
+**`TIP:`** `@Column` can still take precedence over `autoColumnDetection`.
 #### match pattern:
 case-insensitive and underscore ignored
 
@@ -330,7 +330,6 @@ Manually compose Java Bean files from database table definition can be both tedi
 
 Place a file named "Table2JavaMeta.json" (see below) inside your project's root directory, execute the main method inside `Table2Java.java`, and the Java files will be generated at this location: \[your project root/\<srcRoot\>/\<domainPackage\>\]. Based on the example json below, a file named "Dummy.java" can be located at "your project root/src/test/java/com/github/haflife3/dataobject/Dummy.java" after a successful generation.
 
-**`TIP:`** An IntelliJ IDEA plugin is also available: [table2java](https://plugins.jetbrains.com/plugin/14850-table2java/)
 
 `Table2JavaMeta.json`
 ```json

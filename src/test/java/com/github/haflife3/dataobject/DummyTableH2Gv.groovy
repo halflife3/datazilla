@@ -1,7 +1,7 @@
 package com.github.haflife3.dataobject
 
 import com.github.haflife3.datazilla.annotation.Table
-import com.github.haflife3.datazilla.annotation.TblField
+import com.github.haflife3.datazilla.annotation.Column
 import uk.co.jemos.podam.common.*
 
 @Table("DUMMY_TABLE")
@@ -9,83 +9,83 @@ class DummyTableH2Gv extends DummyTable implements Serializable{
 
     /**  */
     @PodamExclude
-    @TblField("ID")
+    @Column("ID")
     private Long id
 
     /**  */
     @PodamIntValue(maxValue = 10)
-    @TblField("INT_F")
+    @Column("INT_F")
     private Integer intF
 
     /**  */
     @PodamIntValue(maxValue = 50)
-    @TblField("INTEGER_F")
+    @Column("INTEGER_F")
     private Integer integerF
 
     /**  */
-    @TblField("BOOLEAN_F")
+    @Column("BOOLEAN_F")
     private Boolean booleanF
 
     /**  */
-    @TblField("BIT_F")
+    @Column("BIT_F")
     private Boolean bitF
 
     /**  */
     @PodamIntValue(maxValue = 5)
-    @TblField("TINYINT_F")
+    @Column("TINYINT_F")
     private Byte tinyintF
 
     /**  */
     @PodamIntValue(maxValue = 10)
-    @TblField("SMALLINT_F")
+    @Column("SMALLINT_F")
     private Short smallintF
 
     /**  */
     @PodamIntValue(minValue = 2000,maxValue = 2090)
-    @TblField("YEAR_F")
+    @Column("YEAR_F")
     private Short yearF
 
     /**  */
-    @TblField("DECIMAL_F")
+    @Column("DECIMAL_F")
     private BigDecimal decimalF
 
     /**  */
     @PodamDoubleValue(maxValue = 999.0D)
-    @TblField("DOUBLE_F")
+    @Column("DOUBLE_F")
     private Double doubleF
 
     /**  */
-    @TblField("TIME_F")
+    @Column("TIME_F")
     private Date timeF
 
     /**  */
-    @TblField("DATE_F")
+    @Column("DATE_F")
     private Date dateF
 
     /**  */
-    @TblField("TIMESTAMP_F")
+    @Column("TIMESTAMP_F")
     private Date timestampF
 
     /**  */
-    @TblField("DATETIME_F")
+    @Column("DATETIME_F")
     private Date datetimeF
 
     /**  */
     @PodamStringValue(length = 5)
-    @TblField("VARCHAR_F")
+    @Column("VARCHAR_F")
     private String varcharF
 
     @PodamStringValue(length = 5)
-    @TblField("name_mismatch_f")
+    @Column("name_mismatch_f")
     private String mismatchedName
 
     /**  */
     @PodamCharValue
-    @TblField("CHAR_F")
+    @Column("CHAR_F")
     private String charF
 
     /**  */
-    @TblField("UUID_F")
+    @Column("UUID_F")
     private UUID uuidF
 
     Long getId() {

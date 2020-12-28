@@ -2,8 +2,8 @@ package com.github.haflife3.datazilla.logic;
 
 import com.github.haflife3.datazilla.CoreRunner;
 import com.github.haflife3.datazilla.QueryEntry;
+import com.github.haflife3.datazilla.annotation.Column;
 import com.github.haflife3.datazilla.annotation.Table;
-import com.github.haflife3.datazilla.annotation.TblField;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.MiscUtil;
 import org.apache.commons.collections.MapUtils;
@@ -36,13 +36,13 @@ public class TableObjectMetaCache {
         List<String> colNames = coreRunner.getColNames(table.value());
         List<Field> fields = MiscUtil.getAllFields(tableClass);
         for (Field field : fields) {
-            TblField tblField = field.getAnnotation(TblField.class);
+            Column column = field.getAnnotation(Column.class);
             String fieldName = field.getName();
             String regulatedFieldName = fieldName.replace("_", "").toLowerCase();
-            if(tblField!=null){
-                String colName4SqlCompose = StringUtils.isNotBlank(tblField.customField())?tblField.customField():
-                        (StringUtils.isNotBlank(tblField.value())?tblField.value():fieldName);
-                String colName4FieldMapping = StringUtils.isNotBlank(tblField.value())?tblField.value():fieldName;
+            if(column!=null){
+                String colName4SqlCompose = StringUtils.isNotBlank(column.customValue())?column.customValue():
+                        (StringUtils.isNotBlank(column.value())?column.value():fieldName);
+                String colName4FieldMapping = StringUtils.isNotBlank(column.value())?column.value():fieldName;
                 fieldToColumnMap.put(fieldName,colName4SqlCompose);
                 columnToFieldMap.put(colName4FieldMapping.toLowerCase(),fieldName);
             }else {
