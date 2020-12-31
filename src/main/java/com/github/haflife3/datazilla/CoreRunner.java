@@ -129,20 +129,28 @@ public class CoreRunner {
         return genericQry(sql,new BeanListHandler<>(clazz,new BasicRowProcessor(MoreGenerousBeanProcessorFactory.populateBeanProcessor(clazz))),values);
     }
 
-    public <T> List<T> genericQry(String sql, ResultSetHandler<List<T>> resultSetHandler, Object[] values)  {
-        List<T> list;
+    public <T> T genericQry(String sql, ResultSetHandler<T> resultSetHandler, Object[] values)  {
+        T result;
         try {
             sql = getIdSql(sql);
             long start = System.currentTimeMillis();
-            list = queryRunner.query(sql,resultSetHandler,values);
+            result = queryRunner.query(sql,resultSetHandler,values);
             long end = System.currentTimeMillis();
-            log(sql,values,list,"RESULT-SIZE",(end-start));
+            String outputDenote = "";
+            if(result!=null){
+                if(result instanceof List){
+                    outputDenote = "RESULT-SIZE";
+                }else {
+                    outputDenote = "OUTPUT";
+                }
+            }
+            log(sql,values,result,outputDenote,(end-start));
         } catch (SQLException e) {
             throw new DBException(e);
         }finally {
             ExtraParamInjector.unsetSqlId();
         }
-        return list;
+        return result;
     }
 
     public List<Map<String, Object>> genericQry(String sql, Object[] values){

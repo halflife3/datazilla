@@ -80,7 +80,7 @@ public class QueryEntry {
     }
 
 
-    public <T> List<T> genericQry(String sql, ResultSetHandler<List<T>> resultSetHandler, Object... values) {
+    public <T> T genericQry(String sql, ResultSetHandler<T> resultSetHandler, Object... values) {
         return coreRunner.genericQry(sql, resultSetHandler, values);
     }
 
