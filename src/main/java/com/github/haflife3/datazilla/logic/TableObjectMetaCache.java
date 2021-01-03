@@ -3,6 +3,7 @@ package com.github.haflife3.datazilla.logic;
 import com.github.haflife3.datazilla.CoreRunner;
 import com.github.haflife3.datazilla.QueryEntry;
 import com.github.haflife3.datazilla.annotation.Column;
+import com.github.haflife3.datazilla.annotation.Primary;
 import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.misc.DBException;
 import com.github.haflife3.datazilla.misc.MiscUtil;
@@ -10,6 +11,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,14 +20,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TableObjectMetaCache {
     private final static Map<String, Map<String,String>> fieldToColumnClassMap = new ConcurrentHashMap<>();
     private final static Map<String, Map<String,String>> columnToFieldClassMap = new ConcurrentHashMap<>();
+    private final static Map<String, List<String>> primaryFieldsMap = new ConcurrentHashMap<>();
 
     public static void initTableObjectMeta(Class<?> tableClass, QueryEntry queryEntry){
         initTableObjectMeta(tableClass,queryEntry.getCoreRunner());
     }
     public static void initTableObjectMeta(Class<?> tableClass, CoreRunner coreRunner){
+        String className = tableClass.getName();
         Table table = tableClass.getAnnotation(Table.class);
         if(table==null){
-            throw new DBException("Init Table Meta failed: tableClass:"+tableClass.getName()+" has no @Table annotation!");
+            throw new DBException("Init Table Meta failed: tableClass:"+ className +" has no @Table annotation!");
         }
         if(metaInitComplete(tableClass)){
             return;
@@ -33,9 +37,11 @@ public class TableObjectMetaCache {
         boolean autoColumnDetection = table.autoColumnDetection();
         Map<String,String> fieldToColumnMap = new HashMap<>();
         Map<String,String> columnToFieldMap = new HashMap<>();
+        List<String> primaryFields = new ArrayList<>();
         List<String> colNames = coreRunner.getColNames(table.value());
         List<Field> fields = MiscUtil.getAllFields(tableClass);
         for (Field field : fields) {
+            // parsing Column info
             Column column = field.getAnnotation(Column.class);
             String fieldName = field.getName();
             String regulatedFieldName = fieldName.replace("_", "").toLowerCase();
@@ -56,12 +62,19 @@ public class TableObjectMetaCache {
                     });
                 }
             }
+            // parsing Primary info
+            Primary primary = field.getAnnotation(Primary.class);
+            if(primary!=null){
+                primaryFields.add(fieldName);
+            }
+
         }
+        primaryFieldsMap.put(className,primaryFields);
         if(MapUtils.isNotEmpty(fieldToColumnMap)){
-            fieldToColumnClassMap.put(tableClass.getName(),fieldToColumnMap);
+            fieldToColumnClassMap.put(className,fieldToColumnMap);
         }
         if(MapUtils.isNotEmpty(columnToFieldMap)){
-            columnToFieldClassMap.put(tableClass.getName(),columnToFieldMap);
+            columnToFieldClassMap.put(className,columnToFieldMap);
         }
     }
 
@@ -75,5 +88,9 @@ public class TableObjectMetaCache {
 
     public static Map<String,String> getColumnToFieldMap(Class<?> tableClass){
         return columnToFieldClassMap.get(tableClass.getName());
+    }
+
+    public static Map<String, List<String>> getPrimaryFieldsMap() {
+        return primaryFieldsMap;
     }
 }
