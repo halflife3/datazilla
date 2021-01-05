@@ -1,5 +1,6 @@
 package com.github.haflife3.datazilla;
 
+import com.github.haflife3.datazilla.annotation.Primary;
 import com.github.haflife3.datazilla.logic.SqlBuilder;
 import com.github.haflife3.datazilla.logic.TableLoc;
 import com.github.haflife3.datazilla.logic.TableObjectMetaCache;
@@ -94,10 +95,15 @@ public class QueryEntry {
                     .targetTable(table)
                     .conditionAndList(combineConds(conds, ExtraParamInjector.getExtraConds()))
                     .build();
+            boolean noCond = CollectionUtils.isEmpty(delCond.getConditionAndList());
+            if(noCond&&!ExtraParamInjector.emptyUpdateCondAllowed()){
+                throw new DBException("Delete without condition! This restriction can be suppressed by ExtraParamInjector.allowEmptyUpdateCond()");
+            }
             SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeDelete(delCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(), sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
+            ExtraParamInjector.unsetEmptyUpdateCondRestriction();
         }
     }
 
@@ -280,55 +286,30 @@ public class QueryEntry {
         return batchInsert(100, records);
     }
 
-    public int persist(Object record, List<Cond> conds) {
-        if (CollectionUtils.isEmpty(conds)) {
-            throw new DBException("conditions can't be empty for persist");
-        }
-        String sqlId = ExtraParamInjector.getSqlId();
-        int num = 0;
-        num = updateSelective(record, conds);
-        if (num == 0) {
-            ExtraParamInjector.sqlId(sqlId);
-            num = insert(record);
-        }
-        return num;
-    }
-
-    public <E> int persist(Object record, CondCrafter<E> condCrafter, E primalCond) {
-        return persist(record, condCrafter.craft(primalCond));
-    }
-
-    public int persist(Object record, Cond... conds) {
-        return persist(record, Arrays::asList, conds);
-    }
-
-    public <T> int persistAutoCond(T record, T condObj) {
-        return persist(record, this::fromTableDomain, condObj);
-    }
-
-    public int updateSelective(String table, Map<String, Object> updateValueMap, List<Cond> conds) {
+    public int update(String table, Map<String, Object> updateValueMap, List<Cond> conds) {
         try {
-            List<FieldValuePair> pairs = toFieldValuePair(updateValueMap);
+            List<FieldValuePair> pairs = toFullFieldValuePair(updateValueMap);
             UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
                     .targetTable(table)
                     .values2Update(pairs)
                     .conditionAndList(combineConds(conds, ExtraParamInjector.getExtraConds()))
                     .conditionOrList(ExtraParamInjector.getExtraOrConds())
                     .build();
+            boolean noCond = CollectionUtils.isEmpty(upCond.getConditionAndList()) && CollectionUtils.isEmpty(upCond.getConditionOrList());
+            if(noCond&&!ExtraParamInjector.emptyUpdateCondAllowed()){
+                throw new DBException("Update without condition! This restriction can be suppressed by ExtraParamInjector.allowEmptyUpdateCond()");
+            }
             SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
             return coreRunner.genericUpdate(sqlPreparedBundle.getSql(), sqlPreparedBundle.getValues());
         } finally {
             ExtraParamInjector.unsetExtraConds();
             ExtraParamInjector.unsetExtraOrConds();
+            ExtraParamInjector.unsetEmptyUpdateCondRestriction();
         }
     }
 
     public int updateSelective(String table, Object record, List<Cond> conds) {
-        return updateSelective(table, toFieldValueMap(record), conds);
-    }
-
-    public int updateSelective(Class<?> clazz, Map<String, Object> updateValueMap, Cond... conds) {
-        return updateSelective(TableLoc.findTableName(clazz), updateValueMap, Arrays.asList(conds));
+        return update(table, toFieldValueMap(record), conds);
     }
 
     public int updateSelective(Object record, List<Cond> conds) {
@@ -351,25 +332,38 @@ public class QueryEntry {
         return updateSelective(record, this::fromTableDomain, condObj);
     }
 
-    public int updateFull(String table, Map<String, Object> valueMap, List<Cond> conds) {
-        try {
-            List<FieldValuePair> pairs = toFullFieldValuePair(valueMap);
-            UpdateConditionBundle upCond = new UpdateConditionBundle.Builder()
-                    .targetTable(table)
-                    .values2Update(pairs)
-                    .conditionAndList(combineConds(conds, ExtraParamInjector.getExtraConds()))
-                    .conditionOrList(ExtraParamInjector.getExtraOrConds())
-                    .build();
-            SqlPreparedBundle sqlPreparedBundle = new SqlBuilder(coreRunner).composeUpdate(upCond);
-            return coreRunner.genericUpdate(sqlPreparedBundle.getSql(), sqlPreparedBundle.getValues());
-        } finally {
-            ExtraParamInjector.unsetExtraConds();
-            ExtraParamInjector.unsetExtraOrConds();
-        }
+    public int updateSelectiveByPrimary(Object record){
+        return update(TableLoc.findTableName(record.getClass()),toFieldValueMap(record,false),getPrimaryConds(record));
     }
 
-    public int updateFull(String table, Object record, List<Cond> conds, List<String> excludeColumns) {
-        Map<String, Object> map = toFullFieldValueMap(record);
+    public int persist(Object record, List<Cond> conds) {
+        if (CollectionUtils.isEmpty(conds)) {
+            throw new DBException("conditions can't be empty for persist");
+        }
+        String sqlId = ExtraParamInjector.getSqlId();
+        int num;
+        num = updateSelective(record, conds);
+        if (num == 0) {
+            ExtraParamInjector.sqlId(sqlId);
+            num = insert(record);
+        }
+        return num;
+    }
+
+    public <E> int persist(Object record, CondCrafter<E> condCrafter, E primalCond) {
+        return persist(record, condCrafter.craft(primalCond));
+    }
+
+    public int persist(Object record, Cond... conds) {
+        return persist(record, Arrays::asList, conds);
+    }
+
+    public <T> int persistAutoCond(T record, T condObj) {
+        return persist(record, this::fromTableDomain, condObj);
+    }
+
+    public int updateFull(String table, Object record, List<Cond> conds, List<String> excludeColumns, boolean includePrimary) {
+        Map<String, Object> map = toFullFieldValueMap(record,includePrimary);
         if (CollectionUtils.isNotEmpty(excludeColumns)) {
             List<String> lowercaseColNames = excludeColumns.stream().map(String::toLowerCase).collect(Collectors.toList());
             List<String> keys2Remove = new ArrayList<>();
@@ -380,19 +374,23 @@ public class QueryEntry {
             });
             keys2Remove.forEach(map::remove);
         }
-        return updateFull(table, map, conds);
+        return update(table, map, conds);
     }
 
-    public int updateFull(Object record, List<Cond> conds, List<String> excludeColumns) {
-        return updateFull(TableLoc.findTableName(record.getClass()), record, conds, excludeColumns);
+    public int updateFull(Object record, List<Cond> conds, String ... excludeColumns) {
+        return updateFull(TableLoc.findTableName(record.getClass()), record, conds, Arrays.asList(excludeColumns),true);
     }
 
-    public <E> int updateFull(Object record, CondCrafter<E> condCrafter, E primalCond, List<String> excludeColumns) {
+    public <E> int updateFull(Object record, CondCrafter<E> condCrafter, E primalCond, String ... excludeColumns) {
         return updateFull(record, condCrafter.craft(primalCond), excludeColumns);
     }
 
-    public <T> int updateFull(T record, T condObj, List<String> excludeColumns) {
+    public <T> int updateFull(T record, T condObj, String ... excludeColumns) {
         return updateFull(record, this::fromTableDomain, condObj, excludeColumns);
+    }
+
+    public int updateFullByPrimary(Object record, String ... excludeColumns){
+        return updateFull(TableLoc.findTableName(record.getClass()),record,getPrimaryConds(record),Arrays.asList(excludeColumns),false);
     }
 
     public boolean exist(Class<?> clazz, List<Cond> conds) {
@@ -408,6 +406,9 @@ public class QueryEntry {
     }
 
     public <T> boolean exist(T obj) {
+        if(obj instanceof Class){
+            return exist((Class<?>) obj,new ArrayList<>());
+        }
         return exist(obj.getClass(), this::fromTableDomain, obj);
     }
 
@@ -439,6 +440,9 @@ public class QueryEntry {
     }
 
     public <T> int count(T obj) {
+        if(obj instanceof Class){
+            return count((Class<?>) obj,new ArrayList<>());
+        }
         return count(obj.getClass(), this::fromTableDomain, obj);
     }
 
@@ -497,12 +501,6 @@ public class QueryEntry {
                 .collect(Collectors.toList());
     }
 
-    private List<FieldValuePair> toFieldValuePair(Map<String, Object> map) {
-        List<FieldValuePair> pairs = toFullFieldValuePair(map);
-        pairs.removeIf(pair -> pair.getValue() == null);
-        return pairs;
-    }
-
     private List<FieldValuePair> toFullFieldValuePair(Map<String, Object> map) {
         List<FieldValuePair> pairs = new ArrayList<>();
         if (MapUtils.isNotEmpty(map)) {
@@ -514,12 +512,20 @@ public class QueryEntry {
     }
 
     private Map<String, Object> toFieldValueMap(Object obj) {
-        Map<String, Object> fieldValueMap = toFullFieldValueMap(obj);
+        return toFieldValueMap(obj,true);
+    }
+
+    private Map<String, Object> toFieldValueMap(Object obj, boolean includePrimary) {
+        Map<String, Object> fieldValueMap = toFullFieldValueMap(obj,includePrimary);
         fieldValueMap.entrySet().removeIf(entry -> entry.getValue() == null);
         return fieldValueMap;
     }
 
     private Map<String, Object> toFullFieldValueMap(Object obj) {
+        return toFullFieldValueMap(obj,true);
+    }
+
+    private Map<String, Object> toFullFieldValueMap(Object obj, boolean includePrimary) {
         Map<String, Object> condMap = new LinkedHashMap<>();
         try {
             Class<?> tableClass = obj.getClass();
@@ -527,19 +533,51 @@ public class QueryEntry {
             List<Field> fields = MiscUtil.getAllFields(tableClass);
             Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(tableClass);
             for (Field field : fields) {
-                if (!field.isSynthetic()) {
-                    String fieldName = field.getName();
-                    if (!fieldToColumnMap.containsKey(fieldName)) {
+                String fieldName = field.getName();
+                if (field.isSynthetic()||!fieldToColumnMap.containsKey(fieldName)) {
+                    continue;
+                }
+                if(!includePrimary){
+                    boolean isPrimary = field.isAnnotationPresent(Primary.class);
+                    if (isPrimary){
                         continue;
                     }
-                    field.setAccessible(true);
-                    Object value = field.get(obj);
-                    condMap.put(fieldToColumnMap.get(fieldName), value);
                 }
+                field.setAccessible(true);
+                Object value = field.get(obj);
+                condMap.put(fieldToColumnMap.get(fieldName), value);
             }
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new DBException(e);
         }
         return condMap;
+    }
+
+    private List<Cond> getPrimaryConds(Object obj){
+        List<Cond> conds = new ArrayList<>();
+        try {
+            Class<?> tableClass = obj.getClass();
+            TableObjectMetaCache.initTableObjectMeta(tableClass, this);
+            List<String> primaryFields = TableObjectMetaCache.getPrimaryFields(tableClass);
+            if(CollectionUtils.isEmpty(primaryFields)){
+                return conds;
+            }
+            Map<String, String> fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(tableClass);
+            List<Field> fields = MiscUtil.getAllFields(tableClass);
+            for (Field field : fields) {
+                String fieldName = field.getName();
+                boolean isPrimary = field.isAnnotationPresent(Primary.class);
+                if (field.isSynthetic()||!isPrimary||!primaryFields.contains(fieldName)||!fieldToColumnMap.containsKey(fieldName)) {
+                    continue;
+                }
+                field.setAccessible(true);
+                Object value = field.get(obj);
+                conds.add(new Cond(fieldToColumnMap.get(fieldName),value));
+            }
+        } catch (Exception e) {
+            throw new DBException(e);
+        }
+
+        return conds;
     }
 }

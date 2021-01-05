@@ -1,5 +1,6 @@
 package com.github.haflife3.dataobject;
 
+import com.github.haflife3.datazilla.annotation.Primary;
 import com.github.haflife3.datazilla.annotation.Table;
 import com.github.haflife3.datazilla.annotation.Column;
 import lombok.Data;
@@ -13,6 +14,7 @@ import java.util.Date;
 public class DummyTableMsSqlAlt extends DummyTable implements Serializable {
 
   @PodamExclude
+  @Primary
   private Long id;
 
   @PodamBooleanValue

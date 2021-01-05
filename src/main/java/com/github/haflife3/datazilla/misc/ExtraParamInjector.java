@@ -50,6 +50,10 @@ public class ExtraParamInjector {
         }
     }
 
+    public static void allowEmptyUpdateCond(){
+        GeneralThreadLocal.set("allowEmptyUpdateCond", true);
+    }
+
     public static Integer getTotalCount(){
         return PagingInjector.getCount();
     }
@@ -70,6 +74,11 @@ public class ExtraParamInjector {
         return GeneralThreadLocal.get("extraOrConds");
     }
 
+    public static boolean emptyUpdateCondAllowed(){
+        Boolean allowEmptyUpdateCond = GeneralThreadLocal.get("allowEmptyUpdateCond");
+        return allowEmptyUpdateCond!=null&&allowEmptyUpdateCond;
+    }
+
     public static void unSet(){
         PagingInjector.unSet();
         GeneralThreadLocal.unset("selectColumns");
@@ -87,5 +96,9 @@ public class ExtraParamInjector {
 
     public static void unsetExtraOrConds(){
         GeneralThreadLocal.unset("extraOrConds");
+    }
+
+    public static void unsetEmptyUpdateCondRestriction(){
+        GeneralThreadLocal.unset("allowEmptyUpdateCond");
     }
 }

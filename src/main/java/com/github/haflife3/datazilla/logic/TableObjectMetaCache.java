@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TableObjectMetaCache {
     private final static Map<String, Map<String,String>> fieldToColumnClassMap = new ConcurrentHashMap<>();
     private final static Map<String, Map<String,String>> columnToFieldClassMap = new ConcurrentHashMap<>();
-    private final static Map<String, List<String>> primaryFieldsMap = new ConcurrentHashMap<>();
+    private final static Map<String, List<String>> primaryFieldsClassMap = new ConcurrentHashMap<>();
 
     public static void initTableObjectMeta(Class<?> tableClass, QueryEntry queryEntry){
         initTableObjectMeta(tableClass,queryEntry.getCoreRunner());
@@ -69,7 +69,7 @@ public class TableObjectMetaCache {
             }
 
         }
-        primaryFieldsMap.put(className,primaryFields);
+        primaryFieldsClassMap.put(className,primaryFields);
         if(MapUtils.isNotEmpty(fieldToColumnMap)){
             fieldToColumnClassMap.put(className,fieldToColumnMap);
         }
@@ -90,7 +90,7 @@ public class TableObjectMetaCache {
         return columnToFieldClassMap.get(tableClass.getName());
     }
 
-    public static Map<String, List<String>> getPrimaryFieldsMap() {
-        return primaryFieldsMap;
+    public static List<String> getPrimaryFields(Class<?> tableClass) {
+        return primaryFieldsClassMap.get(tableClass.getName());
     }
 }

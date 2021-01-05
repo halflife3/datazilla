@@ -1,5 +1,6 @@
 package com.github.haflife3.dataobject
 
+import com.github.haflife3.datazilla.annotation.Primary
 import com.github.haflife3.datazilla.annotation.Table
 import com.github.haflife3.datazilla.annotation.Column
 import uk.co.jemos.podam.common.PodamBooleanValue
@@ -14,6 +15,7 @@ import uk.co.jemos.podam.common.PodamStringValue
 class DummyTableMsSqlGv extends DummyTable implements Serializable{
 
     @PodamExclude
+    @Primary
     @Column("id")
     private Long id
 

@@ -84,10 +84,10 @@ class CommonTest {
         qe = new QueryEntry(CommonInfo.getDataSource(getDbType()),dbType)
         String createTableTemplate = CommonInfo.createTableMap.get(getDbType())
         String createTableSql = createTableTemplate.replace("TABLE_PLACEHOLDER",tableName())
-        ExtraParamInjector.sqlId("setup create table")
+        ExtraParamInjector.sqlId(verboseSqlId("setup create table"))
         qe.genericUpdate(createTableSql)
         String cleanUpSql = cleanUpSql().replace("TABLE_PLACEHOLDER",tableName())
-        ExtraParamInjector.sqlId("cleanUpSql")
+        ExtraParamInjector.sqlId(verboseSqlId("cleanUpSql"))
         qe.genericUpdate(cleanUpSql)
         logger.info '>>setup finish<<'
     }
@@ -96,7 +96,7 @@ class CommonTest {
     void cleanup(){
         logger.info '>>cleanup<<'
         String sql = dropTableSql().replace("TABLE_PLACEHOLDER",tableName())
-        ExtraParamInjector.sqlId("cleanup drop table")
+        ExtraParamInjector.sqlId(verboseSqlId("cleanup drop table"))
         qe.genericUpdate(sql)
         GeneralThreadLocal.unset()
         logger.info '>>cleanup finish<<'
@@ -107,9 +107,9 @@ class CommonTest {
         for(String testDbType in [getSetupDbType(), DialectConst.DEFAULT]){
             getRecordClass().each {
                 try {
+                    setCurrentClass(it)
                     setup(testDbType)
                     condBuild()
-                    setCurrentClass(it)
                     logger.info("************ ${getCurrentClass()} *************")
                     testDbType?:dbType()
                     tableMetas()
@@ -186,7 +186,7 @@ class CommonTest {
     void colNames(){
         logger.info ' -- colNames -- '
         Class<? extends DummyTable> clazz = getCurrentClass()
-        ExtraParamInjector.sqlId("colNames")
+        ExtraParamInjector.sqlId(verboseSqlId("colNames"))
         List<String> colNames = qe.getColNames(clazz)
         List<String> lowerColNames = new ArrayList<>()
         colNames.each {lowerColNames << it.toLowerCase()}
@@ -206,14 +206,14 @@ class CommonTest {
     void batchInsert(){
         logger.info ' -- batchInsert -- '
         List<? extends DummyTable> list = CommonTool.generateDummyRecords(getCurrentClass(),200)
-        ExtraParamInjector.sqlId("batchInsert")
+        ExtraParamInjector.sqlId(verboseSqlId("batchInsert"))
         def insertNum = qe.batchInsert(list)
         assert insertNum == 200
     }
 
     void typeMapping(){
         logger.info ' -- typeMapping -- '
-        ExtraParamInjector.sqlId("typeMapping")
+        ExtraParamInjector.sqlId(verboseSqlId("typeMapping"))
         qe.genericQry("select * from ${tableName()}",new ResultSetHandler<List<Void>>() {
             @Override
             List<Void> handle(ResultSet rs) throws SQLException {
@@ -235,7 +235,7 @@ class CommonTest {
 
     void queryAll(){
         logger.info ' -- queryAll -- '
-        ExtraParamInjector.sqlId("queryAll")
+        ExtraParamInjector.sqlId(verboseSqlId("queryAll"))
         ExtraParamInjector.offset(null,null,false,new OrderCond("id"))
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         assert list.size() == 200
@@ -244,20 +244,38 @@ class CommonTest {
 
     void count(){
         logger.info ' -- count -- '
-        ExtraParamInjector.sqlId("count step1")
+        ExtraParamInjector.sqlId(verboseSqlId("count step1"))
         assert qe.count(getCurrentClass().newInstance()) == 200
 
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
-        ExtraParamInjector.sqlId("count step2")
+        ExtraParamInjector.sqlId(verboseSqlId("count step2"))
         assert qe.count(getCurrentClass(),new Cond("id",id2Query)) == 1
+    }
+
+    void exist(){
+        logger.info ' -- exist -- '
+        ExtraParamInjector.sqlId(verboseSqlId("exist step1"))
+        assert qe.exist(getCurrentClass().newInstance())
+        ExtraParamInjector.sqlId(verboseSqlId("exist step2"))
+        assert qe.exist(getCurrentClass())
+        List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
+        def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
+        ExtraParamInjector.sqlId(verboseSqlId("exist step3"))
+        assert qe.exist(getCurrentClass(),new Cond("id",id2Query))
+        ExtraParamInjector.sqlId(verboseSqlId("exist step4"))
+        def maxId = qe.genericQry("select max(id) id from ${tableName()}").get(0).get('id')
+        def nonExistId = maxId+1
+        ExtraParamInjector.sqlId(verboseSqlId("exist step5"))
+        assert !qe.exist(getCurrentClass(),new Cond("id",nonExistId))
+        
     }
 
     void extraCondCount(){
         logger.info ' -- extraCondCount -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
-        ExtraParamInjector.sqlId("extraCondCount")
+        ExtraParamInjector.sqlId(verboseSqlId("extraCondCount"))
         ExtraParamInjector.addCond([new Cond("id",id2Query)])
         assert qe.count(getCurrentClass().newInstance()) == 1
     }
@@ -268,12 +286,12 @@ class CommonTest {
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Query = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         String sql = "select * from ${tableName()} where id = ?"
-        ExtraParamInjector.sqlId("genericQry4Map step1")
+        ExtraParamInjector.sqlId(verboseSqlId("genericQry4Map step1"))
         List<Map<String,Object>> result = qe.genericQry(sql,id2Query)
         assert result.size() == 1
         def search = clazz.newInstance()
         MiscUtil.setValue(search,"id",id2Query)
-        ExtraParamInjector.sqlId("genericQry4Map step2")
+        ExtraParamInjector.sqlId(verboseSqlId("genericQry4Map step2"))
         def objRecord = qe.searchObject(search)
         def mapRecord = result.get(0)
         def fields = MiscUtil.getAllFields(clazz)
@@ -302,15 +320,15 @@ class CommonTest {
         def search = getCurrentClass().newInstance()
         def id = MiscUtil.extractFieldValueFromObj(record,"id")
         search.setId(id)
-        ExtraParamInjector.sqlId("querySingleAndExist step1")
+        ExtraParamInjector.sqlId(verboseSqlId("querySingleAndExist step1"))
         def resultRecord = qe.searchObject(search)
         assert MiscUtil.extractFieldValueFromObj(resultRecord, "id") == id
 
-        ExtraParamInjector.sqlId("querySingleAndExist step2")
+        ExtraParamInjector.sqlId(verboseSqlId("querySingleAndExist step2"))
         def exist = qe.exist(search)
         assert exist
 
-        ExtraParamInjector.sqlId("querySingleAndExist step3")
+        ExtraParamInjector.sqlId(verboseSqlId("querySingleAndExist step3"))
         search.setId(-1)
         def notExist = !qe.exist(search)
         assert notExist
@@ -324,7 +342,7 @@ class CommonTest {
         def id = MiscUtil.extractFieldValueFromObj(record,"id")
         MiscUtil.setValue(search,"id",id)
         ExtraParamInjector.selectColumns("id")
-        ExtraParamInjector.sqlId("selectColumns")
+        ExtraParamInjector.sqlId(verboseSqlId("selectColumns"))
         def resultRecord = qe.searchObject(search)
         def mapObject = MiscUtil.mapObject(resultRecord)
         mapObject.each {
@@ -339,7 +357,7 @@ class CommonTest {
     void order(){
         logger.info ' -- order -- '
         ExtraParamInjector.order(new OrderCond("id","desc"))
-        ExtraParamInjector.sqlId("order")
+        ExtraParamInjector.sqlId(verboseSqlId("order"))
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         assert list.size() == 200
         def lastId = Integer.MAX_VALUE
@@ -353,7 +371,7 @@ class CommonTest {
     void paging(){
         logger.info ' -- paging -- '
         ExtraParamInjector.paging(1,10,true,new OrderCond("id","desc"))
-        ExtraParamInjector.sqlId("paging")
+        ExtraParamInjector.sqlId(verboseSqlId("paging"))
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         def count = ExtraParamInjector.totalCount
         assert list.size() == 10
@@ -369,7 +387,7 @@ class CommonTest {
     void paging4Map(){
         logger.info ' -- paging4Map -- '
         ExtraParamInjector.paging(1,10,true,new OrderCond("id","desc"))
-        ExtraParamInjector.sqlId("paging4Map")
+        ExtraParamInjector.sqlId(verboseSqlId("paging4Map"))
         List<Map<String,Object>> list = qe.findObjects(tableName(),[],Map.class)
         def count = ExtraParamInjector.totalCount
         assert list.size() == 10
@@ -385,12 +403,12 @@ class CommonTest {
     void offset(){
         logger.info ' -- offset -- '
         ExtraParamInjector.offset(0,10,false,new OrderCond("id","desc"))
-        ExtraParamInjector.sqlId("offset step1")
+        ExtraParamInjector.sqlId(verboseSqlId("offset step1"))
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         assert list.size() == 10
 
         ExtraParamInjector.offset(3,5,false,new OrderCond("id","desc"))
-        ExtraParamInjector.sqlId("offset step2")
+        ExtraParamInjector.sqlId(verboseSqlId("offset step2"))
         List<? extends DummyTable> otherList = qe.searchObjects(getCurrentClass().newInstance())
         assert otherList.size() == 5
 
@@ -402,14 +420,14 @@ class CommonTest {
 
     void nameMismatch(){
         logger.info ' -- nameMismatch -- '
-        ExtraParamInjector.sqlId("nameMismatch step1")
+        ExtraParamInjector.sqlId(verboseSqlId("nameMismatch step1"))
         List<? extends DummyTable> list = qe.searchObjects(getCurrentClass().newInstance())
         list.each {
             assert it.getMismatchedName()!=null
         }
         def search = getCurrentClass().newInstance()
         MiscUtil.setValue(search,"mismatchedName",list[0].getMismatchedName())
-        ExtraParamInjector.sqlId("nameMismatch step2")
+        ExtraParamInjector.sqlId(verboseSqlId("nameMismatch step2"))
         def result = qe.searchObject(search)
         assert result!=null
     }
@@ -421,7 +439,7 @@ class CommonTest {
         def search = getCurrentClass().newInstance()
         def id = MiscUtil.extractFieldValueFromObj(record,"id")
         ExtraParamInjector.addCond([new Cond("id",id)])
-        ExtraParamInjector.sqlId("extraCondQuery")
+        ExtraParamInjector.sqlId(verboseSqlId("extraCondQuery"))
         def result = qe.searchObject(search)
         assert result.getId() == id
     }
@@ -435,7 +453,7 @@ class CommonTest {
             new Cond("id","in", [121,122]),
             new Cond("id",new Null())
         ])
-        ExtraParamInjector.sqlId("orCondQuery")
+        ExtraParamInjector.sqlId(verboseSqlId("orCondQuery"))
         def result = qe.searchObjects(search)
         result.each {
             def id = it.getId()
@@ -458,13 +476,13 @@ class CommonTest {
             inCondList << entry.getId()
             inCondArr[i] = entry.getId()
         }
-        ExtraParamInjector.sqlId("moreQuery inCondList")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery inCondList"))
         List<? extends DummyTable> inListRt = qe.findObjects(getCurrentClass(),new Cond.Builder().columnName("id").compareOpr("in").value(inCondList).build())
-        ExtraParamInjector.sqlId("moreQuery inCondArr")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery inCondArr"))
         List<? extends DummyTable> inArrRt = qe.findObjects(getCurrentClass(),new Cond("id","in",inCondArr))
-        ExtraParamInjector.sqlId("moreQuery not inCondList")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery not inCondList"))
         List<? extends DummyTable> notInListRt = qe.findObjects(getCurrentClass(),new Cond.Builder().columnName("id").compareOpr("not in").value(inCondList).build())
-        ExtraParamInjector.sqlId("moreQuery not inCondArr")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery not inCondArr"))
         List<? extends DummyTable> notInArrRt = qe.findObjects(getCurrentClass(),new Cond("id","not in",inCondArr))
         assert inListRt.size()==10
         assert inArrRt.size()==10
@@ -482,13 +500,13 @@ class CommonTest {
         //test between and not between
         List btCondList = [idList10[0],idList10[9]]
         Object[] btCondArr = new Object[]{idList10[0],idList10[9]}
-        ExtraParamInjector.sqlId("moreQuery btCondList")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery btCondList"))
         List<? extends DummyTable> btListRt = qe.findObjects(getCurrentClass(),new Cond("id","between",btCondList))
-        ExtraParamInjector.sqlId("moreQuery btCondArr")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery btCondArr"))
         List<? extends DummyTable> btArrRt = qe.findObjects(getCurrentClass(),new Cond("id","between",btCondList))
-        ExtraParamInjector.sqlId("moreQuery not btCondList")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery not btCondList"))
         List<? extends DummyTable> notBtListRt = qe.findObjects(getCurrentClass(),new Cond("id","not between",btCondArr))
-        ExtraParamInjector.sqlId("moreQuery not btCondArr")
+        ExtraParamInjector.sqlId(verboseSqlId("moreQuery not btCondArr"))
         List<? extends DummyTable> notBtArrRt = qe.findObjects(getCurrentClass(),new Cond("id","not between",btCondArr))
         assert btListRt.size()==10
         assert btArrRt.size()==10
@@ -507,7 +525,7 @@ class CommonTest {
     void insertOne(){
         logger.info ' -- insertOne -- '
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
-        ExtraParamInjector.sqlId("insertOne")
+        ExtraParamInjector.sqlId(verboseSqlId("insertOne"))
         def insertNum = qe.insert(record)
         assert insertNum == 1
     }
@@ -517,10 +535,10 @@ class CommonTest {
         def clazz = getCurrentClass()
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(clazz, 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
-        ExtraParamInjector.sqlId("nullCond step1")
+        ExtraParamInjector.sqlId(verboseSqlId("nullCond step1"))
         qe.insert(record)
         ExtraParamInjector.offset(0,1,false,new OrderCond("id","desc"))
-        ExtraParamInjector.sqlId("nullCond step2")
+        ExtraParamInjector.sqlId(verboseSqlId("nullCond step2"))
         def result = qe.findObject(clazz, new Cond(nullField4Test()[1], new Null()))
         def fields = MiscUtil.getAllFields(clazz)
         fields.each {
@@ -539,16 +557,24 @@ class CommonTest {
         def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id2Update)
-        ExtraParamInjector.sqlId("updateSelective step1")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step1"))
         def origRecord = qe.searchObject(condObj)
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
-        ExtraParamInjector.sqlId("updateSelective step2")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step2"))
         def updateNum = qe.updateSelectiveAutoCond(record, condObj)
         assert updateNum == 1
-        ExtraParamInjector.sqlId("updateSelective step3")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step3"))
         def updatedRecord = qe.searchObject(condObj)
         assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step4"))
+        record.setId(id2Update)
+        updateNum = qe.updateSelectiveByPrimary(record)
+        assert updateNum == 1
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step5"))
+        updatedRecord = qe.searchObject(condObj)
+        assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
+
     }
 
     void extraCondUpdateSelective(){
@@ -557,15 +583,15 @@ class CommonTest {
         def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id2Update)
-        ExtraParamInjector.sqlId("updateSelective step1")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step1"))
         def origRecord = qe.searchObject(condObj)
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
-        ExtraParamInjector.sqlId("updateSelective step2")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step2"))
         ExtraParamInjector.addCond([new Cond("id",id2Update)])
         def updateNum = qe.updateSelective(record)
         assert updateNum == 1
-        ExtraParamInjector.sqlId("updateSelective step3")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelective step3"))
         def updatedRecord = qe.searchObject(condObj)
         assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
     }
@@ -574,24 +600,24 @@ class CommonTest {
         logger.info ' -- updateSelectiveByFieldOrColumn -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
-        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step1")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelectiveByFieldOrColumn step1"))
         def dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
         def condValue = MiscUtil.extractFieldValueFromObj(dbRecord,"mismatchedName")
         def record2Update = getCurrentClass().newInstance()
         MiscUtil.setValue(record2Update,"mismatchedName",condValue)
         MiscUtil.setValue(record2Update,nullField4Test()[0],"valueByField")
-        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step2")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelectiveByFieldOrColumn step2"))
         def updateNum = qe.updateSelectiveConcise(record2Update,"mismatchedName")
         assert updateNum == 1
-        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step3")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelectiveByFieldOrColumn step3"))
         dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
         assert MiscUtil.extractFieldValueFromObj(dbRecord,nullField4Test()[0]) == "valueByField"
 
         MiscUtil.setValue(record2Update,nullField4Test()[0],"valueByColumn")
-        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step4")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelectiveByFieldOrColumn step4"))
         updateNum = qe.updateSelectiveConcise(record2Update,"name_mismatch_f")
         assert updateNum == 1
-        ExtraParamInjector.sqlId("updateSelectiveByFieldOrColumn step5")
+        ExtraParamInjector.sqlId(verboseSqlId("updateSelectiveByFieldOrColumn step5"))
         dbRecord = qe.findObject(getCurrentClass(),new Cond("id",id))
         assert MiscUtil.extractFieldValueFromObj(dbRecord,nullField4Test()[0]) == "valueByColumn"
 
@@ -603,38 +629,52 @@ class CommonTest {
         def id2Update = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id2Update)
-        ExtraParamInjector.sqlId("updateFull step1")
+        ExtraParamInjector.sqlId(verboseSqlId("updateFull step1"))
         def origRecord = qe.searchObject(condObj)
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
         def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(getCurrentClass())
         String idCol = fieldToColumnMap.get('id')
-        ExtraParamInjector.sqlId("updateFull step2")
-        def updateNum = qe.updateFull(record, condObj,[idCol])
+        ExtraParamInjector.sqlId(verboseSqlId("updateFull step2"))
+        def updateNum = qe.updateFull(record, condObj,idCol)
         assert updateNum == 1
-        ExtraParamInjector.sqlId("updateFull step3")
+        ExtraParamInjector.sqlId(verboseSqlId("updateFull step3"))
         def updatedRecord = qe.searchObject(condObj)
         assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) != null
         assert MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0]) == null
+        ExtraParamInjector.sqlId(verboseSqlId("updateFull step4"))
+        updateNum = qe.update(tableName(),[(nullField4Test()[1]):'X'],[new Cond(idCol,id2Update)])
+        assert updateNum == 1
+        ExtraParamInjector.sqlId(verboseSqlId("updateFull step5"))
+        updatedRecord = qe.searchObject(condObj)
+        assert 'X' == MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0])
+        ExtraParamInjector.sqlId(verboseSqlId("updateFull step6"))
+        record.setId(id2Update)
+        updateNum = qe.updateFullByPrimary(record, idCol)
+        assert updateNum == 1
+        ExtraParamInjector.sqlId(verboseSqlId("updateFull step7"))
+        updatedRecord = qe.searchObject(condObj)
+        assert MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0]) == null
+
     }
 
     void extraCondUpdateFull(){
-        logger.info ' -- updateFull -- '
+        logger.info ' -- extraCondUpdateFull -- '
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Update = MiscUtil.extractFieldValueFromObj(list.get(1),"id")
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id2Update)
-        ExtraParamInjector.sqlId("updateFull step1")
+        ExtraParamInjector.sqlId(verboseSqlId("extraCondUpdateFull step1"))
         def origRecord = qe.searchObject(condObj)
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
         MiscUtil.setValue(record,nullField4Test()[0],null)
         def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(getCurrentClass())
         String idCol = fieldToColumnMap.get('id')
-        ExtraParamInjector.sqlId("updateFull step2")
+        ExtraParamInjector.sqlId(verboseSqlId("extraCondUpdateFull step2"))
         ExtraParamInjector.addCond([new Cond("id",id2Update)])
-        def updateNum = qe.updateFull(record, [],[idCol])
+        def updateNum = qe.updateFull(record, [], idCol)
         assert updateNum == 1
-        ExtraParamInjector.sqlId("updateFull step3")
+        ExtraParamInjector.sqlId(verboseSqlId("extraCondUpdateFull step3"))
         def updatedRecord = qe.searchObject(condObj)
         assert MiscUtil.extractFieldValueFromObj(origRecord,nullField4Test()[0]) != null
         assert MiscUtil.extractFieldValueFromObj(updatedRecord,nullField4Test()[0]) == null
@@ -643,26 +683,41 @@ class CommonTest {
     void persist(){
         logger.info ' -- persist -- '
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
-        def id = idInt()?1:System.currentTimeMillis()
+        def id = idInt()?1000000:System.currentTimeMillis()
         record.setId(null)
         def condObj = getCurrentClass().newInstance()
         condObj.setId(id)
-        ExtraParamInjector.sqlId("persist")
+        ExtraParamInjector.sqlId(verboseSqlId("persist step1"))
+        int origCount = qe.count(currentClass)
+        ExtraParamInjector.sqlId(verboseSqlId("persist step2"))
         def persistNum = qe.persistAutoCond(record, condObj)
         assert persistNum == 1
+        ExtraParamInjector.sqlId(verboseSqlId("persist step3"))
+        int afterPersistInsertCount = qe.count(currentClass)
+        assert afterPersistInsertCount - origCount == 1
+        ExtraParamInjector.sqlId(verboseSqlId("persist step4"))
+        def maxId = qe.genericQry("select max(id) id from ${tableName()}").get(0).get('id')
+        def fieldToColumnMap = TableObjectMetaCache.getFieldToColumnMap(getCurrentClass())
+        String idCol = fieldToColumnMap.get('id')
+        ExtraParamInjector.sqlId(verboseSqlId("persist step5"))
+        persistNum = qe.persist(record,new Cond(idCol,maxId))
+        assert persistNum == 1
+        ExtraParamInjector.sqlId(verboseSqlId("persist step6"))
+        int afterPersistUpdateCount = qe.count(currentClass)
+        assert afterPersistUpdateCount == afterPersistInsertCount
     }
 
     void insertAndReturnAutoGen(){
         logger.info ' -- insertAndReturnAutoGen -- '
         def clazz = getCurrentClass()
         def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(clazz, 1))
-        ExtraParamInjector.sqlId("insertAndReturnAutoGen step1")
+        ExtraParamInjector.sqlId(verboseSqlId("insertAndReturnAutoGen step1"))
         def autoGenValue = qe.insertAndReturnAutoGen(record)
         assert autoGenValue!=null
         if(autoGenValue instanceof BigInteger || autoGenValue instanceof BigDecimal){
             autoGenValue = autoGenValue.longValue()
         }
-        ExtraParamInjector.sqlId("insertAndReturnAutoGen step2")
+        ExtraParamInjector.sqlId(verboseSqlId("insertAndReturnAutoGen step2"))
         def resultRecord = qe.findObject(clazz, new Cond("id", autoGenValue))
         record.setId(autoGenValue)
         def fields = MiscUtil.getAllFields(clazz)
@@ -680,7 +735,7 @@ class CommonTest {
         def id2Del = MiscUtil.extractFieldValueFromObj(list.get(0),"id")
         def del = getCurrentClass().newInstance()
         MiscUtil.setValue(del,"id",id2Del)
-        ExtraParamInjector.sqlId("delOne")
+        ExtraParamInjector.sqlId(verboseSqlId("delOne"))
         def delNum = qe.delObjects(del)
         assert delNum == 1
     }
@@ -690,7 +745,7 @@ class CommonTest {
         List<? extends DummyTable> list = GeneralThreadLocal.get("allRecords")
         def id2Del = MiscUtil.extractFieldValueFromObj(list.get(1),"id")
         def del = getCurrentClass().newInstance()
-        ExtraParamInjector.sqlId("extraCondDel")
+        ExtraParamInjector.sqlId(verboseSqlId("extraCondDel"))
         ExtraParamInjector.addCond([new Cond("id",id2Del)])
         def delNum = qe.delObjects(del)
         assert delNum == 1
@@ -699,7 +754,8 @@ class CommonTest {
     void delAll(){
         logger.info ' -- delAll -- '
         def del = getCurrentClass().newInstance()
-        ExtraParamInjector.sqlId("delAll")
+        ExtraParamInjector.sqlId(verboseSqlId("delAll"))
+        ExtraParamInjector.allowEmptyUpdateCond()
         def delNum = qe.delObjects(del)
         assert delNum > 0
     }
@@ -716,29 +772,34 @@ class CommonTest {
 
         Closure clNormal = { QueryEntry queryEntry ->
             def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
-            ExtraParamInjector.sqlId("tx 001")
+            ExtraParamInjector.sqlId(verboseSqlId("tx 001"))
             queryEntry.insert(record)
         }
         Closure<Boolean> validNormal = { QueryEntry queryEntry ->
-            ExtraParamInjector.sqlId("tx 002")
+            ExtraParamInjector.sqlId(verboseSqlId("tx 002"))
             return queryEntry.searchObjects(getCurrentClass().newInstance()).size() == 1
         }
         assert TransactionTest.tx(getDbType(),clSetup,clNormal,validNormal)
-        ExtraParamInjector.sqlId("tx 003")
+        ExtraParamInjector.sqlId(verboseSqlId("tx 003"))
+        ExtraParamInjector.allowEmptyUpdateCond()
         qe.delObjects(getCurrentClass().newInstance())
 
         Closure clException = { QueryEntry queryEntry ->
             def record = MiscUtil.getFirst(CommonTool.generateDummyRecords(getCurrentClass(), 1))
-            ExtraParamInjector.sqlId("tx 004")
+            ExtraParamInjector.sqlId(verboseSqlId("tx 004"))
             queryEntry.insert(record)
-            ExtraParamInjector.sqlId("tx 005")
+            ExtraParamInjector.sqlId(verboseSqlId("tx 005"))
             queryEntry.updateSelective(record,new Cond("field_no_exist","xxx"))
         }
         Closure<Boolean> validException = { QueryEntry queryEntry ->
-            ExtraParamInjector.sqlId("tx 006")
+            ExtraParamInjector.sqlId(verboseSqlId("tx 006"))
             return queryEntry.searchObjects(getCurrentClass().newInstance()).size() == 0
         }
         assert TransactionTest.tx(getDbType(),clSetup,clException,validException)
+    }
+    
+    String verboseSqlId(String sqlId){
+        return "${currentClass.simpleName} - ${tableName()}:$sqlId"
     }
 
     static void compareValueEqual(Object origValue, Object resultValue){

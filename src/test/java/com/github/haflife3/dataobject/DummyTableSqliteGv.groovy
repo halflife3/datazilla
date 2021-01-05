@@ -1,5 +1,6 @@
 package com.github.haflife3.dataobject
 
+import com.github.haflife3.datazilla.annotation.Primary
 import com.github.haflife3.datazilla.annotation.Table
 import com.github.haflife3.datazilla.annotation.Column
 import uk.co.jemos.podam.common.PodamDoubleValue
@@ -11,6 +12,7 @@ class DummyTableSqliteGv extends DummyTable implements Serializable{
 
     /**  */
     @PodamExclude
+    @Primary
     @Column("ID")
     private Long id
 
