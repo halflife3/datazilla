@@ -127,7 +127,7 @@ There are two set of APIs you can choose to query records from database: (search
 
 The first one is more object oriented, the second one is more flexible.
 
-When using `QueryEntry.searchObjects()` or `QueryEntry.searchObject()`, the object you passed in as the parameter will be transformed as a list of conditions (null value fields ignored), then in the background, this `QueryEntry.findObjects()` method will be invoked.
+When using `QueryEntry.searchObjects()` or `QueryEntry.searchObject()`, the object you passed in as the parameter will be transformed to a list of conditions (null value fields ignored), then in the background, this `QueryEntry.findObjects()` method will be invoked.
 ```java
 Dummy dummy = new Dummy();
 dummy.setId(1L);
